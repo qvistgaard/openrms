@@ -66,7 +66,7 @@ func (oxigen *Oxigen) Closer() error {
 
 func (oxigen *Oxigen) EventLoop(input queue.Queue, output queue.Queue) error {
 
-	ctx, cancel := context.WithTimeout(context.Background(), 1000*time.Millisecond)
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
 	defer cancel()
 	defer oxigen.serial.Close()
 	var err error
@@ -91,6 +91,8 @@ func (oxigen *Oxigen) EventLoop(input queue.Queue, output queue.Queue) error {
 			len, err := oxigen.serial.Read(buffer)
 
 			if len > 0 {
+				log.Printf("R> %x", buffer)
+
 				qerr := output.Enqueue(buffer)
 				if qerr != nil {
 					break
