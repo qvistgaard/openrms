@@ -1,7 +1,7 @@
 package main
 
 import (
-	"../plugins/connector/oxigen"
+	"./plugins/connector/oxigen"
 	queue "github.com/enriquebris/goconcurrentqueue"
 	"log"
 	"sync"
@@ -11,8 +11,8 @@ var wg sync.WaitGroup // 1
 
 func main() {
 	var err error
-	usb := oxigen.NewUSBConnection("/dev/ttyACM0")
-	o, err := oxigen.Connect(usb)
+	connection, _ := oxigen.NewUSBConnection("COM5")
+	o, err := oxigen.Connect(connection)
 	if err != nil {
 		log.Fatal(err)
 	}

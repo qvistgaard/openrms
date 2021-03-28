@@ -15,4 +15,5 @@ type Connector interface {
 	flag(lc bool)
 	maxSpeed(speed uint8)
 	pitLaneLapCount(enabled bool, entry bool)
+	shutdown()
 }
