@@ -4,11 +4,14 @@ import (
 	"../plugins/connector/oxigen"
 	queue "github.com/enriquebris/goconcurrentqueue"
 	"log"
+	"sync"
 )
+
+var wg sync.WaitGroup // 1
 
 func main() {
 	var err error
-	usb := oxigen.NewUSBConnection("/dev/ttyACM1")
+	usb := oxigen.NewUSBConnection("/dev/ttyACM0")
 	o, err := oxigen.Connect(usb)
 	if err != nil {
 		log.Fatal(err)
@@ -18,13 +21,22 @@ func main() {
 	input := queue.NewFIFO()
 	output := queue.NewFIFO()
 
-	go o.EventLoop(input, output)
-
-	for {
-		elm, err := output.DequeueOrWaitForNextElement()
-		if err != nil {
-			log.Fatal(err)
+	wg.Add(1)
+	go eventloop(o, input, output)
+	// go o.EventLoop(input, output)
+	/*
+		for {
+			elm, err := output.DequeueOrWaitForNextElement()
+			if err != nil {
+				log.Fatal(err)
+			}
+			log.Printf("%x", elm)
 		}
-		log.Printf("%x", elm)
-	}
+	*/
+	wg.Wait()
+}
+
+func eventloop(o *oxigen.Oxigen, input queue.Queue, output queue.Queue) error {
+	defer wg.Done()
+	return o.EventLoop(input, output)
 }

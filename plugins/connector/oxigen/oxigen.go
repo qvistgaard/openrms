@@ -15,6 +15,7 @@ import (
 func Connect(serial ReadWriteCloserConnector) (*Oxigen, error) {
 	var err error
 	o := new(Oxigen)
+	o.stop()
 
 	o.serial, err = serial.connect()
 	if err != nil {
@@ -70,6 +71,7 @@ func (oxigen Oxigen) EventLoop(input queue.Queue, output queue.Queue) error {
 	var err error
 	for {
 		_, _ = input.DequeueOrWaitForNextElementContext(ctx)
+		log.Print(oxigen.state)
 		b := []byte{
 			oxigen.state | oxigen.settings.pitLane.lapTrigger | oxigen.settings.pitLane.lapCounting,
 			oxigen.settings.maxSpeed,
@@ -88,15 +90,20 @@ func (oxigen Oxigen) EventLoop(input queue.Queue, output queue.Queue) error {
 			log.Fatalf("port.Write: %v", err)
 			break
 		}
+		log.Printf("S> %x", b)
 		for {
 			buffer := make([]byte, 13)
 			_, err = oxigen.serial.Read(buffer)
-			if err != nil {
+
+			log.Printf("R< %x", buffer)
+			qerr := output.Enqueue(buffer)
+			if qerr != nil {
 				break
 			}
 
-			err = output.Enqueue(buffer)
 			if err != nil {
+				log.Print(err)
+				err = nil
 				break
 			}
 		}
@@ -104,6 +111,7 @@ func (oxigen Oxigen) EventLoop(input queue.Queue, output queue.Queue) error {
 			break
 		}
 	}
+	log.Print(err)
 	return err
 }
 
@@ -132,7 +140,7 @@ func (oxigen Oxigen) pitLaneLapCount(enabled bool, entry bool) bool {
 	return true
 }
 
-func (oxigen Oxigen) stop() bool {
+func (oxigen *Oxigen) stop() bool {
 	oxigen.state = 0x01
 	return true
 }
