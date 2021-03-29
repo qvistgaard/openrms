@@ -15,7 +15,7 @@ func NewUSBConnection(device string) (io.ReadWriteCloser, error) {
 		BaudRate:              115200,
 		DataBits:              8,
 		StopBits:              1,
-		MinimumReadSize:       0,
+		MinimumReadSize:       13,
 		InterCharacterTimeout: 1000,
 	}
 	return serial.Open(options)

@@ -4,6 +4,7 @@ import (
 	"../../../ipc"
 	"../../../ipc/commands"
 	"context"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	queue "github.com/enriquebris/goconcurrentqueue"
@@ -78,28 +79,27 @@ func (oxigen *Oxigen) EventLoop(input queue.Queue, output queue.Queue) error {
 		} else {
 			command = cmd.(*ipc.Command)
 		}
-		fmt.Printf("COMMAND [%T] %+v\n", command, command)
+		// fmt.Printf("COMMAND [%T] %+v\n", command, command)
 
 		b := oxigen.message(*command)
 		_, err = oxigen.serial.Write(b)
 		if err != nil {
 			break
 		}
-		log.Printf("S> %x", b)
+		// log.Printf("S> %d %s", len(b), hex.Dump(b))
 		for {
 			buffer := make([]byte, 13)
-			len, err := oxigen.serial.Read(buffer)
+			l, err := oxigen.serial.Read(buffer)
+			log.Printf("R< %d %s", len(buffer), hex.Dump(buffer))
 
-			if len > 0 {
-				log.Printf("R> %x", buffer)
-
+			if l > 0 {
 				qerr := output.Enqueue(buffer)
 				if qerr != nil {
 					break
 				}
+			} else {
+				break
 			}
-
-			// os.Exit(1)
 			if err != nil {
 				log.Print(err)
 				err = nil
@@ -148,7 +148,7 @@ func (oxigen *Oxigen) maxSpeed(speed uint8) bool {
 	return true
 }
 
-func (oxigen *Oxigen) start() bool {
+func (oxigen *Oxigen) Start() bool {
 	oxigen.state = 0x03
 	return true
 }

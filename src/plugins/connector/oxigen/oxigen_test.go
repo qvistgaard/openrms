@@ -69,7 +69,7 @@ func TestRaceStateSetToStop(t *testing.T) {
 
 func TestRaceStateSetToStart(t *testing.T) {
 	o := new(Oxigen)
-	o.start()
+	o.Start()
 	m := o.message(*ipc.NewEmptyCommand())
 	assert.Equal(t, "03000000000000000000", hex.EncodeToString(m))
 }
