@@ -36,7 +36,7 @@ type PitLane struct {
 func Connect(serial io.ReadWriteCloser) (*Oxigen, error) {
 	var err error
 	o := new(Oxigen)
-	o.stop()
+	// o.stop()
 	o.serial = serial
 	o.running = true
 
@@ -67,10 +67,12 @@ func (oxigen *Oxigen) Closer() error {
 
 func (oxigen *Oxigen) EventLoop(input queue.Queue, output queue.Queue) error {
 
-	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+	ctx, cancel := context.WithTimeout(context.Background(), 1000*time.Millisecond)
 	defer cancel()
 	defer oxigen.serial.Close()
 	var err error
+
+	// oxigen.Start()
 	for {
 		var command *ipc.Command
 		cmd, _ := input.DequeueOrWaitForNextElementContext(ctx)
@@ -80,21 +82,24 @@ func (oxigen *Oxigen) EventLoop(input queue.Queue, output queue.Queue) error {
 			command = cmd.(*ipc.Command)
 		}
 		// fmt.Printf("COMMAND [%T] %+v\n", command, command)
-
-		b := oxigen.message(*command)
+		b := oxigen.command(*command)
 		_, err = oxigen.serial.Write(b)
 		if err != nil {
 			break
 		}
-		// log.Printf("S> %d %s", len(b), hex.Dump(b))
+		log.Printf("S> %d %s", len(b), hex.Dump(b))
 		for {
 			buffer := make([]byte, 13)
 			l, err := oxigen.serial.Read(buffer)
-			log.Printf("R< %d %s", len(buffer), hex.Dump(buffer))
-
+			event := oxigen.event(buffer)
+			if event.Controller.ArrowUp {
+				log.Printf("%+v\n", event)
+				log.Printf("R< %d %s", len(buffer), hex.Dump(buffer))
+			}
 			if l > 0 {
 				qerr := output.Enqueue(buffer)
 				if qerr != nil {
+					log.Print(err)
 					break
 				}
 			} else {
@@ -117,7 +122,28 @@ func (oxigen *Oxigen) EventLoop(input queue.Queue, output queue.Queue) error {
 	return err
 }
 
-func (oxigen *Oxigen) message(c ipc.Command) []byte {
+func (oxigen *Oxigen) event(b []byte) ipc.Event {
+	return ipc.Event{
+		Id: b[1],
+		Controller: ipc.Controller{
+			BatteryWarning: 0x04&b[0] == 0x04,
+			Link:           0x02&b[0] == 0x02,
+			TrackCall:      0x08&b[0] == 0x08,
+			ArrowUp:        0x20&b[0] == 0x20,
+			ArrowDown:      0x40&b[0] == 0x40,
+		},
+		Car: ipc.Car{
+			Reset: 0x01&b[0] == 0x01,
+			InPit: 0x04&b[8] == 0x04,
+		},
+		LapTime:      time.Duration((uint(b[2]) * 256) + uint(b[3])),
+		LapNumber:    (uint16(b[5]) * 256) + uint16(b[6]),
+		TriggerValue: 0x74 & b[7],
+		Ontrack:      0x80&b[7] == 0x80,
+	}
+}
+
+func (oxigen *Oxigen) command(c ipc.Command) []byte {
 	var cmd byte = 0x00
 	var parameter byte = 0x00
 	var controller byte = 0x00

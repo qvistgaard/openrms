@@ -15,7 +15,7 @@ func main() {
 	var err error
 	// connection, _ := oxigen.NewUSBConnection("COM5")
 
-	c := &serial.Config{Name: "COM5", Baud: 115200, ReadTimeout: time.Millisecond * 100}
+	c := &serial.Config{Name: "COM5", Baud: 1200, ReadTimeout: time.Millisecond * 1000}
 	connection, _ := serial.OpenPort(c)
 	o, err := oxigen.Connect(connection)
 	if err != nil {
@@ -26,7 +26,7 @@ func main() {
 	input := queue.NewFIFO()
 	output := queue.NewFIFO()
 
-	o.Start()
+	// o.Start()
 
 	wg.Add(1)
 	go eventloop(o, input, output)

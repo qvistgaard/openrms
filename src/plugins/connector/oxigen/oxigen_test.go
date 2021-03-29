@@ -63,21 +63,21 @@ func TestHandshakeAsksForVersionAndDecodesVersion(t *testing.T) {
 func TestRaceStateSetToStop(t *testing.T) {
 	o := new(Oxigen)
 	o.stop()
-	m := o.message(*ipc.NewEmptyCommand())
+	m := o.command(*ipc.NewEmptyCommand())
 	assert.Equal(t, "01000000000000000000", hex.EncodeToString(m))
 }
 
 func TestRaceStateSetToStart(t *testing.T) {
 	o := new(Oxigen)
 	o.Start()
-	m := o.message(*ipc.NewEmptyCommand())
+	m := o.command(*ipc.NewEmptyCommand())
 	assert.Equal(t, "03000000000000000000", hex.EncodeToString(m))
 }
 
 func TestRaceStateSetToPause(t *testing.T) {
 	o := new(Oxigen)
 	o.pause()
-	m := o.message(*ipc.NewEmptyCommand())
+	m := o.command(*ipc.NewEmptyCommand())
 	assert.Equal(t, "04000000000000000000", hex.EncodeToString(m))
 }
 
@@ -85,7 +85,7 @@ func TestRaceStateSetToStopAndMaxSpeedFull(t *testing.T) {
 	o := new(Oxigen)
 	o.stop()
 	o.maxSpeed(255)
-	m := o.message(*ipc.NewEmptyCommand())
+	m := o.command(*ipc.NewEmptyCommand())
 	assert.Equal(t, "01ff0000000000000000", hex.EncodeToString(m))
 }
 
@@ -94,7 +94,7 @@ func TestRaceStateSetToStopPitLaneLapCountExitEnabledAndMaxSpeedFull(t *testing.
 	o.stop()
 	o.maxSpeed(255)
 	o.pitLaneLapCount(true, false)
-	m := o.message(*ipc.NewEmptyCommand())
+	m := o.command(*ipc.NewEmptyCommand())
 
 	assert.Equal(t, "41ff0000000000000000", hex.EncodeToString(m))
 }
@@ -104,7 +104,7 @@ func TestRaceStateSetToStopPitLaneLapCountOnEntryEnabledAndMaxSpeedFull(t *testi
 	o.stop()
 	o.maxSpeed(255)
 	o.pitLaneLapCount(true, true)
-	m := o.message(*ipc.NewEmptyCommand())
+	m := o.command(*ipc.NewEmptyCommand())
 
 	assert.Equal(t, "01ff0000000000000000", hex.EncodeToString(m))
 }
