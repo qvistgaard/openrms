@@ -1,18 +1,16 @@
 package oxigen
 
 import (
-	"../../../ipc"
-	"../../../ipc/commands"
 	"context"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	queue "github.com/enriquebris/goconcurrentqueue"
 	"github.com/hashicorp/go-version"
 	"io"
 	"log"
+	"openrms/ipc"
+	"openrms/ipc/commands"
 	"time"
-	// "../../../src/connector"
 )
 
 type Oxigen struct {
@@ -36,7 +34,6 @@ type PitLane struct {
 func Connect(serial io.ReadWriteCloser) (*Oxigen, error) {
 	var err error
 	o := new(Oxigen)
-	// o.stop()
 	o.serial = serial
 	o.running = true
 
@@ -48,9 +45,10 @@ func Connect(serial io.ReadWriteCloser) (*Oxigen, error) {
 	}
 
 	versionResponse := make([]byte, 13)
+	time.Sleep(10 * time.Millisecond)
 	_, err = o.serial.Read(versionResponse)
 	v, _ := version.NewVersion(fmt.Sprintf("%d.%d", versionResponse[0], versionResponse[1]))
-	constraint, _ := version.NewConstraint(">= 3.0")
+	constraint, _ := version.NewConstraint(">= 3.10")
 
 	if !constraint.Check(v) {
 		return nil, errors.New(fmt.Sprintf("Unsupported dongle version: %s", v))
@@ -61,18 +59,17 @@ func Connect(serial io.ReadWriteCloser) (*Oxigen, error) {
 	return o, nil
 }
 
-func (oxigen *Oxigen) Closer() error {
+func (oxigen *Oxigen) Close() error {
 	return oxigen.serial.Close()
 }
 
 func (oxigen *Oxigen) EventLoop(input queue.Queue, output queue.Queue) error {
 
-	ctx, cancel := context.WithTimeout(context.Background(), 1000*time.Millisecond)
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
 	defer cancel()
 	defer oxigen.serial.Close()
 	var err error
 
-	// oxigen.Start()
 	for {
 		var command *ipc.Command
 		cmd, _ := input.DequeueOrWaitForNextElementContext(ctx)
@@ -81,27 +78,21 @@ func (oxigen *Oxigen) EventLoop(input queue.Queue, output queue.Queue) error {
 		} else {
 			command = cmd.(*ipc.Command)
 		}
-		// fmt.Printf("COMMAND [%T] %+v\n", command, command)
 		b := oxigen.command(*command)
 		_, err = oxigen.serial.Write(b)
 		if err != nil {
 			break
 		}
-		log.Printf("S> %d %s", len(b), hex.Dump(b))
+		// log.Printf("S> %d %s", len(b), hex.Dump(b))
 		for {
+			time.Sleep(10 * time.Millisecond)
 			buffer := make([]byte, 13)
-			l, err := oxigen.serial.Read(buffer)
+			_, err := oxigen.serial.Read(buffer)
+			// log.Printf("S> %d %s", len(buffer), hex.Dump(buffer))
+
 			event := oxigen.event(buffer)
-			if event.Controller.ArrowUp {
-				log.Printf("%+v\n", event)
-				log.Printf("R< %d %s", len(buffer), hex.Dump(buffer))
-			}
-			if l > 0 {
-				qerr := output.Enqueue(buffer)
-				if qerr != nil {
-					log.Print(err)
-					break
-				}
+			if event.Id > 0 {
+				output.Enqueue(event)
 			} else {
 				break
 			}
@@ -131,10 +122,12 @@ func (oxigen *Oxigen) event(b []byte) ipc.Event {
 			TrackCall:      0x08&b[0] == 0x08,
 			ArrowUp:        0x20&b[0] == 0x20,
 			ArrowDown:      0x40&b[0] == 0x40,
+			// version: ,
 		},
 		Car: ipc.Car{
 			Reset: 0x01&b[0] == 0x01,
-			InPit: 0x04&b[8] == 0x04,
+			InPit: 0x40&b[8] == 0x40,
+			// version:
 		},
 		LapTime:      time.Duration((uint(b[2]) * 256) + uint(b[3])),
 		LapNumber:    (uint16(b[5]) * 256) + uint16(b[6]),
@@ -169,17 +162,15 @@ func (oxigen *Oxigen) command(c ipc.Command) []byte {
 	}
 }
 
-func (oxigen *Oxigen) maxSpeed(speed uint8) bool {
+func (oxigen *Oxigen) MaxSpeed(speed uint8) {
 	oxigen.settings.maxSpeed = speed
-	return true
 }
 
-func (oxigen *Oxigen) Start() bool {
+func (oxigen *Oxigen) Start() {
 	oxigen.state = 0x03
-	return true
 }
 
-func (oxigen *Oxigen) pitLaneLapCount(enabled bool, entry bool) bool {
+func (oxigen *Oxigen) PitLaneLapCount(enabled bool, entry bool) {
 	if !enabled {
 		oxigen.settings.pitLane.lapCounting = 0x20
 		oxigen.settings.pitLane.lapTrigger = 0x00
@@ -191,28 +182,24 @@ func (oxigen *Oxigen) pitLaneLapCount(enabled bool, entry bool) bool {
 			oxigen.settings.pitLane.lapTrigger = 0x40
 		}
 	}
-	return true
 }
 
-func (oxigen *Oxigen) stop() bool {
+func (oxigen *Oxigen) Stop() {
 	oxigen.state = 0x01
-	return true
 }
 
-func (oxigen *Oxigen) pause() bool {
+func (oxigen *Oxigen) Pause() {
 	oxigen.state = 0x04
-	return true
 }
 
-func (oxigen *Oxigen) flag(lc bool) bool {
+func (oxigen *Oxigen) Flag(lc bool) {
 	if lc {
 		oxigen.state = 0x05
 	} else {
 		oxigen.state = 0x15
 	}
-	return true
 }
 
-func (oxigen *Oxigen) shutdown() {
+func (oxigen *Oxigen) Shutdown() {
 	oxigen.running = false
 }

@@ -1,11 +1,11 @@
 package oxigen
 
 import (
-	"../../../ipc"
 	"encoding/hex"
 	queue "github.com/enriquebris/goconcurrentqueue"
 	"github.com/stretchr/testify/assert"
 	"io"
+	"openrms/ipc"
 	"testing"
 )
 
@@ -62,7 +62,7 @@ func TestHandshakeAsksForVersionAndDecodesVersion(t *testing.T) {
 
 func TestRaceStateSetToStop(t *testing.T) {
 	o := new(Oxigen)
-	o.stop()
+	o.Stop()
 	m := o.command(*ipc.NewEmptyCommand())
 	assert.Equal(t, "01000000000000000000", hex.EncodeToString(m))
 }
@@ -76,24 +76,24 @@ func TestRaceStateSetToStart(t *testing.T) {
 
 func TestRaceStateSetToPause(t *testing.T) {
 	o := new(Oxigen)
-	o.pause()
+	o.Pause()
 	m := o.command(*ipc.NewEmptyCommand())
 	assert.Equal(t, "04000000000000000000", hex.EncodeToString(m))
 }
 
 func TestRaceStateSetToStopAndMaxSpeedFull(t *testing.T) {
 	o := new(Oxigen)
-	o.stop()
-	o.maxSpeed(255)
+	o.Stop()
+	o.MaxSpeed(255)
 	m := o.command(*ipc.NewEmptyCommand())
 	assert.Equal(t, "01ff0000000000000000", hex.EncodeToString(m))
 }
 
 func TestRaceStateSetToStopPitLaneLapCountExitEnabledAndMaxSpeedFull(t *testing.T) {
 	o := new(Oxigen)
-	o.stop()
-	o.maxSpeed(255)
-	o.pitLaneLapCount(true, false)
+	o.Stop()
+	o.MaxSpeed(255)
+	o.PitLaneLapCount(true, false)
 	m := o.command(*ipc.NewEmptyCommand())
 
 	assert.Equal(t, "41ff0000000000000000", hex.EncodeToString(m))
@@ -101,9 +101,9 @@ func TestRaceStateSetToStopPitLaneLapCountExitEnabledAndMaxSpeedFull(t *testing.
 
 func TestRaceStateSetToStopPitLaneLapCountOnEntryEnabledAndMaxSpeedFull(t *testing.T) {
 	o := new(Oxigen)
-	o.stop()
-	o.maxSpeed(255)
-	o.pitLaneLapCount(true, true)
+	o.Stop()
+	o.MaxSpeed(255)
+	o.PitLaneLapCount(true, true)
 	m := o.command(*ipc.NewEmptyCommand())
 
 	assert.Equal(t, "01ff0000000000000000", hex.EncodeToString(m))
@@ -117,7 +117,7 @@ func TestEventLoopPublishingMessagesOnQueue(t *testing.T) {
 	o := &Oxigen{
 		serial: newMockConnection(mockInput, mockOutput),
 	}
-	o.stop()
+	o.Stop()
 
 	eventInput := queue.NewFIFO()
 	eventInput.Enqueue(ipc.NewEmptyCommand())

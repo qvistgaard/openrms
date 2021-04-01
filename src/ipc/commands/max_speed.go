@@ -1,6 +1,6 @@
 package commands
 
-import ipc ".."
+import ipc "openrms/ipc"
 
 type MaxSpeed struct {
 	maxSpeed uint8
