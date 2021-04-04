@@ -1,9 +1,11 @@
 implement:
-  type: oxigen
-  port: COM5
+  plugin: oxigen
+  oxigen:
+    port: COM5
 
 
 race:
+  plugin: simple
   max-speed: 255
   pitlane:
     lapcounting:
@@ -11,22 +13,27 @@ race:
       entry: true
 
 
-cars:
-  1:
-    max-speed: 255
-  2:
-    max-speed: 255
+car:
+  plugin: list
+  cars:
+    - id: 1
+      max-speed: 255
+    - id: 2
+      max-speed: 255
 
 rules:
-  fuel: {}
-  limbmode:
+  - plugin: fuel
+    enabled: true
+
+  - plugin: limb-mode
+    enabled: true
     max-speed: 50
 
 telemetry:
-  sink: influxdb
+  plugin: influxdb
   influxdb:
-    hostname: localhost
-    batchSize: 100
-    authToken: safdsafs
+    url: "http://localhost:8086"
+    # batch-size: 100
+    auth-token: "_esnfjdFsjvkBkgc4S3ovqftb8RmmwAeGDBbt4fsY20EA9pFqeLaNYUkoH3sOyZ9jfTGcML-dB8AKgyj577Qhw=="
     organization: openrms
     bucket: openrms
