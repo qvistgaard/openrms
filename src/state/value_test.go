@@ -5,17 +5,14 @@ import (
 	"testing"
 )
 
-type StateChangeConfirmer struct {
-}
-
 func TestValue_InitalStateNotChanged(t *testing.T) {
-	s := createState(nil, "fuel", 100)
+	s := CreateState(nil, "fuel", 100)
 	assert.Equal(t, 100, s.Get())
 	assert.False(t, s.Changed())
 }
 
 func TestUninitializedValue_StateChanged(t *testing.T) {
-	s := createState(nil, "fuel", 100)
+	s := CreateState(nil, "fuel", 100)
 	s.Set(101)
 
 	assert.Equal(t, 101, s.Get())
@@ -23,7 +20,7 @@ func TestUninitializedValue_StateChanged(t *testing.T) {
 }
 
 func TestValue_StateChanged(t *testing.T) {
-	s := createState(nil, "fuel", 100)
+	s := CreateState(nil, "fuel", 100)
 	s.initialize()
 	s.Set(101)
 
@@ -32,7 +29,7 @@ func TestValue_StateChanged(t *testing.T) {
 }
 
 func TestValue_StateChangedReset(t *testing.T) {
-	s := createState(nil, "fuel", 100)
+	s := CreateState(nil, "fuel", 100)
 	s.Set(101)
 
 	s.reset()
@@ -41,7 +38,7 @@ func TestValue_StateChangedReset(t *testing.T) {
 }
 
 func TestValue_StateInitialIsNotChanged(t *testing.T) {
-	s := createState(nil, "fuel", 100)
+	s := CreateState(nil, "fuel", 100)
 	s.Set(101)
 
 	assert.Equal(t, 100, s.Initial())

@@ -1,6 +1,6 @@
 package state
 
-func createState(owner Owner, name string, v interface{}) *Value {
+func CreateState(owner Owner, name string, v interface{}) *Value {
 	s := new(Value)
 	s.value = v
 	s.initial = v

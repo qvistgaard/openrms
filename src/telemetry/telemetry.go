@@ -6,6 +6,13 @@ import (
 )
 import queue "github.com/enriquebris/goconcurrentqueue"
 
+func NewQueueReceiver(processor Processor) *QueueReceiver {
+	q := new(QueueReceiver)
+	q.queue = queue.NewFIFO()
+	q.processor = processor
+	return q
+}
+
 type Car struct {
 	Car    uint8
 	Values map[string]interface{}
@@ -18,22 +25,30 @@ type Processor interface {
 }
 
 type Receiver interface {
+	CarChanges(car *state.Car)
+	Process()
 }
 
 type QueueReceiver struct {
-	queue queue.Queue
+	queue     queue.Queue
+	processor Processor
 }
 
-func (q *QueueReceiver) CarChanges(values map[string]state.StateInterface) {
-	for k, v := range values {
-		car, err := v.Owner().(state.Car)
-		if !err {
-			q.queue.Enqueue(&Car{
-				Car: car.Id(),
-			})
+func (q *QueueReceiver) Process() {
+	element, err := q.queue.DequeueOrWaitForNextElement()
+	if err != nil {
+		car, ok := element.(Car)
+		if ok {
+			q.processor.ProcessCar(car)
 		}
-
 	}
+}
 
-	q.queue.Enqueue()
+func (q *QueueReceiver) CarChanges(car *state.Car) {
+	c := new(Car)
+	c.Time = time.Now()
+	for k, v := range car.State().Changes() {
+		c.Values[k] = v.Get()
+	}
+	q.queue.Enqueue(c)
 }

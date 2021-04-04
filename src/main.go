@@ -1,52 +1,59 @@
 package main
 
 import (
-	queue "github.com/enriquebris/goconcurrentqueue"
-	"github.com/tarm/serial"
+	"flag"
+	"fmt"
+	"io/ioutil"
 	"log"
-	"openrms/plugins/connector/oxigen"
+	config2 "openrms/config"
 	"openrms/plugins/rules/fuel"
 	"openrms/state"
-
-	"openrms/plugins/telemetry/influxdb"
+	"openrms/telemetry"
 	"sync"
-	"time"
 )
 
 var wg sync.WaitGroup
 
-func main() {
-	var err error
+type RaceContainer struct {
+	race struct {
+		maxSpeed uint8 `yaml:"max-speed"`
+	}
+}
 
-	c := &serial.Config{Name: "COM5", Baud: 19200, ReadTimeout: time.Millisecond * 100}
-	connection, _ := serial.OpenPort(c)
-	o, err := oxigen.Connect(connection)
+func main() {
+	config := flag.String("config", "config.yaml", "OpenRMS Config file")
+	file, err := ioutil.ReadFile(*config)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%+v", file)
+
+	implement, err := config2.CreateImplementFromConfig(*config)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	input := queue.NewFIFO()
-	output := queue.NewFIFO()
-	telemetry := queue.NewFIFO()
+	t := telemetry.NewQueueReceiver(nil)
+	r := state.CreateRace(map[string]interface{}{})
 
-	// Replace with dynamic list
+	// todo: Replace with dynamic list
 	targets := []state.Rule{
 		new(fuel.Consumption),
 	}
 
-	// Todo add repository
+	// Todo: add repository
 	cars := map[uint8]*state.Car{
-		2: state.CreateCar(1, map[string]interface{}{}, targets),
+		2: state.CreateCar(r, 2, map[string]interface{}{}, targets),
 	}
 
 	wg.Add(1)
-	// todo: change args to struct
-	go eventloop(o, input, output)
+	go eventloop(implement)
+
 	wg.Add(1)
-	// todo: change args to struct
-	go processEvents(o, output, telemetry, targets, cars)
+	go processEvents(implement, t, cars)
+
 	wg.Add(1)
-	go processTelemetry(influxdb.Connect(), telemetry)
+	go processTelemetry(t)
 
 	wg.Wait()
 }

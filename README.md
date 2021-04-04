@@ -19,10 +19,10 @@ on a Raspberry Pi, eliminating the high entry price of a computer with
 a Windows license. The goal is to release a version that will work on
 both Mac OS, Linux and Windows
 
-
 ## Getting Started
 
 ## Architecture
+
 
 ## Extending
 

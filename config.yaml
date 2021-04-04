@@ -1,0 +1,32 @@
+implement:
+  type: oxigen
+  port: COM5
+
+
+race:
+  max-speed: 255
+  pitlane:
+    lapcounting:
+      enabled: true
+      entry: true
+
+
+cars:
+  1:
+    max-speed: 255
+  2:
+    max-speed: 255
+
+rules:
+  fuel: {}
+  limbmode:
+    max-speed: 50
+
+telemetry:
+  sink: influxdb
+  influxdb:
+    hostname: localhost
+    batchSize: 100
+    authToken: safdsafs
+    organization: openrms
+    bucket: openrms

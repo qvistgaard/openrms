@@ -6,36 +6,40 @@ import (
 	"fmt"
 	queue "github.com/enriquebris/goconcurrentqueue"
 	"github.com/hashicorp/go-version"
+	"github.com/tarm/serial"
 	"io"
 	"log"
-	"openrms/ipc"
-	"openrms/ipc/commands"
+	"openrms/implement"
+	"openrms/state"
 	"time"
 )
 
 type Oxigen struct {
 	state    byte
 	serial   io.ReadWriteCloser
-	settings Settings
+	settings *Settings
 	version  string
 	running  bool
+	commands queue.Queue
+	events   queue.Queue
 }
 
-type Settings struct {
-	maxSpeed byte
-	pitLane  PitLane
+func CreateUSBConnection(device string) (*serial.Port, error) {
+	c := &serial.Config{
+		Name:        device,
+		Baud:        19200,
+		ReadTimeout: time.Millisecond * 100,
+	}
+	return serial.OpenPort(c)
 }
 
-type PitLane struct {
-	lapCounting byte
-	lapTrigger  byte
-}
-
-func Connect(serial io.ReadWriteCloser) (*Oxigen, error) {
+func CreateImplement(serial io.ReadWriteCloser) (*Oxigen, error) {
 	var err error
 	o := new(Oxigen)
 	o.serial = serial
 	o.running = true
+	o.commands = queue.NewFIFO()
+	o.events = queue.NewFIFO()
 
 	versionRequest := []byte{0x06, 0x06, 0x06, 0x06, 0x00, 0x00, 0x00} // Get dongle version bytecode
 	_, err = o.serial.Write(versionRequest)
@@ -59,27 +63,23 @@ func Connect(serial io.ReadWriteCloser) (*Oxigen, error) {
 	return o, nil
 }
 
-func (oxigen *Oxigen) Close() error {
-	return oxigen.serial.Close()
-}
-
-func (oxigen *Oxigen) EventLoop(input queue.Queue, output queue.Queue) error {
-
+func (o *Oxigen) EventLoop() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
 	defer cancel()
-	defer oxigen.serial.Close()
+	defer o.serial.Close()
 	var err error
 
 	for {
-		var command *ipc.Command
-		cmd, _ := input.DequeueOrWaitForNextElementContext(ctx)
+		var command *Command
+		cmd, _ := o.commands.DequeueOrWaitForNextElementContext(ctx)
 		if cmd == nil {
-			command = ipc.NewEmptyCommand()
+			command = newEmptyCommand(map[string]state.StateInterface{}, o.state, o.settings)
 		} else {
-			command = cmd.(*ipc.Command)
+			command = cmd.(*Command)
 		}
-		b := oxigen.command(*command)
-		_, err = oxigen.serial.Write(b)
+
+		b := o.command(command)
+		_, err = o.serial.Write(b)
 		if err != nil {
 			break
 		}
@@ -87,12 +87,12 @@ func (oxigen *Oxigen) EventLoop(input queue.Queue, output queue.Queue) error {
 		for {
 			time.Sleep(10 * time.Millisecond)
 			buffer := make([]byte, 13)
-			_, err := oxigen.serial.Read(buffer)
+			_, err := o.serial.Read(buffer)
 			// log.Printf("S> %d %s", len(buffer), hex.Dump(buffer))
 
-			event := oxigen.event(buffer)
+			event := o.event(buffer)
 			if event.Id > 0 {
-				output.Enqueue(event)
+				o.events.Enqueue(event)
 			} else {
 				break
 			}
@@ -102,10 +102,7 @@ func (oxigen *Oxigen) EventLoop(input queue.Queue, output queue.Queue) error {
 				break
 			}
 		}
-		if err != nil {
-			break
-		}
-		if !oxigen.running {
+		if !o.running {
 			break
 		}
 	}
@@ -113,10 +110,32 @@ func (oxigen *Oxigen) EventLoop(input queue.Queue, output queue.Queue) error {
 	return err
 }
 
-func (oxigen *Oxigen) event(b []byte) ipc.Event {
-	return ipc.Event{
+func (o *Oxigen) WaitForEvent() (implement.Event, error) {
+	element, err := o.events.DequeueOrWaitForNextElement()
+	return element.(implement.Event), err
+}
+
+func (o *Oxigen) SendCommand(c implement.Command) error {
+	if len(c.Changes.Car) > 0 {
+		for k, v := range c.Changes.Car {
+			ec := newEmptyCommand(c.Changes.Race, o.state, o.settings)
+			if ec.carCommand(c.Id, k, v) {
+				err := o.commands.Enqueue(ec)
+				if err != nil {
+					return err
+				}
+			}
+		}
+	} else {
+		o.commands.Enqueue(newEmptyCommand(c.Changes.Race, o.state, o.settings))
+	}
+	return o.commands.Enqueue(c)
+}
+
+func (o *Oxigen) event(b []byte) implement.Event {
+	return implement.Event{
 		Id: b[1],
-		Controller: ipc.Controller{
+		Controller: implement.Controller{
 			BatteryWarning: 0x04&b[0] == 0x04,
 			Link:           0x02&b[0] == 0x02,
 			TrackCall:      0x08&b[0] == 0x08,
@@ -124,7 +143,7 @@ func (oxigen *Oxigen) event(b []byte) ipc.Event {
 			ArrowDown:      0x40&b[0] == 0x40,
 			// version: ,
 		},
-		Car: ipc.Car{
+		Car: implement.Car{
 			Reset: 0x01&b[0] == 0x01,
 			InPit: 0x40&b[8] == 0x40,
 			// version:
@@ -136,21 +155,20 @@ func (oxigen *Oxigen) event(b []byte) ipc.Event {
 	}
 }
 
-func (oxigen *Oxigen) command(c ipc.Command) []byte {
+func (o *Oxigen) command(c *Command) []byte {
 	var cmd byte = 0x00
 	var parameter byte = 0x00
 	var controller byte = 0x00
 
-	switch c.CommandType().(type) {
-	case *commands.MaxSpeed:
-		cmd = 0x02 // TODO: Add global command support
-		controller = c.Driver()
-		parameter = c.Value()[0]
+	if c.car != nil {
+		cmd = c.car.command
+		parameter = c.car.value
+		controller = c.car.id
 	}
 
 	return []byte{
-		oxigen.state | oxigen.settings.pitLane.lapTrigger | oxigen.settings.pitLane.lapCounting,
-		oxigen.settings.maxSpeed,
+		o.state | o.settings.pitLane.lapTrigger | o.settings.pitLane.lapCounting,
+		o.settings.maxSpeed,
 		controller,
 		cmd,
 		parameter,
@@ -160,46 +178,4 @@ func (oxigen *Oxigen) command(c ipc.Command) []byte {
 		0x00, // Racetimer ? ?
 		0x00, // Racetimer ? ?
 	}
-}
-
-func (oxigen *Oxigen) MaxSpeed(speed uint8) {
-	oxigen.settings.maxSpeed = speed
-}
-
-func (oxigen *Oxigen) Start() {
-	oxigen.state = 0x03
-}
-
-func (oxigen *Oxigen) PitLaneLapCount(enabled bool, entry bool) {
-	if !enabled {
-		oxigen.settings.pitLane.lapCounting = 0x20
-		oxigen.settings.pitLane.lapTrigger = 0x00
-	} else {
-		oxigen.settings.pitLane.lapCounting = 0x00
-		if entry {
-			oxigen.settings.pitLane.lapTrigger = 0x00
-		} else {
-			oxigen.settings.pitLane.lapTrigger = 0x40
-		}
-	}
-}
-
-func (oxigen *Oxigen) Stop() {
-	oxigen.state = 0x01
-}
-
-func (oxigen *Oxigen) Pause() {
-	oxigen.state = 0x04
-}
-
-func (oxigen *Oxigen) Flag(lc bool) {
-	if lc {
-		oxigen.state = 0x05
-	} else {
-		oxigen.state = 0x15
-	}
-}
-
-func (oxigen *Oxigen) Shutdown() {
-	oxigen.running = false
 }

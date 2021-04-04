@@ -1,55 +1,42 @@
 package main
 
 import (
-	queue "github.com/enriquebris/goconcurrentqueue"
 	"log"
-	"openrms/ipc"
-	"openrms/plugins/connector"
+	"openrms/implement"
 	"openrms/state"
 	"openrms/telemetry"
 )
 
-func eventloop(o connector.Connector, input queue.Queue, output queue.Queue) error {
+func eventloop(i implement.Implementer) error {
 	defer wg.Done()
 	log.Println("started race openrms.connector.")
-	err := o.EventLoop(input, output)
+	err := i.EventLoop()
 	log.Println(err)
 	return err
 }
 
-func processEvents(o connector.Connector, output queue.Queue, telemetry telemetry.Receiver, rules []state.Rule, cars map[uint8]*state.Car) {
+func processEvents(i implement.Implementer, telemetry telemetry.Receiver, cars map[uint8]*state.Car) {
 	defer wg.Done()
 
 	log.Println("started event processor.")
 	for {
-		event, _ := output.DequeueOrWaitForNextElement()
-		e := event.(ipc.Event)
-
+		e, _ := i.WaitForEvent()
 		c := cars[e.Id]
 		if c != nil {
-			c.Get(state.RaceEvent).Set(e)
+			c.State().Get(state.CarEvent).Set(e)
+			i.SendCommand(implement.CreateCommand(c))
+			telemetry.CarChanges(c)
+			c.State().ResetChanges()
 		}
-		log.Printf("%+v", e)
-
-		changes := c.StateChanges()
-		telemetry.Enqueue(changes)
-		log.Printf("%+v", changes)
-
-		c.ResetChanges()
 	}
 }
 
-func processTelemetry(processor telemetry.Receiver, input queue.Queue) {
+func processTelemetry(receiver telemetry.Receiver) {
 	defer wg.Done()
-
-	if processor != nil {
-		log.Println("started telemetry processor.")
-		for {
-			event, _ := input.DequeueOrWaitForNextElement()
-			t := event.(telemetry.Telemetry)
-			processor.Process(t)
-		}
+	if receiver != nil {
+		log.Println("started telemetry receiver.")
+		receiver.Process()
 	} else {
-		log.Println("telemetry processor disabled.")
+		log.Println("telemetry receiver disabled.")
 	}
 }
