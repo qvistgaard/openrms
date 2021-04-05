@@ -2,6 +2,7 @@ package oxigen
 
 import (
 	"github.com/qvistgaard/openrms/internal/state"
+	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -120,16 +121,23 @@ func (c *Command) carCommand(id uint8, s string, v state.StateInterface) bool {
 
 func (c *Command) maxSpeed(speed uint8) {
 	c.settings.maxSpeed = speed
+	log.WithField("max-speed", c.state).Debug("oxigen max car speed set.")
+
 }
 
 func (c *Command) start() {
 	c.state = 0x03
+	log.WithField("state", c.state).Debug("oxigen race state set to started.")
+
 }
 
 func (c *Command) pitLaneLapCount(enabled bool, entry bool) {
 	if !enabled {
 		c.settings.pitLane.lapCounting = 0x20
 		c.settings.pitLane.lapTrigger = 0x00
+		log.WithField("lap-counting", c.settings.pitLane.lapCounting).
+			WithField("lap-trigger-on-entry", c.settings.pitLane.lapTrigger).
+			Debug("oxigen pit lane lap counting disabled.")
 	} else {
 		c.settings.pitLane.lapCounting = 0x00
 		if entry {
@@ -137,21 +145,28 @@ func (c *Command) pitLaneLapCount(enabled bool, entry bool) {
 		} else {
 			c.settings.pitLane.lapTrigger = 0x40
 		}
+		log.WithField("lap-counting", c.settings.pitLane.lapCounting).
+			WithField("lap-trigger-on-entry", c.settings.pitLane.lapTrigger).
+			Debug("oxigen pit lane lap counting enabled.")
 	}
 }
 
 func (c *Command) stop() {
 	c.state = 0x01
+	log.WithField("state", c.state).Debug("oxigen race state set to stopped.")
 }
 
 func (c *Command) pause() {
 	c.state = 0x04
+	log.WithField("state", c.state).Debug("oxigen race state set to paused.")
 }
 
 func (c *Command) flag(lc bool) {
 	if lc {
 		c.state = 0x05
+		log.WithField("state", c.state).Debug("oxigen race state set to flagged with lane change enabled.")
 	} else {
 		c.state = 0x15
+		log.WithField("state", c.state).Debug("oxigen race state set to flagged with lane change disabled.")
 	}
 }

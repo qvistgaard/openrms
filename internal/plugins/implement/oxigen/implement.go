@@ -8,9 +8,9 @@ import (
 	"github.com/hashicorp/go-version"
 	"github.com/qvistgaard/openrms/internal/implement"
 	"github.com/qvistgaard/openrms/internal/state"
+	log "github.com/sirupsen/logrus"
 	"github.com/tarm/serial"
 	"io"
-	"log"
 	"time"
 )
 
@@ -59,7 +59,7 @@ func CreateImplement(serial io.ReadWriteCloser) (*Oxigen, error) {
 		return nil, errors.New(fmt.Sprintf("Unsupported dongle version: %s", v))
 	}
 	o.version = v.Original()
-	log.Printf("Connected to oxigen dongle. Dongle version: %s", v)
+	log.WithField("version", v).Infof("Connected to oxigen dongle. Dongle version: %s", v)
 
 	return o, nil
 }
@@ -83,15 +83,24 @@ func (o *Oxigen) EventLoop() error {
 		b := o.command(command, timer)
 		_, err = o.serial.Write(b)
 		if err != nil {
+			log.WithField("error", err).Errorf("failed to send message to oxygen dongle")
 			break
 		}
+		log.WithFields(map[string]interface{}{
+			"message": fmt.Sprintf("%x", b),
+		}).Tracef("send message to oxygen dongle")
+
 		// log.Printf("S> %d %s", len(b), hex.Dump(b))
 		for {
 			time.Sleep(10 * time.Millisecond)
 			buffer := make([]byte, 13)
 			_, err := o.serial.Read(buffer)
-			// log.Printf("S> %d %s", len(buffer), hex.Dump(buffer))
-			timer = buffer[7:9]
+			log.WithFields(map[string]interface{}{
+				"message": fmt.Sprintf("%x", buffer),
+			}).Tracef("recevied message to oxygen dongle")
+
+			// log.Printf("S> %d %s", len(buffer), hex.EncodeToString(buffer))
+			timer = buffer[7:10]
 
 			event := o.event(buffer)
 			if event.Id > 0 {

@@ -4,19 +4,22 @@ import (
 	"flag"
 	"github.com/qvistgaard/openrms/internal/config"
 	"github.com/qvistgaard/openrms/internal/state"
+	log "github.com/sirupsen/logrus"
 	"io/ioutil"
-	"log"
+
 	"sync"
 )
 
 var wg sync.WaitGroup
 
 func main() {
-	flagConfig := flag.String("config", "../config.yaml", "OpenRMS Config file")
+	log.SetLevel(log.TraceLevel)
+	flagConfig := flag.String("config", "config.yaml", "OpenRMS Config file")
 	file, err := ioutil.ReadFile(*flagConfig)
 	if err != nil {
 		log.Fatal(err)
 	}
+	// log.SetReportCaller(true)
 
 	implement, err := config.CreateImplementFromConfig(file)
 	if err != nil {
@@ -33,6 +36,7 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// todo: Create race from configuration
 	r := state.CreateRace(map[string]interface{}{})
 
 	// Todo: add repository
