@@ -1,10 +1,8 @@
 package oxigen
 
 import (
-	"context"
 	"errors"
 	"fmt"
-	queue "github.com/enriquebris/goconcurrentqueue"
 	"github.com/hashicorp/go-version"
 	"github.com/qvistgaard/openrms/internal/implement"
 	"github.com/qvistgaard/openrms/internal/state"
@@ -15,13 +13,14 @@ import (
 )
 
 type Oxigen struct {
-	state    byte
-	serial   io.ReadWriteCloser
-	settings *Settings
-	version  string
-	running  bool
-	commands queue.Queue
-	events   queue.Queue
+	state      byte
+	serial     io.ReadWriteCloser
+	settings   *Settings
+	version    string
+	running    bool
+	commands   chan *Command
+	events     chan implement.Event
+	bufferSize int
 }
 
 func CreateUSBConnection(device string) (*serial.Port, error) {
@@ -38,8 +37,9 @@ func CreateImplement(serial io.ReadWriteCloser) (*Oxigen, error) {
 	o := new(Oxigen)
 	o.serial = serial
 	o.running = true
-	o.commands = queue.NewFIFO()
-	o.events = queue.NewFIFO()
+	o.bufferSize = 1024
+	o.commands = make(chan *Command, 1024)
+	o.events = make(chan implement.Event, 1024)
 	o.settings = newSettings()
 
 	versionRequest := []byte{0x06, 0x06, 0x06, 0x06, 0x00, 0x00, 0x00} // Get dongle version bytecode
@@ -65,19 +65,22 @@ func CreateImplement(serial io.ReadWriteCloser) (*Oxigen, error) {
 }
 
 func (o *Oxigen) EventLoop() error {
-	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
-	defer cancel()
 	defer o.serial.Close()
 	var err error
 	timer := []byte{0x00, 0x00, 0x00}
 	for {
 		var command *Command
-		cmd, _ := o.commands.DequeueOrWaitForNextElementContext(ctx)
-
-		if cmd == nil {
+		select {
+		case cmd := <-o.commands:
+			command = cmd
+		case <-time.After(100 * time.Millisecond):
 			command = newEmptyCommand(map[string]state.StateInterface{}, o.state, o.settings)
-		} else {
-			command = cmd.(*Command)
+		}
+		if float32(len(o.commands)) > (float32(o.bufferSize) * 0.9) {
+			log.WithFields(map[string]interface{}{
+				"bufferSize": o.bufferSize,
+				"size":       len(o.commands),
+			}).Warn("too many commands on command buffer")
 		}
 
 		b := o.command(command, timer)
@@ -97,14 +100,14 @@ func (o *Oxigen) EventLoop() error {
 			_, err := o.serial.Read(buffer)
 			log.WithFields(map[string]interface{}{
 				"message": fmt.Sprintf("%x", buffer),
-			}).Tracef("recevied message to oxygen dongle")
+			}).Tracef("recevied message from oxygen dongle")
 
 			// log.Printf("S> %d %s", len(buffer), hex.EncodeToString(buffer))
 			timer = buffer[7:10]
 
 			event := o.event(buffer)
 			if event.Id > 0 {
-				o.events.Enqueue(event)
+				o.events <- event
 			} else {
 				break
 			}
@@ -123,8 +126,7 @@ func (o *Oxigen) EventLoop() error {
 }
 
 func (o *Oxigen) WaitForEvent() (implement.Event, error) {
-	element, err := o.events.DequeueOrWaitForNextElement()
-	return element.(implement.Event), err
+	return <-o.events, nil
 }
 
 func (o *Oxigen) SendCommand(c implement.Command) error {
@@ -132,15 +134,13 @@ func (o *Oxigen) SendCommand(c implement.Command) error {
 		for k, v := range c.Changes.Car {
 			ec := newEmptyCommand(c.Changes.Race, o.state, o.settings)
 			if ec.carCommand(c.Id, k, v) {
-				err := o.commands.Enqueue(ec)
-				if err != nil {
-					return err
-				}
+				o.commands <- ec
 			}
 		}
 		return nil
 	} else {
-		return o.commands.Enqueue(newEmptyCommand(c.Changes.Race, o.state, o.settings))
+		o.commands <- newEmptyCommand(c.Changes.Race, o.state, o.settings)
+		return nil
 	}
 }
 

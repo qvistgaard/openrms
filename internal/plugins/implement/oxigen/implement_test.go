@@ -64,7 +64,7 @@ func TestHandshakeAsksForVersionAndDecodesVersion(t *testing.T) {
 func TestTestSendSingleCommandOnNoCarStateChanges(t *testing.T) {
 	o := new(Oxigen)
 	o.settings = newSettings()
-	o.commands = queue.NewFIFO()
+	o.commands = make(chan *Command, 10)
 	race := state.CreateRace(map[string]interface{}{})
 	race.State().Get(state.RaceStatus).Set(state.RaceStatusStopped)
 	car := state.CreateCar(race, 1, map[string]interface{}{}, make([]state.Rule, 0))
@@ -72,29 +72,25 @@ func TestTestSendSingleCommandOnNoCarStateChanges(t *testing.T) {
 	c := implement.CreateCommand(car)
 
 	o.SendCommand(c)
-	assert.Equal(t, 1, o.commands.GetLen())
+	assert.Equal(t, 1, len(o.commands))
 
-	dequeue, err := o.commands.Dequeue()
-	command := dequeue.(*Command)
-	assert.Equal(t, 0, o.commands.GetLen())
-	assert.NoError(t, err)
+	command := <-o.commands
+	assert.Equal(t, 0, len(o.commands))
 	assert.Equal(t, uint8(0x01), command.state)
 }
 
 func TestTestSendSingleCommandOnCarStateChanges(t *testing.T) {
 	o := new(Oxigen)
 	o.settings = newSettings()
-	o.commands = queue.NewFIFO()
+	o.commands = make(chan *Command, 10)
 	race := state.CreateRace(map[string]interface{}{})
 	car := state.CreateCar(race, 1, map[string]interface{}{}, make([]state.Rule, 0))
 	car.State().Get(state.CarMaxSpeed).Set(uint8(255))
 	c := implement.CreateCommand(car)
 
 	o.SendCommand(c)
-	dequeue, err := o.commands.Dequeue()
-	command := dequeue.(*Command)
-	assert.Equal(t, 0, o.commands.GetLen())
-	assert.NoError(t, err)
+	command := <-o.commands
+	assert.Equal(t, 0, len(o.commands))
 	assert.Equal(t, uint8(1), command.car.id)
 	assert.Equal(t, uint8(0x02), command.car.command)
 	assert.Equal(t, uint8(0xFF), command.car.value)
@@ -106,9 +102,9 @@ func TestEventLoopCanReadMessages(t *testing.T) {
 	c := newEmptyCommand(map[string]state.StateInterface{}, 0x00, newSettings())
 	o := Oxigen{
 		settings: newSettings(),
-		commands: queue.NewFIFO(),
+		commands: make(chan *Command, 10),
 		serial:   newMockConnection(input, output),
 	}
-	o.commands.Enqueue(c)
+	o.commands <- c
 	o.EventLoop()
 }
