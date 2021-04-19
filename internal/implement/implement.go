@@ -1,7 +1,10 @@
 package implement
 
+import "github.com/qvistgaard/openrms/internal/state"
+
 type Implementer interface {
 	EventLoop() error
-	WaitForEvent() (Event, error)
-	SendCommand(c Command) error
+	EventChannel() <-chan Event
+	SendCarState(c state.CarChanges) error
+	SendRaceState(r state.RaceChanges) error
 }

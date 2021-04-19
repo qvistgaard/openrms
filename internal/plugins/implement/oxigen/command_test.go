@@ -4,6 +4,7 @@ import (
 	"github.com/qvistgaard/openrms/internal/state"
 	"github.com/stretchr/testify/assert"
 	"testing"
+	"time"
 )
 
 func TestNewPitLaneSpeed(t *testing.T) {
@@ -62,48 +63,48 @@ func TestNewMinSpeedLaneChangeRight(t *testing.T) {
 }
 
 func TestRaceCommandSetZeroOnInitialization(t *testing.T) {
-	state := make(map[string]state.StateInterface)
+	state := state.RaceChanges{}
 	c := newEmptyCommand(state, 0x00, newSettings())
 	assert.Equal(t, uint8(0x00), c.state)
 }
 
 func TestRaceCommandSetStop(t *testing.T) {
-	state := make(map[string]state.StateInterface)
+	state := state.RaceChanges{}
 	c := newEmptyCommand(state, 0x00, newSettings())
 	c.stop()
 	assert.Equal(t, uint8(0x01), c.state)
 }
 
 func TestRaceCommandSetStart(t *testing.T) {
-	state := make(map[string]state.StateInterface)
+	state := state.RaceChanges{}
 	c := newEmptyCommand(state, 0x00, newSettings())
 	c.start()
 	assert.Equal(t, uint8(0x03), c.state)
 }
 
 func TestRaceCommandSetPause(t *testing.T) {
-	state := make(map[string]state.StateInterface)
+	state := state.RaceChanges{}
 	c := newEmptyCommand(state, 0x00, newSettings())
 	c.pause()
 	assert.Equal(t, uint8(0x04), c.state)
 }
 
 func TestRaceCommandSetFlaggedWithLaneChange(t *testing.T) {
-	state := make(map[string]state.StateInterface)
+	state := state.RaceChanges{}
 	c := newEmptyCommand(state, 0x00, newSettings())
 	c.flag(true)
 	assert.Equal(t, uint8(0x05), c.state)
 }
 
 func TestRaceCommandSetFlaggedWithLaneChangeDisabled(t *testing.T) {
-	state := make(map[string]state.StateInterface)
+	state := state.RaceChanges{}
 	c := newEmptyCommand(state, 0x00, newSettings())
 	c.flag(false)
 	assert.Equal(t, uint8(0x15), c.state)
 }
 
 func TestRaceCommandSetMaxSpeed(t *testing.T) {
-	state := make(map[string]state.StateInterface)
+	state := state.RaceChanges{}
 	c := newEmptyCommand(state, 0x00, newSettings())
 	c.maxSpeed(255)
 	assert.Equal(t, uint8(0x00), c.state)
@@ -111,7 +112,7 @@ func TestRaceCommandSetMaxSpeed(t *testing.T) {
 }
 
 func TestRaceCommandPitLaneLapCountingOnExit(t *testing.T) {
-	state := make(map[string]state.StateInterface)
+	state := state.RaceChanges{}
 	c := newEmptyCommand(state, 0x00, newSettings())
 	c.pitLaneLapCount(true, false)
 	assert.Equal(t, uint8(0x00), c.state)
@@ -120,7 +121,7 @@ func TestRaceCommandPitLaneLapCountingOnExit(t *testing.T) {
 }
 
 func TestRaceCommandPitLaneLapCountingOnEntry(t *testing.T) {
-	state := make(map[string]state.StateInterface)
+	state := state.RaceChanges{}
 	c := newEmptyCommand(state, 0x00, newSettings())
 	c.pitLaneLapCount(true, true)
 	assert.Equal(t, uint8(0x00), c.state)
@@ -129,7 +130,7 @@ func TestRaceCommandPitLaneLapCountingOnEntry(t *testing.T) {
 }
 
 func TestRaceCommandPitLaneLapCountingDisabled(t *testing.T) {
-	state := make(map[string]state.StateInterface)
+	state := state.RaceChanges{}
 	c := newEmptyCommand(state, 0x00, newSettings())
 	c.pitLaneLapCount(false, true)
 	assert.Equal(t, uint8(0x00), c.state)
@@ -139,7 +140,7 @@ func TestRaceCommandPitLaneLapCountingDisabled(t *testing.T) {
 }
 
 func TestCarCommandReturnsFalseIfUnknown(t *testing.T) {
-	s := make(map[string]state.StateInterface)
+	s := state.RaceChanges{}
 	c := newEmptyCommand(s, 0x00, newSettings())
 	v := &state.Value{}
 	v.Set(uint8(255))
@@ -148,104 +149,105 @@ func TestCarCommandReturnsFalseIfUnknown(t *testing.T) {
 	assert.False(t, b)
 }
 
-func createTestValue(n string, v interface{}) (bool, *state.Value, *Command) {
-	s := make(map[string]state.StateInterface)
+func createTestValue(n string, v interface{}) (bool, *Command) {
+	s := state.RaceChanges{}
 	c := newEmptyCommand(s, 0x00, newSettings())
-	sv := &state.Value{}
-	sv.Set(v)
-	b := c.carCommand(1, n, sv)
+	b := c.carCommand(1, n, v)
 
-	return b, sv, c
+	return b, c
 }
 
 func TestCarCommandSetMaxSpeed(t *testing.T) {
-	b, v, c := createTestValue(state.CarMaxSpeed, uint8(255))
-
-	// Change value to make sure command value is not changed when value is changed again
-	v.Set(uint8(100))
+	b, c := createTestValue(state.CarMaxSpeed, uint8(255))
 
 	assert.True(t, b)
 	assert.Equal(t, uint8(255), c.car.value)
-	assert.Equal(t, uint8(100), v.Get())
 }
 
 func TestCarCommandSetMaxBreaking(t *testing.T) {
-	b, v, c := createTestValue(state.CarMaxBreaking, uint8(255))
-
-	// Change value to make sure command value is not changed when value is changed again
-	v.Set(uint8(100))
+	b, c := createTestValue(state.CarMaxBreaking, uint8(255))
 
 	assert.True(t, b)
 	assert.Equal(t, uint8(255), c.car.value)
-	assert.Equal(t, uint8(100), v.Get())
 }
 
 func TestCarCommandSetMinSpeed(t *testing.T) {
-	b, v, c := createTestValue(state.CarMinSpeed, uint8(255))
-
-	// Change value to make sure command value is not changed when value is changed again
-	v.Set(uint8(100))
+	b, c := createTestValue(state.CarMinSpeed, uint8(255))
 
 	assert.True(t, b)
 	assert.Equal(t, uint8(63), c.car.value)
-	assert.Equal(t, uint8(100), v.Get())
 }
 
 func TestCarCommandSetPitLaneSpeed(t *testing.T) {
-	b, v, c := createTestValue(state.CarPitLaneSpeed, uint8(255))
-
-	// Change value to make sure command value is not changed when value is changed again
-	v.Set(uint8(100))
+	b, c := createTestValue(state.CarPitLaneSpeed, uint8(255))
 
 	assert.True(t, b)
 	assert.Equal(t, uint8(255), c.car.value)
-	assert.Equal(t, uint8(100), v.Get())
 }
 
 func TestRaceStatusChangeFromRaceStateStop(t *testing.T) {
-	s := map[string]state.StateInterface{
-		state.RaceStatus: state.CreateState(nil, state.RaceStatus, state.RaceStatusStopped),
+	s := state.RaceChanges{
+		Changes: []state.Change{
+			{Name: state.RaceStatus, Value: state.RaceStatusStopped},
+		},
+		Time: time.Now(),
 	}
 	c := newEmptyCommand(s, 0x00, newSettings())
 	assert.Equal(t, uint8(0x01), c.state)
 }
 
 func TestRaceStatusChangeFromRaceStatePaused(t *testing.T) {
-	s := map[string]state.StateInterface{
-		state.RaceStatus: state.CreateState(nil, state.RaceStatus, state.RaceStatusPaused),
+	s := state.RaceChanges{
+		Changes: []state.Change{
+			{Name: state.RaceStatus, Value: state.RaceStatusPaused},
+		},
+		Time: time.Now(),
 	}
 	c := newEmptyCommand(s, 0x00, newSettings())
 	assert.Equal(t, uint8(0x04), c.state)
 }
 
 func TestRaceStatusChangeFromRaceStateRunning(t *testing.T) {
-	s := map[string]state.StateInterface{
-		state.RaceStatus: state.CreateState(nil, state.RaceStatus, state.RaceStatusRunning),
+	s := state.RaceChanges{
+		Changes: []state.Change{
+			{Name: state.RaceStatus, Value: state.RaceStatusRunning},
+		},
+		Time: time.Now(),
 	}
 	c := newEmptyCommand(s, 0x00, newSettings())
 	assert.Equal(t, uint8(0x03), c.state)
 }
 
 func TestRaceStatusChangeFromRaceStateFlaggedLCDisabled(t *testing.T) {
-	s := map[string]state.StateInterface{
-		state.RaceStatus: state.CreateState(nil, state.RaceStatus, state.RaceStatusFlaggedLCDisabled),
+	s := state.RaceChanges{
+		Changes: []state.Change{
+			{Name: state.RaceStatus, Value: state.RaceStatusFlaggedLCDisabled},
+		},
+		Time: time.Now(),
 	}
 	c := newEmptyCommand(s, 0x00, newSettings())
 	assert.Equal(t, uint8(0x15), c.state)
 }
 
 func TestRaceStatusChangeFromRaceStateFlaggedLCEnabled(t *testing.T) {
-	s := map[string]state.StateInterface{
-		state.RaceStatus: state.CreateState(nil, state.RaceStatus, state.RaceStatusFlaggedLCEnabled),
+	s := state.RaceChanges{
+		Changes: []state.Change{
+			{Name: state.RaceStatus, Value: state.RaceStatusFlaggedLCEnabled},
+		},
+		Time: time.Now(),
 	}
 	c := newEmptyCommand(s, 0x00, newSettings())
 	assert.Equal(t, uint8(0x05), c.state)
 }
 
 func TestRaceStatusChangeFromRaceStateMaxSpeed(t *testing.T) {
-	s := map[string]state.StateInterface{
-		state.RaceMaxSpeed: state.CreateState(nil, state.RaceMaxSpeed, uint8(100)),
+	s := state.RaceChanges{
+		Changes: []state.Change{
+			{Name: state.RaceMaxSpeed, Value: uint8(100)},
+		},
+		Time: time.Now(),
 	}
+
 	c := newEmptyCommand(s, 0x00, newSettings())
 	assert.Equal(t, uint8(0x64), c.settings.maxSpeed)
 }

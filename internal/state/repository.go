@@ -2,8 +2,9 @@ package state
 
 type Repository interface {
 	Get(n string) StateInterface
+	Create(n string, v interface{})
 	All() map[string]StateInterface
-	Reset()
+	SetDefaults()
 	ResetChanges()
 	Changes() map[string]StateInterface
 }
@@ -12,6 +13,11 @@ func CreateInMemoryRepository() *InMemoryRepository {
 	i := new(InMemoryRepository)
 	i.state = make(map[string]StateInterface)
 	return i
+}
+
+func (r *InMemoryRepository) Create(n string, v interface{}) {
+	r.state[n] = CreateState(r, n, v)
+	r.state[n].initialize()
 }
 
 type InMemoryRepository struct {
@@ -26,13 +32,12 @@ func (r *InMemoryRepository) Get(n string) StateInterface {
 	if val, ok := r.state[n]; ok {
 		return val
 	} else {
-		r.state[n] = CreateState(r, n, nil)
-		r.state[n].initialize()
+		r.Create(n, nil)
 	}
 	return r.state[n]
 }
 
-func (r *InMemoryRepository) Reset() {
+func (r *InMemoryRepository) SetDefaults() {
 	state := make(map[string]StateInterface)
 	for n, element := range r.state {
 		r.state[n] = CreateState(r, n, element.Initial())

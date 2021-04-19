@@ -74,8 +74,9 @@ func (o *Oxigen) EventLoop() error {
 		case cmd := <-o.commands:
 			command = cmd
 		case <-time.After(100 * time.Millisecond):
-			command = newEmptyCommand(map[string]state.StateInterface{}, o.state, o.settings)
+			command = newEmptyCommand(state.RaceChanges{}, o.state, o.settings)
 		}
+
 		if float32(len(o.commands)) > (float32(o.bufferSize) * 0.9) {
 			log.WithFields(map[string]interface{}{
 				"bufferSize": o.bufferSize,
@@ -125,23 +126,25 @@ func (o *Oxigen) EventLoop() error {
 	return err
 }
 
-func (o *Oxigen) WaitForEvent() (implement.Event, error) {
-	return <-o.events, nil
+func (o *Oxigen) EventChannel() <-chan implement.Event {
+	return o.events
 }
 
-func (o *Oxigen) SendCommand(c implement.Command) error {
-	if len(c.Changes.Car) > 0 {
-		for k, v := range c.Changes.Car {
-			ec := newEmptyCommand(c.Changes.Race, o.state, o.settings)
-			if ec.carCommand(c.Id, k, v) {
+func (o *Oxigen) SendRaceState(r state.RaceChanges) error {
+	o.commands <- newEmptyCommand(r, o.state, o.settings)
+	return nil
+}
+
+func (o *Oxigen) SendCarState(c state.CarChanges) error {
+	if len(c.Changes) > 0 {
+		for _, v := range c.Changes {
+			ec := newEmptyCommand(state.RaceChanges{}, o.state, o.settings)
+			if ec.carCommand(c.Car, v.Name, v.Value) {
 				o.commands <- ec
 			}
 		}
-		return nil
-	} else {
-		o.commands <- newEmptyCommand(c.Changes.Race, o.state, o.settings)
-		return nil
 	}
+	return nil
 }
 
 func (o *Oxigen) event(b []byte) implement.Event {
@@ -162,7 +165,7 @@ func (o *Oxigen) event(b []byte) implement.Event {
 		},
 		LapTime:      time.Duration((uint(b[2]) * 256) + uint(b[3])),
 		LapNumber:    (uint16(b[5]) * 256) + uint16(b[6]),
-		TriggerValue: 0x74 & b[7],
+		TriggerValue: 0x7F & b[7],
 		Ontrack:      0x80&b[7] == 0x80,
 	}
 }

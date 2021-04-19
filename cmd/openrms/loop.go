@@ -2,8 +2,9 @@ package main
 
 import (
 	"github.com/qvistgaard/openrms/internal/implement"
+	"github.com/qvistgaard/openrms/internal/postprocess"
+	"github.com/qvistgaard/openrms/internal/repostitory/car"
 	"github.com/qvistgaard/openrms/internal/state"
-	"github.com/qvistgaard/openrms/internal/telemetry"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -15,36 +16,40 @@ func eventloop(i implement.Implementer) error {
 	return err
 }
 
-func processEvents(i implement.Implementer, telemetry telemetry.Receiver, cars map[uint8]*state.Car) {
+func processEvents(i implement.Implementer, postProcess postprocess.PostProcess, repository car.Repository, race *state.Race, rules []state.Rule) {
 	defer wg.Done()
 
 	log.Info("started event processor.")
-	for {
-		e, _ := i.WaitForEvent()
-		c := cars[e.Id]
-		log.WithFields(map[string]interface{}{
-			"id":         e.Id,
-			"ontrack":    e.Ontrack,
-			"link":       e.Controller.Link,
-			"in-put":     e.Car.InPit,
-			"lap-number": e.LapNumber,
-			"lap-time":   e.LapTime,
-		}).Debug("State changed received from implement.")
-		if c != nil {
-			c.State().Get(state.CarEvent).Set(e)
-			i.SendCommand(implement.CreateCommand(c))
-			telemetry.CarChanges(c)
-			c.State().ResetChanges()
-		}
-	}
-}
 
-func processTelemetry(receiver telemetry.Receiver) {
-	defer wg.Done()
-	if receiver != nil {
-		log.Info("started telemetry receiver.")
-		receiver.Process()
-	} else {
-		log.Info("telemetry receiver disabled.")
+	cars := make(map[uint8]*state.Car)
+
+	for {
+		select {
+		case e := <-i.EventChannel():
+			var c *state.Car
+			if _, ok := cars[e.Id]; !ok {
+				c = state.CreateCar(race, e.Id, repository.GetCarById(e.Id), rules)
+				cars[e.Id] = c
+			} else {
+				c = cars[e.Id]
+			}
+			if c != nil {
+				e.SetCarState(c)
+
+				carChanges := c.Changes()
+				raceChanges := race.Changes()
+
+				if len(raceChanges.Changes) > 0 {
+					i.SendRaceState(raceChanges)
+					postProcess.PostProcessRace(raceChanges)
+				}
+				if len(carChanges.Changes) > 0 {
+					i.SendCarState(carChanges)
+					postProcess.PostProcessCar(c.Changes())
+				}
+				c.ResetStateChangeStatus()
+				race.ResetStateChangeStatus()
+			}
+		}
 	}
 }

@@ -9,27 +9,31 @@ func TestCarCanBeCreatedAndChangedByReference(t *testing.T) {
 	c := CreateCar(nil, 1, map[string]interface{}{
 		"fuel": 100,
 	}, make([]Rule, 0))
-	c.State().Get("fuel").Set(80)
+	c.Set("fuel", 80)
 
-	ch := c.State().Changes()
-	ch["fuel"].Get()
-	assert.Equal(t, 80, ch["fuel"].Get())
+	ch := c.Changes()
+	assert.Equal(t, 80, ch.Changes[0].Value)
+	assert.Equal(t, "fuel", ch.Changes[0].Name)
 }
 
 func TestCarStateWillBeCreatedIfMissing(t *testing.T) {
 	c := CreateCar(nil, 1, map[string]interface{}{}, make([]Rule, 0))
-	c.State().Get("fuel").Set(80)
+	c.Set("fuel", 80)
 
-	ch := c.State().Changes()
-	ch["fuel"].Get()
-	assert.Equal(t, 80, ch["fuel"].Get())
+	ch := c.Changes()
+	assert.Equal(t, 80, ch.Changes[0].Value)
+	assert.Equal(t, "fuel", ch.Changes[0].Name)
 }
 
 type SimpleRule struct {
 }
 
 func (s *SimpleRule) InitializeCarState(car *Car) {
-	car.State().Get("test").Set(100)
+	car.Set("test", 100)
+}
+
+func (s *SimpleRule) InitializeRaceState(race *Race) {
+
 }
 
 func TestCarWillInitializeRules(t *testing.T) {
@@ -37,6 +41,7 @@ func TestCarWillInitializeRules(t *testing.T) {
 		new(SimpleRule),
 	})
 
-	assert.Equal(t, 100, c.State().Get("test").Get())
-	assert.True(t, c.State().Get("test").Changed())
+	ch := c.Changes()
+	assert.Equal(t, 100, c.Get("test"))
+	assert.Equal(t, "test", ch.Changes[0].Name)
 }

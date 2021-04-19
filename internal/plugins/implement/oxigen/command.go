@@ -56,7 +56,7 @@ func newMaxBreaking(id uint8, maxBreaking uint8) *Car {
 	}
 }
 
-func newEmptyCommand(race map[string]state.StateInterface, currentState byte, settings *Settings) *Command {
+func newEmptyCommand(race state.RaceChanges, currentState byte, settings *Settings) *Command {
 	c := &Command{
 		state: currentState,
 		settings: Settings{
@@ -67,10 +67,10 @@ func newEmptyCommand(race map[string]state.StateInterface, currentState byte, se
 			},
 		},
 	}
-	for k, v := range race {
-		bv := v.Get().(uint8)
-		switch k {
+	for _, v := range race.Changes {
+		switch v.Name {
 		case state.RaceStatus:
+			bv := v.Value.(uint8)
 			switch bv {
 			case state.RaceStatusStopped:
 				c.stop()
@@ -84,6 +84,7 @@ func newEmptyCommand(race map[string]state.StateInterface, currentState byte, se
 				c.flag(true)
 			}
 		case state.RaceMaxSpeed:
+			bv := v.Value.(uint8)
 			c.maxSpeed(bv)
 		}
 	}
@@ -100,16 +101,16 @@ func newSettings() *Settings {
 	}
 }
 
-func (c *Command) carCommand(id uint8, s string, v state.StateInterface) bool {
+func (c *Command) carCommand(id uint8, s string, v interface{}) bool {
 	switch s {
 	case state.CarMaxSpeed:
-		c.car = newMaxSpeed(id, v.Get().(uint8))
+		c.car = newMaxSpeed(id, v.(uint8))
 	case state.CarMaxBreaking:
-		c.car = newMaxBreaking(id, v.Get().(uint8))
+		c.car = newMaxBreaking(id, v.(uint8))
 	case state.CarMinSpeed:
-		c.car = newMinSpeed(id, v.Get().(uint8), CarForceLaneChangeNone)
+		c.car = newMinSpeed(id, v.(uint8), CarForceLaneChangeNone)
 	case state.CarPitLaneSpeed:
-		c.car = newPitLaneSpeed(id, v.Get().(uint8))
+		c.car = newPitLaneSpeed(id, v.(uint8))
 	}
 	if c.car != nil {
 		return true

@@ -1,8 +1,20 @@
+logging:
+  level: trace
+  file: openrmsd.log
+
+websocket:
+  enabled: true
+  port: 8080
+
+
 implement:
-  plugin: oxigen
+  plugin: generator
   oxigen:
     port: COM5
 
+  generator:
+    cars: 1
+    interval: 600
 
 race:
   plugin: simple
@@ -12,14 +24,16 @@ race:
       enabled: true
       entry: true
 
-
 car:
-  plugin: list
+  plugin: config
   cars:
     - id: 1
       max-speed: 255
+      limb-mode:
+        max-speed: 100
     - id: 2
       max-speed: 255
+
 
 rules:
   - plugin: fuel
@@ -29,11 +43,12 @@ rules:
     enabled: true
     max-speed: 50
 
-telemetry:
-  plugin: influxdb
+postprocessors:
   influxdb:
     url: "http://localhost:8086"
     # batch-size: 100
     auth-token: "_esnfjdFsjvkBkgc4S3ovqftb8RmmwAeGDBbt4fsY20EA9pFqeLaNYUkoH3sOyZ9jfTGcML-dB8AKgyj577Qhw=="
     organization: openrms
     bucket: openrms
+  websocket:
+    listen: ":8080"

@@ -5,7 +5,11 @@ import (
 	"time"
 )
 
-type Command struct {
+type Command interface {
+	Exectute()
+}
+
+type CommandObject struct {
 	Id      uint8
 	Changes changes
 }
@@ -13,18 +17,6 @@ type Command struct {
 type changes struct {
 	Race map[string]state.StateInterface
 	Car  map[string]state.StateInterface
-}
-
-func CreateCommand(car *state.Car) Command {
-	car.State().Changes()
-
-	return Command{
-		Id: car.Id(),
-		Changes: changes{
-			Race: car.Race().State().Changes(),
-			Car:  car.State().Changes(),
-		},
-	}
 }
 
 type EventInterface interface {
@@ -51,4 +43,21 @@ type Controller struct {
 type Car struct {
 	Reset bool
 	InPit bool
+}
+
+func (e *Event) SetCarState(c *state.Car) {
+	if e.Id == c.Id() {
+		c.Set(state.CarEventSequence, c.Get(state.CarEventSequence).(uint)+1)
+		c.Set(state.CarOnTrack, e.Ontrack)
+		c.Set(state.CarControllerLink, e.Controller.Link)
+		c.Set(state.CarLapNumber, e.LapNumber)
+		c.Set(state.CarLapTime, e.LapTime)
+		c.Set(state.CarInPit, e.Car.InPit)
+		c.Set(state.CarReset, e.Car.Reset)
+		c.Set(state.ControllerTriggerValue, e.TriggerValue)
+		c.Set(state.ControllerBtnUp, e.Controller.ArrowUp)
+		c.Set(state.ControllerBtnDown, e.Controller.ArrowDown)
+		c.Set(state.ControllerBtnTrackCall, e.Controller.TrackCall)
+		c.Set(state.ControllerBatteryWarning, e.Controller.BatteryWarning)
+	}
 }

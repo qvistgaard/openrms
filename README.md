@@ -19,12 +19,19 @@ on a Raspberry Pi, eliminating the high entry price of a computer with
 a Windows license. The goal is to release a version that will work on
 both Mac OS, Linux and Windows
 
+## Help Needed
+I'm no expert in frontend development, I would like to ask the community
+for any help with the frontend part of this project. Also if you have any
+comments, suggestions on new features or changes or you want to help
+extend openrms with support for other systems then Oxigen please let me
+know.
+
 ## Getting Started
 ### Building
 To build run `make openrms`
 
 ### Running OpenRMS
-When you have open rms build run `./openrms`. if you have want to set
+When you have openrms build run `./openrms`. if you have want to set
 a path for the configuration file set the `-config` flag: `./openrms -config <file>`
 
 #### Configuration
@@ -68,6 +75,8 @@ to a database like InfluxDB
 - [ ] Damage Simulation
 - [ ] Race planning
 - [ ] Better logging with configurable log levels
+- [ ] Race management plugin support
+- [ ] CLI
 
 # Contributing
 When contributing to this repository, please first discuss the change you wish to make via issue,

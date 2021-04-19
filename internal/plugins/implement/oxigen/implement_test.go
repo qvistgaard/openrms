@@ -3,7 +3,6 @@ package oxigen
 import (
 	"encoding/hex"
 	queue "github.com/enriquebris/goconcurrentqueue"
-	"github.com/qvistgaard/openrms/internal/implement"
 	"github.com/qvistgaard/openrms/internal/state"
 	"github.com/stretchr/testify/assert"
 	"io"
@@ -65,30 +64,30 @@ func TestTestSendSingleCommandOnNoCarStateChanges(t *testing.T) {
 	o := new(Oxigen)
 	o.settings = newSettings()
 	o.commands = make(chan *Command, 10)
-	race := state.CreateRace(map[string]interface{}{})
-	race.State().Get(state.RaceStatus).Set(state.RaceStatusStopped)
+	race := state.CreateRace(map[string]interface{}{}, []state.Rule{})
+	race.Set(state.RaceStatus, state.RaceStatusStopped)
 	car := state.CreateCar(race, 1, map[string]interface{}{}, make([]state.Rule, 0))
 
-	c := implement.CreateCommand(car)
+	o.SendCarState(car.Changes())
 
-	o.SendCommand(c)
 	assert.Equal(t, 1, len(o.commands))
-
-	command := <-o.commands
-	assert.Equal(t, 0, len(o.commands))
-	assert.Equal(t, uint8(0x01), command.state)
+	if len(o.commands) > 0 {
+		command := <-o.commands
+		assert.Equal(t, 0, len(o.commands))
+		assert.Equal(t, uint8(0x01), command.state)
+	}
 }
 
 func TestTestSendSingleCommandOnCarStateChanges(t *testing.T) {
 	o := new(Oxigen)
 	o.settings = newSettings()
 	o.commands = make(chan *Command, 10)
-	race := state.CreateRace(map[string]interface{}{})
+	race := state.CreateRace(map[string]interface{}{}, []state.Rule{})
 	car := state.CreateCar(race, 1, map[string]interface{}{}, make([]state.Rule, 0))
-	car.State().Get(state.CarMaxSpeed).Set(uint8(255))
-	c := implement.CreateCommand(car)
+	car.Set(state.CarMaxSpeed, uint8(255))
 
-	o.SendCommand(c)
+	o.SendCarState(car.Changes())
+
 	command := <-o.commands
 	assert.Equal(t, 0, len(o.commands))
 	assert.Equal(t, uint8(1), command.car.id)
@@ -99,7 +98,7 @@ func TestTestSendSingleCommandOnCarStateChanges(t *testing.T) {
 func TestEventLoopCanReadMessages(t *testing.T) {
 	input := queue.NewFIFO()
 	output := queue.NewFIFO()
-	c := newEmptyCommand(map[string]state.StateInterface{}, 0x00, newSettings())
+	c := newEmptyCommand(state.RaceChanges{}, 0x00, newSettings())
 	o := Oxigen{
 		settings: newSettings(),
 		commands: make(chan *Command, 10),

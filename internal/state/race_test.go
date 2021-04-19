@@ -6,8 +6,10 @@ import (
 )
 
 func TestRaceStateCreation(t *testing.T) {
-	race := CreateRace(map[string]interface{}{})
-	s := race.State().Get(RaceStatus).Get()
+	race := CreateRace(map[string]interface{}{}, []Rule{
+		new(SimpleRule),
+	})
+	s := race.Get(RaceStatus)
 
 	assert.Equal(t, nil, s)
 }

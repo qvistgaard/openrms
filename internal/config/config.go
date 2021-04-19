@@ -3,20 +3,25 @@ package config
 import (
 	"errors"
 	"github.com/qvistgaard/openrms/internal/implement"
+	carConfig "github.com/qvistgaard/openrms/internal/plugins/car/config"
+	"github.com/qvistgaard/openrms/internal/plugins/implement/generator"
 	"github.com/qvistgaard/openrms/internal/plugins/implement/oxigen"
+	"github.com/qvistgaard/openrms/internal/plugins/postprocessors/influxdb"
+	"github.com/qvistgaard/openrms/internal/plugins/postprocessors/websocket"
 	"github.com/qvistgaard/openrms/internal/plugins/rules/fuel"
-	"github.com/qvistgaard/openrms/internal/plugins/telemetry/influxdb"
+	"github.com/qvistgaard/openrms/internal/postprocess"
+	"github.com/qvistgaard/openrms/internal/repostitory/car"
 	"github.com/qvistgaard/openrms/internal/state"
-	"github.com/qvistgaard/openrms/internal/telemetry"
 	"gopkg.in/yaml.v2"
 )
 
 type Config struct {
-	Implement Plugin `yaml:"implement"`
-	Race      Plugin
-	Car       Plugin
-	Telemetry Plugin
-	Rules     []Plugin
+	Implement      Plugin
+	Race           Plugin
+	Car            Plugin
+	Telemetry      Plugin
+	Rules          []Plugin
+	PostProcessors map[string]interface{}
 }
 
 type Plugin struct {
@@ -41,26 +46,37 @@ func CreateImplementFromConfig(config []byte) (implement.Implementer, error) {
 	switch c.Implement.Name {
 	case "oxigen":
 		return oxigen.CreateFromConfig(config)
+	case "generator":
+		return generator.CreateFromConfig(config)
 	}
 	return nil, errors.New("Unknown implementer: " + c.Implement.Name)
 }
 
-func CreateTelemetryReceiverFromConfig(config []byte) (telemetry.Receiver, error) {
+func CreatePostProcessors(config []byte) ([]postprocess.PostProcessor, error) {
 	c, err := readConfig(config)
-	var processor telemetry.Processor
 	if err != nil {
 		return nil, err
 	}
-	var perr error
-	switch c.Telemetry.Name {
-	case "influxdb":
-		processor, err = influxdb.CreateFromConfig(config)
+	var p []postprocess.PostProcessor
+	for k, _ := range c.PostProcessors {
+		switch k {
+		case "influxdb":
+			influxdb, err := influxdb.CreateFromConfig(config)
+			if err != nil {
+				return nil, err
+			}
+			p = append(p, influxdb)
+			go influxdb.Process()
+		case "websocket":
+			websocket, err := websocket.CreateFromConfig(config)
+			if err != nil {
+				return nil, err
+			}
+			p = append(p, websocket)
+			go websocket.Process()
+		}
 	}
-	if perr != nil {
-		return nil, err
-	}
-
-	return telemetry.NewQueueReceiver(processor), nil
+	return p, nil
 }
 
 func CreateRaceRulesFromConfig(config []byte) ([]state.Rule, error) {
@@ -76,4 +92,17 @@ func CreateRaceRulesFromConfig(config []byte) ([]state.Rule, error) {
 		}
 	}
 	return rules, nil
+}
+
+func CreateCarRepositoryFromConfig(config []byte) (car.Repository, error) {
+	c, err := readConfig(config)
+	if err != nil {
+		return nil, err
+	}
+
+	switch c.Car.Name {
+	case "config":
+		return carConfig.CreateFromConfig(config)
+	}
+	return nil, errors.New("no car configuration found")
 }

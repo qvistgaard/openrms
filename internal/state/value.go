@@ -10,10 +10,16 @@ func CreateState(owner Owner, name string, v interface{}) *Value {
 	return s
 }
 
+type Change struct {
+	Name  string      `json:"name"`
+	Value interface{} `json:"value"`
+}
+
 type Value struct {
 	changed     bool
 	name        string
 	value       interface{}
+	previous    interface{}
 	initialized bool
 	initial     interface{}
 	owner       Owner
@@ -22,6 +28,7 @@ type Value struct {
 
 type StateInterface interface {
 	Get() interface{}
+	GetPrevious() interface{}
 	Set(v interface{})
 	Name() string
 	Owner() Owner
@@ -36,12 +43,19 @@ func (v *Value) Get() interface{} {
 	return v.value
 }
 
+func (v *Value) GetPrevious() interface{} {
+	return v.previous
+}
+
 func (v *Value) Set(value interface{}) {
-	v.value = value
-	if v.initialized {
-		v.changed = true
-		for _, s := range v.subscribers {
-			s.Notify(v)
+	if v.value != value {
+		v.previous = v.value
+		v.value = value
+		if v.initialized {
+			v.changed = true
+			for _, s := range v.subscribers {
+				s.Notify(v)
+			}
 		}
 	}
 }
