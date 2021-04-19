@@ -32,7 +32,7 @@ func (g *Generator) SendCarState(c state.CarChanges) error {
 	return nil
 }
 
-func (g *Generator) SendRaceState(r state.RaceChanges) error {
+func (g *Generator) SendRaceState(r state.CourseChanges) error {
 	return nil
 }
 

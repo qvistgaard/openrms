@@ -9,19 +9,21 @@ type Repository interface {
 	Changes() map[string]StateInterface
 }
 
-func CreateInMemoryRepository() *InMemoryRepository {
+func CreateInMemoryRepository(owner Owner) *InMemoryRepository {
 	i := new(InMemoryRepository)
 	i.state = make(map[string]StateInterface)
+	i.owner = owner
 	return i
 }
 
 func (r *InMemoryRepository) Create(n string, v interface{}) {
-	r.state[n] = CreateState(r, n, v)
+	r.state[n] = CreateState(r.owner, n, v)
 	r.state[n].initialize()
 }
 
 type InMemoryRepository struct {
 	state map[string]StateInterface
+	owner Owner
 }
 
 func (r *InMemoryRepository) All() map[string]StateInterface {

@@ -11,6 +11,10 @@ const CarTireWear = "tire-wear"
 type TireWear struct {
 }
 
+func (t *TireWear) Initialize() {
+	panic("implement me")
+}
+
 func (t *TireWear) Notify(v *state.Value) {
 	if c, ok := v.Owner().(state.Car); ok {
 		switch v.Name() {
@@ -35,7 +39,7 @@ func (t *TireWear) Notify(v *state.Value) {
 	}
 }
 
-func (t *TireWear) InitializeRaceState(race *state.Race) {
+func (t *TireWear) InitializeRaceState(race *state.Course) {
 
 }
 

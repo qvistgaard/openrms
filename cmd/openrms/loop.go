@@ -16,12 +16,13 @@ func eventloop(i implement.Implementer) error {
 	return err
 }
 
-func processEvents(i implement.Implementer, postProcess postprocess.PostProcess, repository car.Repository, race *state.Race, rules []state.Rule) {
+func processEvents(i implement.Implementer, postProcess postprocess.PostProcess, repository car.Repository, race *state.Course, rules state.Rules) {
 	defer wg.Done()
 
 	log.Info("started event processor.")
 
 	cars := make(map[uint8]*state.Car)
+	rules.Initialize()
 
 	for {
 		select {

@@ -12,21 +12,21 @@ type WebSocket struct {
 	clients    map[*Client]bool
 	register   chan *Client
 	unregister chan *Client
-	race       chan state.RaceChanges
+	race       chan state.CourseChanges
 	car        chan state.CarChanges
 	listen     string
 }
 
 type StateMessage struct {
-	Cars []state.CarChanges  `json:"cars"`
-	Race []state.RaceChanges `json:"race"`
+	Cars []state.CarChanges    `json:"cars"`
+	Race []state.CourseChanges `json:"race"`
 }
 
 func (b *WebSocket) CarChannel() chan<- state.CarChanges {
 	return b.car
 }
 
-func (b *WebSocket) RaceChannel() chan<- state.RaceChanges {
+func (b *WebSocket) RaceChannel() chan<- state.CourseChanges {
 	return b.race
 }
 
@@ -49,7 +49,7 @@ func (b *WebSocket) Process() {
 func (b *WebSocket) processWebsocket() {
 	var stateMessages = StateMessage{
 		Cars: []state.CarChanges{},
-		Race: []state.RaceChanges{},
+		Race: []state.CourseChanges{},
 	}
 
 	for {
@@ -78,7 +78,7 @@ func (b *WebSocket) processWebsocket() {
 			}
 			stateMessages = StateMessage{
 				Cars: []state.CarChanges{},
-				Race: []state.RaceChanges{},
+				Race: []state.CourseChanges{},
 			}
 		}
 	}

@@ -24,7 +24,7 @@ func CreateFromConfig(config []byte) (*WebSocket, error) {
 		clients:    make(map[*Client]bool),
 		register:   make(chan *Client),
 		unregister: make(chan *Client),
-		race:       make(chan state.RaceChanges, 1024),
+		race:       make(chan state.CourseChanges, 1024),
 		car:        make(chan state.CarChanges, 1024),
 		listen:     c.Postprocessors.WebSocket.Listen,
 	}

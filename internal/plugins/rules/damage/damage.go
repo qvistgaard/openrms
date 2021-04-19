@@ -3,6 +3,7 @@ package damage
 import (
 	"github.com/qvistgaard/openrms/internal/plugins/rules/limbmode"
 	"github.com/qvistgaard/openrms/internal/state"
+	log "github.com/sirupsen/logrus"
 	"math/rand"
 )
 
@@ -16,7 +17,7 @@ func (d *Damage) Notify(v *state.Value) {
 		switch v.Name() {
 		case state.CarOnTrack:
 			if !v.Get().(bool) {
-				d := c.Get(CarDamage).(uint8) + uint8(rand.Int31())
+				d := c.Get(CarDamage).(uint8) + uint8(rand.Int31()) + c.Get(state.ControllerTriggerValue).(uint8)
 				c.Set(CarDamage, d)
 				if d >= 255 {
 					c.Set(limbmode.CarLimbMode, true)
@@ -26,7 +27,7 @@ func (d *Damage) Notify(v *state.Value) {
 	}
 }
 
-func (d *Damage) InitializeRaceState(race *state.Race) {
+func (d *Damage) InitializeRaceState(race *state.Course) {
 
 }
 
@@ -35,4 +36,12 @@ func (d *Damage) InitializeCarState(car *state.Car) {
 	if m == nil {
 		car.Set(CarDamage, uint8(0))
 	}
+}
+
+func (d *Damage) HandlePitStop(car *state.Car) {
+	log.Warn("IMPLEMENT ME")
+}
+
+func (d *Damage) Priority() uint8 {
+	return 50
 }

@@ -64,13 +64,13 @@ func TestTestSendSingleCommandOnNoCarStateChanges(t *testing.T) {
 	o := new(Oxigen)
 	o.settings = newSettings()
 	o.commands = make(chan *Command, 10)
-	race := state.CreateRace(map[string]interface{}{}, []state.Rule{})
+	race := state.CreateCourse(&state.CourseConfig{}, []state.Rule{})
 	race.Set(state.RaceStatus, state.RaceStatusStopped)
 	car := state.CreateCar(race, 1, map[string]interface{}{}, make([]state.Rule, 0))
 
 	o.SendCarState(car.Changes())
 
-	assert.Equal(t, 1, len(o.commands))
+	assert.Equal(t, 0, len(o.commands))
 	if len(o.commands) > 0 {
 		command := <-o.commands
 		assert.Equal(t, 0, len(o.commands))
@@ -82,7 +82,7 @@ func TestTestSendSingleCommandOnCarStateChanges(t *testing.T) {
 	o := new(Oxigen)
 	o.settings = newSettings()
 	o.commands = make(chan *Command, 10)
-	race := state.CreateRace(map[string]interface{}{}, []state.Rule{})
+	race := state.CreateCourse(&state.CourseConfig{}, []state.Rule{})
 	car := state.CreateCar(race, 1, map[string]interface{}{}, make([]state.Rule, 0))
 	car.Set(state.CarMaxSpeed, uint8(255))
 
@@ -98,7 +98,7 @@ func TestTestSendSingleCommandOnCarStateChanges(t *testing.T) {
 func TestEventLoopCanReadMessages(t *testing.T) {
 	input := queue.NewFIFO()
 	output := queue.NewFIFO()
-	c := newEmptyCommand(state.RaceChanges{}, 0x00, newSettings())
+	c := newEmptyCommand(state.CourseChanges{}, 0x00, newSettings())
 	o := Oxigen{
 		settings: newSettings(),
 		commands: make(chan *Command, 10),

@@ -63,48 +63,48 @@ func TestNewMinSpeedLaneChangeRight(t *testing.T) {
 }
 
 func TestRaceCommandSetZeroOnInitialization(t *testing.T) {
-	state := state.RaceChanges{}
+	state := state.CourseChanges{}
 	c := newEmptyCommand(state, 0x00, newSettings())
 	assert.Equal(t, uint8(0x00), c.state)
 }
 
 func TestRaceCommandSetStop(t *testing.T) {
-	state := state.RaceChanges{}
+	state := state.CourseChanges{}
 	c := newEmptyCommand(state, 0x00, newSettings())
 	c.stop()
 	assert.Equal(t, uint8(0x01), c.state)
 }
 
 func TestRaceCommandSetStart(t *testing.T) {
-	state := state.RaceChanges{}
+	state := state.CourseChanges{}
 	c := newEmptyCommand(state, 0x00, newSettings())
 	c.start()
 	assert.Equal(t, uint8(0x03), c.state)
 }
 
 func TestRaceCommandSetPause(t *testing.T) {
-	state := state.RaceChanges{}
+	state := state.CourseChanges{}
 	c := newEmptyCommand(state, 0x00, newSettings())
 	c.pause()
 	assert.Equal(t, uint8(0x04), c.state)
 }
 
 func TestRaceCommandSetFlaggedWithLaneChange(t *testing.T) {
-	state := state.RaceChanges{}
+	state := state.CourseChanges{}
 	c := newEmptyCommand(state, 0x00, newSettings())
 	c.flag(true)
 	assert.Equal(t, uint8(0x05), c.state)
 }
 
 func TestRaceCommandSetFlaggedWithLaneChangeDisabled(t *testing.T) {
-	state := state.RaceChanges{}
+	state := state.CourseChanges{}
 	c := newEmptyCommand(state, 0x00, newSettings())
 	c.flag(false)
 	assert.Equal(t, uint8(0x15), c.state)
 }
 
 func TestRaceCommandSetMaxSpeed(t *testing.T) {
-	state := state.RaceChanges{}
+	state := state.CourseChanges{}
 	c := newEmptyCommand(state, 0x00, newSettings())
 	c.maxSpeed(255)
 	assert.Equal(t, uint8(0x00), c.state)
@@ -112,7 +112,7 @@ func TestRaceCommandSetMaxSpeed(t *testing.T) {
 }
 
 func TestRaceCommandPitLaneLapCountingOnExit(t *testing.T) {
-	state := state.RaceChanges{}
+	state := state.CourseChanges{}
 	c := newEmptyCommand(state, 0x00, newSettings())
 	c.pitLaneLapCount(true, false)
 	assert.Equal(t, uint8(0x00), c.state)
@@ -121,7 +121,7 @@ func TestRaceCommandPitLaneLapCountingOnExit(t *testing.T) {
 }
 
 func TestRaceCommandPitLaneLapCountingOnEntry(t *testing.T) {
-	state := state.RaceChanges{}
+	state := state.CourseChanges{}
 	c := newEmptyCommand(state, 0x00, newSettings())
 	c.pitLaneLapCount(true, true)
 	assert.Equal(t, uint8(0x00), c.state)
@@ -130,7 +130,7 @@ func TestRaceCommandPitLaneLapCountingOnEntry(t *testing.T) {
 }
 
 func TestRaceCommandPitLaneLapCountingDisabled(t *testing.T) {
-	state := state.RaceChanges{}
+	state := state.CourseChanges{}
 	c := newEmptyCommand(state, 0x00, newSettings())
 	c.pitLaneLapCount(false, true)
 	assert.Equal(t, uint8(0x00), c.state)
@@ -140,7 +140,7 @@ func TestRaceCommandPitLaneLapCountingDisabled(t *testing.T) {
 }
 
 func TestCarCommandReturnsFalseIfUnknown(t *testing.T) {
-	s := state.RaceChanges{}
+	s := state.CourseChanges{}
 	c := newEmptyCommand(s, 0x00, newSettings())
 	v := &state.Value{}
 	v.Set(uint8(255))
@@ -150,7 +150,7 @@ func TestCarCommandReturnsFalseIfUnknown(t *testing.T) {
 }
 
 func createTestValue(n string, v interface{}) (bool, *Command) {
-	s := state.RaceChanges{}
+	s := state.CourseChanges{}
 	c := newEmptyCommand(s, 0x00, newSettings())
 	b := c.carCommand(1, n, v)
 
@@ -186,7 +186,7 @@ func TestCarCommandSetPitLaneSpeed(t *testing.T) {
 }
 
 func TestRaceStatusChangeFromRaceStateStop(t *testing.T) {
-	s := state.RaceChanges{
+	s := state.CourseChanges{
 		Changes: []state.Change{
 			{Name: state.RaceStatus, Value: state.RaceStatusStopped},
 		},
@@ -197,7 +197,7 @@ func TestRaceStatusChangeFromRaceStateStop(t *testing.T) {
 }
 
 func TestRaceStatusChangeFromRaceStatePaused(t *testing.T) {
-	s := state.RaceChanges{
+	s := state.CourseChanges{
 		Changes: []state.Change{
 			{Name: state.RaceStatus, Value: state.RaceStatusPaused},
 		},
@@ -208,7 +208,7 @@ func TestRaceStatusChangeFromRaceStatePaused(t *testing.T) {
 }
 
 func TestRaceStatusChangeFromRaceStateRunning(t *testing.T) {
-	s := state.RaceChanges{
+	s := state.CourseChanges{
 		Changes: []state.Change{
 			{Name: state.RaceStatus, Value: state.RaceStatusRunning},
 		},
@@ -219,7 +219,7 @@ func TestRaceStatusChangeFromRaceStateRunning(t *testing.T) {
 }
 
 func TestRaceStatusChangeFromRaceStateFlaggedLCDisabled(t *testing.T) {
-	s := state.RaceChanges{
+	s := state.CourseChanges{
 		Changes: []state.Change{
 			{Name: state.RaceStatus, Value: state.RaceStatusFlaggedLCDisabled},
 		},
@@ -230,7 +230,7 @@ func TestRaceStatusChangeFromRaceStateFlaggedLCDisabled(t *testing.T) {
 }
 
 func TestRaceStatusChangeFromRaceStateFlaggedLCEnabled(t *testing.T) {
-	s := state.RaceChanges{
+	s := state.CourseChanges{
 		Changes: []state.Change{
 			{Name: state.RaceStatus, Value: state.RaceStatusFlaggedLCEnabled},
 		},
@@ -241,9 +241,9 @@ func TestRaceStatusChangeFromRaceStateFlaggedLCEnabled(t *testing.T) {
 }
 
 func TestRaceStatusChangeFromRaceStateMaxSpeed(t *testing.T) {
-	s := state.RaceChanges{
+	s := state.CourseChanges{
 		Changes: []state.Change{
-			{Name: state.RaceMaxSpeed, Value: uint8(100)},
+			{Name: state.MaxSpeed, Value: uint8(100)},
 		},
 		Time: time.Now(),
 	}

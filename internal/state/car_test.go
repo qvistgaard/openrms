@@ -32,7 +32,7 @@ func (s *SimpleRule) InitializeCarState(car *Car) {
 	car.Set("test", 100)
 }
 
-func (s *SimpleRule) InitializeRaceState(race *Race) {
+func (s *SimpleRule) InitializeRaceState(race *Course) {
 
 }
 

@@ -56,7 +56,7 @@ func newMaxBreaking(id uint8, maxBreaking uint8) *Car {
 	}
 }
 
-func newEmptyCommand(race state.RaceChanges, currentState byte, settings *Settings) *Command {
+func newEmptyCommand(race state.CourseChanges, currentState byte, settings *Settings) *Command {
 	c := &Command{
 		state: currentState,
 		settings: Settings{
@@ -83,7 +83,7 @@ func newEmptyCommand(race state.RaceChanges, currentState byte, settings *Settin
 			case state.RaceStatusFlaggedLCEnabled:
 				c.flag(true)
 			}
-		case state.RaceMaxSpeed:
+		case state.MaxSpeed:
 			bv := v.Value.(uint8)
 			c.maxSpeed(bv)
 		}

@@ -16,11 +16,11 @@ implement:
     cars: 1
     interval: 600
 
-race:
-  plugin: simple
+course:
   max-speed: 255
+  length: 19
   pitlane:
-    lapcounting:
+    lap-counting:
       enabled: true
       entry: true
 
@@ -42,6 +42,16 @@ rules:
   - plugin: limb-mode
     enabled: true
     max-speed: 50
+
+  - plugin: pit
+    enabled: true
+
+  - plugin: damage
+    enabled: true
+
+  - plugin: tirewear
+    enabled: true
+
 
 postprocessors:
   influxdb:

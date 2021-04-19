@@ -11,7 +11,7 @@ import (
 type InfluxDB struct {
 	client influxdb2.Client
 	api    api2.WriteAPI
-	race   chan state.RaceChanges
+	race   chan state.CourseChanges
 	car    chan state.CarChanges
 }
 
@@ -43,6 +43,6 @@ func (i *InfluxDB) CarChannel() chan<- state.CarChanges {
 	return i.car
 }
 
-func (i *InfluxDB) RaceChannel() chan<- state.RaceChanges {
+func (i *InfluxDB) RaceChannel() chan<- state.CourseChanges {
 	return i.race
 }

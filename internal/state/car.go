@@ -24,15 +24,15 @@ const (
 	ControllerBatteryWarning = "controller-battery-warning"
 )
 
-func CreateCar(race *Race, id uint8, settings map[string]interface{}, rules []Rule) *Car {
+func CreateCar(race *Course, id uint8, settings map[string]interface{}, rules Rules) *Car {
 	c := new(Car)
 	c.id = id
 	c.race = race
 	c.settings = settings
-	c.state = CreateInMemoryRepository()
+	c.state = CreateInMemoryRepository(c)
 	c.Create(CarEventSequence, uint(0))
 	c.Create(CarConfigMaxSpeed, uint8(255))
-	for _, r := range rules {
+	for _, r := range rules.All() {
 		r.InitializeCarState(c)
 	}
 	for _, s := range c.state.All() {
@@ -45,7 +45,7 @@ type Car struct {
 	id       uint8
 	settings map[string]interface{}
 	state    Repository
-	race     *Race
+	race     *Course
 }
 
 type CarChanges struct {
@@ -54,7 +54,7 @@ type CarChanges struct {
 	Time    time.Time `json:"time"`
 }
 
-func (c *Car) Race() *Race {
+func (c *Car) Race() *Course {
 	return c.race
 }
 

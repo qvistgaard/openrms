@@ -32,7 +32,7 @@ func CreateFromConfig(config []byte) (*InfluxDB, error) {
 	}
 	i.client = influxdb2.NewClientWithOptions(db.Url, db.AuthToken, influxdb2.DefaultOptions().SetBatchSize(db.BatchSize))
 	i.api = i.client.WriteAPI(db.Organization, db.Bucket)
-	i.race = make(chan state.RaceChanges, 1024)
+	i.race = make(chan state.CourseChanges, 1024)
 	i.car = make(chan state.CarChanges, 1024)
 	return i, nil
 }

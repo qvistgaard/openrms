@@ -8,7 +8,11 @@ import (
 	"github.com/qvistgaard/openrms/internal/plugins/implement/oxigen"
 	"github.com/qvistgaard/openrms/internal/plugins/postprocessors/influxdb"
 	"github.com/qvistgaard/openrms/internal/plugins/postprocessors/websocket"
+	"github.com/qvistgaard/openrms/internal/plugins/rules/damage"
 	"github.com/qvistgaard/openrms/internal/plugins/rules/fuel"
+	"github.com/qvistgaard/openrms/internal/plugins/rules/limbmode"
+	"github.com/qvistgaard/openrms/internal/plugins/rules/pit"
+	"github.com/qvistgaard/openrms/internal/plugins/rules/tirewear"
 	"github.com/qvistgaard/openrms/internal/postprocess"
 	"github.com/qvistgaard/openrms/internal/repostitory/car"
 	"github.com/qvistgaard/openrms/internal/state"
@@ -79,16 +83,26 @@ func CreatePostProcessors(config []byte) ([]postprocess.PostProcessor, error) {
 	return p, nil
 }
 
-func CreateRaceRulesFromConfig(config []byte) ([]state.Rule, error) {
+func CreateRaceRulesFromConfig(config []byte) (state.Rules, error) {
 	c, err := readConfig(config)
 	if err != nil {
 		return nil, err
 	}
-	var rules []state.Rule
+	rules := state.CreateRuleList()
 	for _, r := range c.Rules {
 		switch r.Name {
 		case "fuel":
-			rules = append(rules, &fuel.Consumption{})
+			rules.Append(&fuel.Consumption{})
+		case "limb-mode":
+			rules.Append(&limbmode.LimbMode{})
+		case "damage":
+			rules.Append(&damage.Damage{})
+		case "pit":
+			rules.Append(pit.CreatePitRule(rules))
+		case "tirewear":
+			rules.Append(&tirewear.TireWear{})
+		default:
+			return nil, errors.New("Unknown rule: " + r.Name)
 		}
 	}
 	return rules, nil
@@ -105,4 +119,8 @@ func CreateCarRepositoryFromConfig(config []byte) (car.Repository, error) {
 		return carConfig.CreateFromConfig(config)
 	}
 	return nil, errors.New("no car configuration found")
+}
+
+func CreateCourseFromConfig(config []byte, rules state.Rules) (*state.Course, error) {
+	return state.CreateCourseFromConfig(config, rules)
 }

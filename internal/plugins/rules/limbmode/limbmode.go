@@ -21,7 +21,7 @@ func (l *LimbMode) Notify(v *state.Value) {
 	}
 }
 
-func (l *LimbMode) InitializeRaceState(race *state.Race) {
+func (l *LimbMode) InitializeRaceState(race *state.Course) {
 
 }
 

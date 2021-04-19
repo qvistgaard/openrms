@@ -6,7 +6,7 @@ import (
 )
 
 func TestRaceStateCreation(t *testing.T) {
-	race := CreateRace(map[string]interface{}{}, []Rule{
+	race := CreateCourse(&CourseConfig{}, []Rule{
 		new(SimpleRule),
 	})
 	s := race.Get(RaceStatus)

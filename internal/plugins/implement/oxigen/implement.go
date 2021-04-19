@@ -74,7 +74,7 @@ func (o *Oxigen) EventLoop() error {
 		case cmd := <-o.commands:
 			command = cmd
 		case <-time.After(100 * time.Millisecond):
-			command = newEmptyCommand(state.RaceChanges{}, o.state, o.settings)
+			command = newEmptyCommand(state.CourseChanges{}, o.state, o.settings)
 		}
 
 		if float32(len(o.commands)) > (float32(o.bufferSize) * 0.9) {
@@ -130,7 +130,7 @@ func (o *Oxigen) EventChannel() <-chan implement.Event {
 	return o.events
 }
 
-func (o *Oxigen) SendRaceState(r state.RaceChanges) error {
+func (o *Oxigen) SendRaceState(r state.CourseChanges) error {
 	o.commands <- newEmptyCommand(r, o.state, o.settings)
 	return nil
 }
@@ -138,7 +138,7 @@ func (o *Oxigen) SendRaceState(r state.RaceChanges) error {
 func (o *Oxigen) SendCarState(c state.CarChanges) error {
 	if len(c.Changes) > 0 {
 		for _, v := range c.Changes {
-			ec := newEmptyCommand(state.RaceChanges{}, o.state, o.settings)
+			ec := newEmptyCommand(state.CourseChanges{}, o.state, o.settings)
 			if ec.carCommand(c.Car, v.Name, v.Value) {
 				o.commands <- ec
 			}
