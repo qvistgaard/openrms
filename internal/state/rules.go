@@ -8,7 +8,7 @@ type Rule interface {
 }
 
 type PitRule interface {
-	HandlePitStop(car *Car)
+	HandlePitStop(car *Car, cancel chan bool)
 	Priority() uint8
 }
 

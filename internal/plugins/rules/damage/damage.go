@@ -38,7 +38,7 @@ func (d *Damage) InitializeCarState(car *state.Car) {
 	}
 }
 
-func (d *Damage) HandlePitStop(car *state.Car) {
+func (d *Damage) HandlePitStop(car *state.Car, cancel chan bool) {
 	log.Warn("IMPLEMENT ME")
 }
 

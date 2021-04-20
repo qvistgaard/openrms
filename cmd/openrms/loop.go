@@ -22,7 +22,6 @@ func processEvents(i implement.Implementer, postProcess postprocess.PostProcess,
 	log.Info("started event processor.")
 
 	cars := make(map[uint8]*state.Car)
-	rules.Initialize()
 
 	for {
 		select {

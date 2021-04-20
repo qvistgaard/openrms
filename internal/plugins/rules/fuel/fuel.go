@@ -58,7 +58,7 @@ func (c *Consumption) InitializeCarState(car *state.Car) {
 	car.Subscribe(state.CarEventSequence, c)
 }
 
-func (c *Consumption) HandlePitStop(car *state.Car) {
+func (c *Consumption) HandlePitStop(car *state.Car, cancel chan bool) {
 	log.Warn("IMPLEMENT ME")
 }
 
