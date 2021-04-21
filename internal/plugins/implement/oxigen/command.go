@@ -32,11 +32,11 @@ func newPitLaneSpeed(id uint8, speed uint8) *Car {
 	}
 }
 
-func newMaxSpeed(id uint8, speed uint8) *Car {
+func newMaxSpeed(id uint8, speed state.MaxSpeed) *Car {
 	return &Car{
 		id:      id,
 		command: 0x02,
-		value:   speed,
+		value:   uint8(speed),
 	}
 }
 
@@ -83,7 +83,7 @@ func newEmptyCommand(race state.CourseChanges, currentState byte, settings *Sett
 			case state.RaceStatusFlaggedLCEnabled:
 				c.flag(true)
 			}
-		case state.MaxSpeed:
+		case state.CourseMaxSpeed:
 			bv := v.Value.(uint8)
 			c.maxSpeed(bv)
 		}
@@ -104,7 +104,7 @@ func newSettings() *Settings {
 func (c *Command) carCommand(id uint8, s string, v interface{}) bool {
 	switch s {
 	case state.CarMaxSpeed:
-		c.car = newMaxSpeed(id, v.(uint8))
+		c.car = newMaxSpeed(id, v.(state.MaxSpeed))
 	case state.CarMaxBreaking:
 		c.car = newMaxBreaking(id, v.(uint8))
 	case state.CarMinSpeed:

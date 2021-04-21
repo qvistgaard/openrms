@@ -1,11 +1,9 @@
 package websocket
 
 import (
-	"encoding/json"
 	"github.com/qvistgaard/openrms/internal/state"
 	log "github.com/sirupsen/logrus"
 	"net/http"
-	"time"
 )
 
 type WebSocket struct {
@@ -18,8 +16,8 @@ type WebSocket struct {
 }
 
 type StateMessage struct {
-	Cars []state.CarChanges    `json:"cars"`
-	Race []state.CourseChanges `json:"race"`
+	Cars   []state.CarChanges    `json:"cars"`
+	Course []state.CourseChanges `json:"race"`
 }
 
 func (b *WebSocket) CarChannel() chan<- state.CarChanges {
@@ -47,11 +45,6 @@ func (b *WebSocket) Process() {
 }
 
 func (b *WebSocket) processWebsocket() {
-	var stateMessages = StateMessage{
-		Cars: []state.CarChanges{},
-		Race: []state.CourseChanges{},
-	}
-
 	for {
 		select {
 		case client := <-b.register:
@@ -62,23 +55,13 @@ func (b *WebSocket) processWebsocket() {
 				close(client.send)
 			}
 		case message := <-b.car:
-			stateMessages.Cars = append(stateMessages.Cars, message)
-
-		case <-time.After(500 * time.Millisecond):
-			if len(stateMessages.Cars) > 0 || len(stateMessages.Race) > 0 {
-				marshal, _ := json.Marshal(stateMessages)
-				for client := range b.clients {
-					select {
-					case client.send <- marshal:
-					default:
-						close(client.send)
-						delete(b.clients, client)
-					}
+			for client := range b.clients {
+				select {
+				case client.send <- message:
+				default:
+					close(client.send)
+					delete(b.clients, client)
 				}
-			}
-			stateMessages = StateMessage{
-				Cars: []state.CarChanges{},
-				Race: []state.CourseChanges{},
 			}
 		}
 	}
@@ -91,7 +74,7 @@ func serveWebSocket(ws *WebSocket, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	client := &Client{broadcast: ws, conn: conn, send: make(chan []byte, 256), request: r}
+	client := &Client{broadcast: ws, conn: conn, send: make(chan interface{}, 256), request: r}
 	client.broadcast.register <- client
 	log.WithFields(map[string]interface{}{
 		"ip_addr": conn.RemoteAddr(),

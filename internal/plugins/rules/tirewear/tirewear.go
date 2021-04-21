@@ -12,7 +12,7 @@ type TireWear struct {
 }
 
 func (t *TireWear) Initialize() {
-	panic("implement me")
+	// panic("implement me")
 }
 
 func (t *TireWear) Notify(v *state.Value) {

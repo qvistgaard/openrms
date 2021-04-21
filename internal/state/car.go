@@ -1,6 +1,7 @@
 package state
 
 import (
+	"github.com/mitchellh/mapstructure"
 	"time"
 )
 
@@ -16,6 +17,7 @@ const (
 	CarLapTime               = "car-lap-time"
 	CarInPit                 = "car-in-pit"
 	CarReset                 = "car-reset"
+	CarRaceTimer             = "car-race-timer"
 	CarEventSequence         = "car-event-sequence"
 	ControllerTriggerValue   = "controller-trigger-value"
 	ControllerBtnUp          = "controller-btn-up"
@@ -23,6 +25,8 @@ const (
 	ControllerBtnTrackCall   = "controller-btn-track-call"
 	ControllerBatteryWarning = "controller-battery-warning"
 )
+
+type MaxSpeed uint8
 
 func CreateCar(race *Course, id uint8, settings map[string]interface{}, rules Rules) *Car {
 	c := new(Car)
@@ -32,12 +36,14 @@ func CreateCar(race *Course, id uint8, settings map[string]interface{}, rules Ru
 	c.state = CreateInMemoryRepository(c)
 	c.Create(CarEventSequence, uint(0))
 	c.Create(CarConfigMaxSpeed, uint8(255))
+	c.Create(CarOnTrack, false)
 	for _, r := range rules.All() {
 		r.InitializeCarState(c)
 	}
 	for _, s := range c.state.All() {
 		s.initialize()
 	}
+
 	return c
 }
 
@@ -56,6 +62,10 @@ type CarChanges struct {
 
 func (c *Car) Race() *Course {
 	return c.race
+}
+
+func (c *Car) Settings(v interface{}) error {
+	return mapstructure.Decode(c.settings, v)
 }
 
 func (c *Car) ResetStateChangeStatus() {

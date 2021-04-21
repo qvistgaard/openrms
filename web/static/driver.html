@@ -37,40 +37,42 @@
   <!-- Primary Page Layout
   –––––––––––––––––––––––––––––––––––––––––––––––––– -->
   <div class="container" id="app">
-    <div class="row" style="margin-top: 50px">
-      <div class="twelve columns">
-        <h1>OpenRMS</h1>
-      </div>
-    </div>
     <div class="row">
-      <div class="four columns" style="text-align: center">Start</div>
-      <div class="four columns" style="text-align: center">Stop</div>
-      <div class="four columns" style="text-align: center">Pause</div>
+      <div class="four columns" style="text-align: center"><h1>Car #1</h1></div>
+      <div class="six columns">Postition: xx</div>
     </div>
-    <div class="row" style="margin-top: 50px">
-        <table class="u-full-width">
+
+    <div v-if="$store.state.cars.length === 0">
+      No data
+    </div>
+    <div class="row" v-else v-for="(value, name) in $store.state.cars">
+      <div class="six columns">
+        <h5><b>Timing</b></h5>
+        <table style="width: 100%">
           <thead>
           <tr>
-            <th style="text-align: right">Car</th>
-            <th style="text-align: right">Lap</th>
-            <th style="text-align: right">Fuel</th>
-            <th style="text-align: right">Limb Mode</th>
-            <th style="text-align: right">Lap time</th>
+            <th>Lap</th>
+            <th>Time</th>
           </tr>
           </thead>
           <tbody>
-          <tr v-if="$store.state.cars.length === 0">
-            <td  style="text-align: center" colspan="3">No data</td>
-          </tr>
-          <tr v-else v-for="(value, name) in $store.state.cars">
-            <td style="text-align: right">#{{name}}</td>
-            <td style="text-align: right">{{value["car-lap-number"] && value["car-lap-number"].value || ''}}</td>
-            <td style="text-align: right">{{value["car-fuel"] && value["car-fuel"].value || ''}}%</td>
-            <td style="text-align: right">{{value["limb-mode"] && value["limb-mode"].value || ''}}</td>
-            <td style="text-align: right">{{ $filters.lapTime( value["controller-trigger-value"] && value["controller-trigger-value"].value || 0)  }}</td>
-          </tr>
+            <tr>
+              <td>{{value["car-lap-number"] && value["car-lap-number"].value || '0'}}</td>
+              <td>{{value["car-lap-time"] && value["car-lap-time"].value || '0'}}</td>
+            </tr>
           </tbody>
         </table>
+      </div>
+      <div class="four columns">
+        <b>Fuel</b><br/>
+        {{value["car-fuel"] && value["car-fuel"].value || '0'}}%<br/><br/>
+        <b>Tirewear</b><br/>
+        {{value["tire-wear"] && value["tire-wear"].value || '0'}}<br/><br/>
+        <b>Damage</b><br/>
+        {{value["damage"] && value["damage"].value || '0'}}<br/><br/>
+        <b>Limbmode</b><br/>
+        {{value["limb-mode"] && value["limb-mode"].value || 'false'}}<br/>
+      </div>
     </div>
   </div>
 
@@ -78,6 +80,7 @@
 <!-- End Document
   –––––––––––––––––––––––––––––––––––––––––––––––––– -->
   <script src="app.js"></script>
+  <script src="driver.js"></script>
 
 </body>
 </html>

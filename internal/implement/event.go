@@ -30,6 +30,7 @@ type Event struct {
 	LapNumber    uint16
 	TriggerValue uint8
 	Ontrack      bool
+	RaceTimer    time.Duration
 }
 
 type Controller struct {
@@ -54,6 +55,7 @@ func (e *Event) SetCarState(c *state.Car) {
 		c.Set(state.CarLapTime, e.LapTime)
 		c.Set(state.CarInPit, e.Car.InPit)
 		c.Set(state.CarReset, e.Car.Reset)
+		c.Set(state.CarRaceTimer, e.RaceTimer)
 		c.Set(state.ControllerTriggerValue, e.TriggerValue)
 		c.Set(state.ControllerBtnUp, e.Controller.ArrowUp)
 		c.Set(state.ControllerBtnDown, e.Controller.ArrowDown)

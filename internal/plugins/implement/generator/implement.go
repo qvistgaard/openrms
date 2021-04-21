@@ -58,7 +58,7 @@ func (g *Generator) eventGenerator(car uint8, interval uint) implement.Event {
 				LapTime:      time.Duration(rand.Intn(10000)) * time.Millisecond,
 				LapNumber:    uint16(laps),
 				TriggerValue: uint8(rand.Int31()),
-				Ontrack:      false,
+				Ontrack:      true,
 			}
 
 		}

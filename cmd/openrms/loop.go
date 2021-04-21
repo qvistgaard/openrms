@@ -16,19 +16,19 @@ func eventloop(i implement.Implementer) error {
 	return err
 }
 
-func processEvents(i implement.Implementer, postProcess postprocess.PostProcess, repository car.Repository, race *state.Course, rules state.Rules) {
+func processEvents(i implement.Implementer, postProcess postprocess.PostProcess, repository car.Repository, course *state.Course, rules state.Rules) {
 	defer wg.Done()
 
 	log.Info("started event processor.")
 
 	cars := make(map[uint8]*state.Car)
-
+	course.Set(state.RaceStatus, state.RaceStatusRunning)
 	for {
 		select {
 		case e := <-i.EventChannel():
 			var c *state.Car
 			if _, ok := cars[e.Id]; !ok {
-				c = state.CreateCar(race, e.Id, repository.GetCarById(e.Id), rules)
+				c = state.CreateCar(course, e.Id, repository.GetCarById(e.Id), rules)
 				cars[e.Id] = c
 			} else {
 				c = cars[e.Id]
@@ -37,9 +37,10 @@ func processEvents(i implement.Implementer, postProcess postprocess.PostProcess,
 				e.SetCarState(c)
 
 				carChanges := c.Changes()
-				raceChanges := race.Changes()
+				raceChanges := course.Changes()
 
 				if len(raceChanges.Changes) > 0 {
+					log.Infof("RACE CHANGES: %+v", raceChanges)
 					i.SendRaceState(raceChanges)
 					postProcess.PostProcessRace(raceChanges)
 				}
@@ -48,7 +49,7 @@ func processEvents(i implement.Implementer, postProcess postprocess.PostProcess,
 					postProcess.PostProcessCar(c.Changes())
 				}
 				c.ResetStateChangeStatus()
-				race.ResetStateChangeStatus()
+				course.ResetStateChangeStatus()
 			}
 		}
 	}

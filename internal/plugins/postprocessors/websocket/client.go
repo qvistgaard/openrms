@@ -2,8 +2,10 @@ package websocket
 
 import (
 	"encoding/json"
-	"log"
+	"github.com/qvistgaard/openrms/internal/state"
+	log "github.com/sirupsen/logrus"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -44,7 +46,7 @@ type Client struct {
 	conn *websocket.Conn
 
 	// Buffered channel of outbound messages.
-	send    chan []byte
+	send    chan interface{}
 	request *http.Request
 }
 
@@ -87,34 +89,43 @@ func (c *Client) writePump() {
 		ticker.Stop()
 		c.conn.Close()
 	}()
-	i := 0
+
+	var stateMessages = StateMessage{
+		Cars:   []state.CarChanges{},
+		Course: []state.CourseChanges{},
+	}
+	nextTX := time.Now()
 	for {
 		select {
 		case message, ok := <-c.send:
-			i++
-			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if !ok {
 				// The broadcast closed the channel.
 				c.conn.WriteMessage(websocket.CloseMessage, []byte{})
 				return
 			}
-			w, err := c.conn.NextWriter(websocket.TextMessage)
-			if err != nil {
-				return
+			if carChanges, ok := message.(state.CarChanges); ok && c.filterCarChanges(carChanges) {
+				stateMessages.Cars = append(stateMessages.Cars, carChanges)
 			}
-			// marshal, _ := json.Marshal(message)
-			w.Write(message)
 
-			// Add queued chat messages to the current websocket message.
-			/*			n := len(c.send)
-						for i := 0; i < n; i++ {
-							w.Write(newline)
-							marshal, _ := json.Marshal(<-c.send)
-							w.Write(marshal)
-						}*/
-
-			if err := w.Close(); err != nil {
-				return
+			if time.Now().After(nextTX) {
+				c.conn.SetWriteDeadline(time.Now().Add(writeWait))
+				if len(stateMessages.Cars) > 0 || len(stateMessages.Course) > 0 {
+					w, err := c.conn.NextWriter(websocket.TextMessage)
+					if err != nil {
+						return
+					}
+					marshal, _ := json.Marshal(stateMessages)
+					w.Write(marshal)
+					log.Infof("%+v", stateMessages)
+					stateMessages = StateMessage{
+						Cars:   []state.CarChanges{},
+						Course: []state.CourseChanges{},
+					}
+					if err := w.Close(); err != nil {
+						return
+					}
+				}
+				nextTX = time.Now().Add(500 * time.Millisecond)
 			}
 		case <-ticker.C:
 			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
@@ -123,4 +134,16 @@ func (c *Client) writePump() {
 			}
 		}
 	}
+}
+
+func (c *Client) collectAndSendChanges() {
+
+}
+
+func (c *Client) filterCarChanges(changes state.CarChanges) bool {
+	get := c.request.URL.Query().Get("car")
+	if get == "" || get == strconv.FormatUint(uint64(changes.Car), 10) {
+		return true
+	}
+	return false
 }

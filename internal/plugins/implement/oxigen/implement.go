@@ -83,7 +83,6 @@ func (o *Oxigen) EventLoop() error {
 				"size":       len(o.commands),
 			}).Warn("too many commands on command buffer")
 		}
-
 		b := o.command(command, timer)
 		_, err = o.serial.Write(b)
 		if err != nil {
@@ -94,7 +93,6 @@ func (o *Oxigen) EventLoop() error {
 			"message": fmt.Sprintf("%x", b),
 		}).Tracef("send message to oxygen dongle")
 
-		// log.Printf("S> %d %s", len(b), hex.Dump(b))
 		for {
 			time.Sleep(10 * time.Millisecond)
 			buffer := make([]byte, 13)
@@ -102,8 +100,6 @@ func (o *Oxigen) EventLoop() error {
 			log.WithFields(map[string]interface{}{
 				"message": fmt.Sprintf("%x", buffer),
 			}).Tracef("recevied message from oxygen dongle")
-
-			// log.Printf("S> %d %s", len(buffer), hex.EncodeToString(buffer))
 			timer = buffer[7:10]
 
 			event := o.event(buffer)
@@ -132,6 +128,7 @@ func (o *Oxigen) EventChannel() <-chan implement.Event {
 
 func (o *Oxigen) SendRaceState(r state.CourseChanges) error {
 	o.commands <- newEmptyCommand(r, o.state, o.settings)
+	// log.Infof("%+v", r)
 	return nil
 }
 
@@ -148,6 +145,8 @@ func (o *Oxigen) SendCarState(c state.CarChanges) error {
 }
 
 func (o *Oxigen) event(b []byte) implement.Event {
+	rt := (uint(b[9]) * 16777216) + (uint(b[10]) * 65536) + (uint(b[11]) * 256) + uint(b[12]) - uint(b[4])
+	rtd := time.Duration(rt*10) * time.Millisecond
 	return implement.Event{
 		Id: b[1],
 		Controller: implement.Controller{
@@ -163,9 +162,10 @@ func (o *Oxigen) event(b []byte) implement.Event {
 			InPit: 0x40&b[8] == 0x40,
 			// version:
 		},
-		LapTime:      time.Duration((uint(b[2]) * 256) + uint(b[3])),
-		LapNumber:    (uint16(b[5]) * 256) + uint16(b[6]),
+		LapTime:      time.Duration((float64((uint16(b[2])*256)+uint16(b[3])) / 99.25) * float64(time.Second)),
+		LapNumber:    (uint16(b[6]) * 256) + uint16(b[5]),
 		TriggerValue: 0x7F & b[7],
+		RaceTimer:    rtd,
 		Ontrack:      0x80&b[7] == 0x80,
 	}
 }
@@ -180,6 +180,7 @@ func (o *Oxigen) command(c *Command, timer []byte) []byte {
 		parameter = c.car.value
 		controller = c.car.id
 	}
+	o.state = c.state
 
 	return []byte{
 		o.state | o.settings.pitLane.lapTrigger | o.settings.pitLane.lapCounting,

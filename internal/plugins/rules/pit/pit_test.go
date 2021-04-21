@@ -10,11 +10,12 @@ import (
 type SimpleTestPitRule struct{}
 
 func (SimpleTestPitRule) HandlePitStop(car *state.Car, cancel chan bool) {
-	panic("implement me")
+	car.Set(fuel.CarFuel, float32(100))
 }
 
 func (SimpleTestPitRule) Priority() uint8 {
-	panic("implement me")
+	// panic("implement me")
+	return 50
 }
 
 func (r SimpleTestPitRule) InitializeCarState(car *state.Car) {

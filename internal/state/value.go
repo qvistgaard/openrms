@@ -1,5 +1,7 @@
 package state
 
+import log "github.com/sirupsen/logrus"
+
 func CreateState(owner Owner, name string, v interface{}) *Value {
 	s := new(Value)
 	s.value = v
@@ -52,6 +54,7 @@ func (v *Value) Set(value interface{}) {
 		v.previous = v.value
 		v.value = value
 		if v.initialized {
+			log.Infof("%s=%+v", v.name, value)
 			v.changed = true
 			for _, s := range v.subscribers {
 				s.Notify(v)

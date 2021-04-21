@@ -7,8 +7,8 @@ import (
 
 const (
 	RaceStatus                  = "race-status"
-	MaxSpeed                    = "course-length-max-speed"
-	Length                      = "course-length"
+	CourseMaxSpeed              = "course-length-max-speed"
+	CourseLength                = "course-length"
 	PitlaneLapCounting          = "cource-pitlane-lap-counting"
 	PitlaneLapCountingOnEntry   = "cource-pitlane-lap-counting-on-entry"
 	RaceStatusStopped           = uint8(0x00)
@@ -46,8 +46,8 @@ func CreateCourse(config *CourseConfig, rules Rules) *Course {
 
 	course.state.Create(PitlaneLapCounting, config.Course.PitLane.LapCounting.Enabled)
 	course.state.Create(PitlaneLapCountingOnEntry, config.Course.PitLane.LapCounting.Entry)
-	course.state.Create(Length, config.Course.Length)
-	course.state.Create(MaxSpeed, config.Course.MaxSpeed)
+	course.state.Create(CourseLength, config.Course.Length)
+	course.state.Create(CourseMaxSpeed, config.Course.MaxSpeed)
 
 	course.state.SetDefaults()
 	for _, r := range rules.All() {

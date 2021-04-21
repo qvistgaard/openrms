@@ -4,9 +4,11 @@ import (
 	"encoding/hex"
 	queue "github.com/enriquebris/goconcurrentqueue"
 	"github.com/qvistgaard/openrms/internal/state"
+	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"io"
 	"testing"
+	"time"
 )
 
 type MockHandshakeConnection struct {
@@ -64,9 +66,9 @@ func TestTestSendSingleCommandOnNoCarStateChanges(t *testing.T) {
 	o := new(Oxigen)
 	o.settings = newSettings()
 	o.commands = make(chan *Command, 10)
-	race := state.CreateCourse(&state.CourseConfig{}, []state.Rule{})
+	race := state.CreateCourse(&state.CourseConfig{}, &state.RuleList{})
 	race.Set(state.RaceStatus, state.RaceStatusStopped)
-	car := state.CreateCar(race, 1, map[string]interface{}{}, make([]state.Rule, 0))
+	car := state.CreateCar(race, 1, map[string]interface{}{}, &state.RuleList{})
 
 	o.SendCarState(car.Changes())
 
@@ -82,8 +84,8 @@ func TestTestSendSingleCommandOnCarStateChanges(t *testing.T) {
 	o := new(Oxigen)
 	o.settings = newSettings()
 	o.commands = make(chan *Command, 10)
-	race := state.CreateCourse(&state.CourseConfig{}, []state.Rule{})
-	car := state.CreateCar(race, 1, map[string]interface{}{}, make([]state.Rule, 0))
+	race := state.CreateCourse(&state.CourseConfig{}, &state.RuleList{})
+	car := state.CreateCar(race, 1, map[string]interface{}{}, &state.RuleList{})
 	car.Set(state.CarMaxSpeed, uint8(255))
 
 	o.SendCarState(car.Changes())
@@ -106,4 +108,16 @@ func TestEventLoopCanReadMessages(t *testing.T) {
 	}
 	o.commands <- c
 	o.EventLoop()
+}
+
+func TestRaceTimerTranslation(t *testing.T) {
+	b := []byte{0x00, 0x00, 0xe8, 0x0b, 0x09}
+	r := ((uint(b[0]) * 16777216) + (uint(b[1]) * 65536) + (uint(b[2]) * 256) + uint(b[3])) - uint(b[4])
+	ms := time.Duration(r * 10)
+	log.Infof("%d", r)
+	log.Infof("%d", ms)
+	log.Infof("%s", ms*time.Millisecond)
+	log.Infof("%s", 593940*time.Millisecond)
+	// TODO: FIX RACE TIMER
+
 }

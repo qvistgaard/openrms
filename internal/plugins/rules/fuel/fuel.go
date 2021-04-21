@@ -3,35 +3,38 @@ package fuel
 import (
 	"github.com/qvistgaard/openrms/internal/plugins/rules/limbmode"
 	"github.com/qvistgaard/openrms/internal/state"
-	log "github.com/sirupsen/logrus"
+	"time"
 )
 
-const (
-	defaultBurnRate = float32(100)
-	defaultFuel     = float32(100)
+type Liter float32
+type LiterPerSecond float32
 
-	CarFuel       = "car-fuel"
-	CarConfigFuel = "car-config-fuel"
-	// todo: SET DEFAULT Values for this
-	CarConfigRefuelTime          = "car-config-refuel-time"
-	CarConfigDisableDuringRefuel = "car-config-disable-during-refuel"
-	CarRefuelInPut               = "car-refuel-in-put"
-	CarConfigBurnRate            = "car-config-fuel-burn-rate"
+const (
+	defaultBurnRate   = LiterPerSecond(100)
+	defaultFuel       = Liter(90)
+	defaultRefuelRate = LiterPerSecond(2)
+
+	CarFuel           = "car-fuel"
+	CarConfigFuel     = "car-config-fuel"
+	CarConfigBurnRate = "car-config-fuel-burn-rate"
 )
 
 type Consumption struct {
 }
 
 func (c *Consumption) Notify(v *state.Value) {
-	if c, ok := v.Owner().(state.Car); ok {
+	if c, ok := v.Owner().(*state.Car); ok {
 		if v.Name() == state.CarEventSequence && c.Get(state.CarOnTrack).(bool) {
-			fs := c.Get(CarFuel).(float32)
-			bs := c.Get(CarConfigBurnRate).(float32)
-			cf := calculateFuelState(bs, fs, v.Get().(uint8))
+			fs := c.Get(CarFuel).(Liter)
+			bs := c.Get(CarConfigBurnRate).(LiterPerSecond)
+			cf := calculateFuelState(bs, fs, v.Get().(uint))
 
-			c.Set(CarFuel, cf)
 			if cf <= 0 {
 				c.Set(limbmode.CarLimbMode, true)
+				c.Set(CarFuel, Liter(0))
+			} else {
+				c.Set(CarFuel, cf)
+
 			}
 		}
 	}
@@ -59,13 +62,25 @@ func (c *Consumption) InitializeCarState(car *state.Car) {
 }
 
 func (c *Consumption) HandlePitStop(car *state.Car, cancel chan bool) {
-	log.Warn("IMPLEMENT ME")
+	select {
+	case <-cancel:
+		return
+	case <-time.After(500 * time.Millisecond):
+		f := car.Get(CarFuel).(Liter)
+		v := f + Liter(defaultRefuelRate/2)
+		m := car.Get(CarConfigFuel).(Liter)
+		if v >= m {
+			v = m
+		}
+		car.Set(CarFuel, v)
+		return
+	}
 }
 
 func (c *Consumption) Priority() uint8 {
 	return 1
 }
 
-func calculateFuelState(burnRate float32, fuel float32, triggerValue uint8) float32 {
-	return fuel - ((float32(triggerValue) / 255) * burnRate)
+func calculateFuelState(burnRate LiterPerSecond, fuel Liter, triggerValue uint) Liter {
+	return Liter(float32(fuel) - ((float32(triggerValue) / 255) * float32(burnRate)))
 }

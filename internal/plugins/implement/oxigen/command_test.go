@@ -243,7 +243,7 @@ func TestRaceStatusChangeFromRaceStateFlaggedLCEnabled(t *testing.T) {
 func TestRaceStatusChangeFromRaceStateMaxSpeed(t *testing.T) {
 	s := state.CourseChanges{
 		Changes: []state.Change{
-			{Name: state.MaxSpeed, Value: uint8(100)},
+			{Name: state.CarMaxSpeed, Value: uint8(100)},
 		},
 		Time: time.Now(),
 	}

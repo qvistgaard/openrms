@@ -27,19 +27,22 @@ func (p *Pit) Notify(v *state.Value) {
 		if v.Name() == state.ControllerTriggerValue {
 			triggerValue := v.Get().(uint8)
 			if c.Get(state.CarInPit).(bool) {
-				cancel := make(chan bool)
-				o := make(chan state.PitRule)
-				if triggerValue == 0 && c.Get(State) == Stopped {
-					c.Set(State, Started)
-					for _, pr := range p.rules.PitRules() {
-						o <- pr
+				rules := p.rules.PitRules()
+				if len(rules) > 0 {
+					cancel := make(chan bool)
+					o := make(chan state.PitRule, len(rules))
+					if triggerValue == 0 && c.Get(State) == Stopped {
+						c.Set(State, Started)
+						for _, pr := range rules {
+							o <- pr
+						}
+						go p.handlePitStop(c, o, cancel)
+					} else if c.Get(State) != Locked {
+						c.Set(State, Exiting)
+						cancel <- true
+						close(cancel)
+						close(o)
 					}
-					go p.handlePitStop(c, o, cancel)
-				} else if c.Get(State) != Locked {
-					c.Set(State, Exiting)
-					cancel <- true
-					close(cancel)
-					close(o)
 				}
 			} else {
 				c.Set(State, Stopped)
