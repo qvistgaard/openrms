@@ -26,7 +26,6 @@ func processEvents(i implement.Implementer, postProcess postprocess.PostProcess,
 	for {
 		select {
 		case e := <-i.EventChannel():
-			log.Infof("Event: %+v", e)
 			var c *state.Car
 			if e.Id > 0 {
 				if _, ok := cars[e.Id]; !ok {
