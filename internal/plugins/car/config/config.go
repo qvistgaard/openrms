@@ -1,6 +1,7 @@
 package config
 
 import (
+	"github.com/qvistgaard/openrms/internal/state"
 	"gopkg.in/yaml.v2"
 )
 
@@ -11,10 +12,10 @@ type Config struct {
 }
 
 type CarConfigRepository struct {
-	cars map[uint8]map[string]interface{}
+	cars map[state.CarId]map[string]interface{}
 }
 
-func (c *CarConfigRepository) GetCarById(id uint8) map[string]interface{} {
+func (c *CarConfigRepository) GetCarById(id state.CarId) map[string]interface{} {
 	if settings, ok := c.cars[id]; ok {
 		return settings
 	}
@@ -29,11 +30,11 @@ func CreateFromConfig(config []byte) (*CarConfigRepository, error) {
 	}
 
 	ccr := new(CarConfigRepository)
-	ccr.cars = make(map[uint8]map[string]interface{})
+	ccr.cars = make(map[state.CarId]map[string]interface{})
 	for _, cs := range c.Car.Cars {
 		if id, ok := cs["id"]; ok {
 			i := id.(int)
-			ccr.cars[uint8(i)] = cs
+			ccr.cars[state.CarId(i)] = cs
 		}
 	}
 	return ccr, nil

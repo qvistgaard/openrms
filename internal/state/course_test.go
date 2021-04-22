@@ -6,8 +6,9 @@ import (
 )
 
 func TestRaceStateCreation(t *testing.T) {
-	race := CreateCourse(&CourseConfig{}, []Rule{
-		new(SimpleRule),
+	race := CreateCourse(&CourseConfig{}, &RuleList{
+		rules:    []Rule{new(SimpleRule)},
+		pitRules: nil,
 	})
 	s := race.Get(RaceStatus)
 

@@ -8,12 +8,12 @@ websocket:
 
 
 implement:
-  plugin: generator
+  plugin: oxigen
   oxigen:
     port: /dev/ttyACM0
 
   generator:
-    cars: 1
+    cars: 2
     interval: 600
 
 course:
@@ -57,11 +57,11 @@ rules:
 
 
 postprocessors:
-  influxdb:
-    url: "http://localhost:8086"
+  # influxdb:
+   # url: "http://localhost:8086"
     # batch-size: 100
-    auth-token: "_esnfjdFsjvkBkgc4S3ovqftb8RmmwAeGDBbt4fsY20EA9pFqeLaNYUkoH3sOyZ9jfTGcML-dB8AKgyj577Qhw=="
-    organization: openrms
-    bucket: openrms
+   # auth-token: "_esnfjdFsjvkBkgc4S3ovqftb8RmmwAeGDBbt4fsY20EA9pFqeLaNYUkoH3sOyZ9jfTGcML-dB8AKgyj577Qhw=="
+   # organization: openrms
+   # bucket: openrms
   websocket:
     listen: ":8080"

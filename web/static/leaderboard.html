@@ -9,7 +9,10 @@
 
   <script src="https://unpkg.com/vue@next"></script>
   <script src="https://unpkg.com/vuex@next"></script>
-
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+  <script>
+    moment().format();
+  </script>
 
   <meta name="description" content="">
   <meta name="author" content="">
@@ -51,24 +54,25 @@
         <table class="u-full-width">
           <thead>
           <tr>
+            <th style="text-align: right">Position</th>
             <th style="text-align: right">Car</th>
             <th style="text-align: right">Lap</th>
-            <th style="text-align: right">Fuel</th>
-            <th style="text-align: right">Limb Mode</th>
             <th style="text-align: right">Lap time</th>
           </tr>
           </thead>
           <tbody>
-          <tr v-if="$store.state.cars.length === 0">
-            <td  style="text-align: center" colspan="3">No data</td>
+          <tr v-if="!$store.state.race">
+            <td  style="text-align: center" colspan="3">
+              No data</td>
           </tr>
-          <tr v-else v-for="(value, name) in $store.state.cars">
-            <td style="text-align: right">#{{name}}</td>
-            <td style="text-align: right">{{value["car-lap-number"] && value["car-lap-number"].value || ''}}</td>
-            <td style="text-align: right">{{value["car-fuel"] && value["car-fuel"].value || ''}}%</td>
-            <td style="text-align: right">{{value["limb-mode"] && value["limb-mode"].value || ''}}</td>
-            <td style="text-align: right">{{ $filters.lapTime( value["controller-trigger-value"] && value["controller-trigger-value"].value || 0)  }}</td>
-          </tr>
+            <template v-else v-for="(value, name) in $store.state.race['race-leaderboard']">
+              <tr v-for="(k, v) in value" >
+                <td style="text-align: right">#{{v+1}}</td>
+                <td style="text-align: right">{{k["Car"]}}</td>
+                <td style="text-align: right">{{k["Lap"]["LapNumber"]}}</td>
+                <td style="text-align: right">{{ $filters.lapTime( k["Lap"]["LapTime"] )}}<small>s</small></td>
+              </tr>
+            </template>
           </tbody>
         </table>
     </div>
@@ -78,6 +82,7 @@
 <!-- End Document
   –––––––––––––––––––––––––––––––––––––––––––––––––– -->
   <script src="app.js"></script>
+  <script src="leaderboard.js"></script>
 
 </body>
 </html>

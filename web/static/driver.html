@@ -39,7 +39,12 @@
   <div class="container" id="app">
     <div class="row">
       <div class="four columns" style="text-align: center"><h1>Car #1</h1></div>
-      <div class="six columns">Postition: xx</div>
+      <div class="six columns">
+        <button v-on:click="start">start</button>
+        <button v-on:click="pause">pause</button>
+        <button v-on:click="stop">stop</button><br/>
+        Postition: xx / {{ $store.state.connection }} /{{ $store.state.race }}
+      </div>
     </div>
 
     <div v-if="$store.state.cars.length === 0">
@@ -47,7 +52,7 @@
     </div>
     <div class="row" v-else v-for="(value, name) in $store.state.cars">
       <div class="six columns">
-        <h5><b>Timing</b></h5>
+        <h5><b>Timing </b><small>Last 5 laps</small></h5>
         <table style="width: 100%">
           <thead>
           <tr>
@@ -64,6 +69,7 @@
         </table>
       </div>
       <div class="four columns">
+        <h5><b>Status </b></h5>
         <b>Fuel</b><br/>
         {{value["car-fuel"] && value["car-fuel"].value || '0'}}%<br/><br/>
         <b>Tirewear</b><br/>

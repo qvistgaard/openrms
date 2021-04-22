@@ -158,7 +158,7 @@ func createTestValue(n string, v interface{}) (bool, *Command) {
 }
 
 func TestCarCommandSetMaxSpeed(t *testing.T) {
-	b, c := createTestValue(state.CarMaxSpeed, uint8(255))
+	b, c := createTestValue(state.CarMaxSpeed, state.MaxSpeed(25))
 
 	assert.True(t, b)
 	assert.Equal(t, uint8(255), c.car.value)

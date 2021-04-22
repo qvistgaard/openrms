@@ -28,7 +28,7 @@ func (l *LimbMode) Notify(v *state.Value) {
 	}
 }
 
-func (l *LimbMode) InitializeRaceState(race *state.Course) {}
+func (l *LimbMode) InitializeCourseState(race *state.Course) {}
 
 func (l *LimbMode) InitializeCarState(car *state.Car) {
 	settings := &Settings{}

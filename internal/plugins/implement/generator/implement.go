@@ -43,7 +43,7 @@ func (g *Generator) eventGenerator(car uint8, interval uint) implement.Event {
 		case <-time.After(time.Duration(interval) * time.Millisecond):
 			laps++
 			g.events <- implement.Event{
-				Id: car,
+				Id: state.CarId(car),
 				Controller: implement.Controller{
 					BatteryWarning: false,
 					Link:           false,

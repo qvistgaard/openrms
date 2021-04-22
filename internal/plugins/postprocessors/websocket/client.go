@@ -38,6 +38,18 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
+type Command struct {
+	Race *struct {
+		Name  string
+		Value interface{}
+	}
+	Car *struct {
+		CarId state.CarId
+		Name  string
+		Value interface{}
+	}
+}
+
 // Client is a middleman between the websocket connection and the broadcast.
 type Client struct {
 	broadcast *WebSocket
@@ -48,6 +60,7 @@ type Client struct {
 	// Buffered channel of outbound messages.
 	send    chan interface{}
 	request *http.Request
+	command chan<- interface{}
 }
 
 // read pumps messages from the websocket connection to the broadcast.
@@ -64,12 +77,38 @@ func (c *Client) read() {
 	c.conn.SetReadDeadline(time.Now().Add(pongWait))
 	c.conn.SetPongHandler(func(string) error { c.conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
 	for {
-		_, _, err := c.conn.ReadMessage()
+		_, b, err := c.conn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				log.Printf("error: %v", err)
 			}
 			break
+		}
+		o := &Command{}
+		ok := json.Unmarshal(b, o)
+		if ok == nil {
+			if o.Race != nil {
+				log.Infof("%s == %s", o.Race.Name, state.RaceStatus)
+				if o.Race.Name == state.RaceStatus {
+					switch o.Race.Value {
+					case "start":
+						c.command <- state.CourseCommand{Name: o.Race.Name, Value: state.RaceStatusRunning}
+					case "stop":
+						c.command <- state.CourseCommand{Name: o.Race.Name, Value: state.RaceStatusStopped}
+					case "pause":
+						c.command <- state.CourseCommand{Name: o.Race.Name, Value: state.RaceStatusPaused}
+					}
+				}
+			}
+			if o.Car != nil {
+				c.command <- state.CarCommand{
+					CarId: o.Car.CarId,
+					Name:  o.Car.Name,
+					Value: o.Car.Value,
+				}
+			}
+		} else {
+			log.Warn(ok)
 		}
 		marshal, _ := json.Marshal(map[string]interface{}{
 			"error": "no such command",
@@ -106,6 +145,9 @@ func (c *Client) writePump() {
 			if carChanges, ok := message.(state.CarChanges); ok && c.filterCarChanges(carChanges) {
 				stateMessages.Cars = append(stateMessages.Cars, carChanges)
 			}
+			if courseChanges, ok := message.(state.CourseChanges); ok {
+				stateMessages.Course = append(stateMessages.Course, courseChanges)
+			}
 
 			if time.Now().After(nextTX) {
 				c.conn.SetWriteDeadline(time.Now().Add(writeWait))
@@ -116,7 +158,7 @@ func (c *Client) writePump() {
 					}
 					marshal, _ := json.Marshal(stateMessages)
 					w.Write(marshal)
-					log.Infof("%+v", stateMessages)
+					// log.Infof("%+v", stateMessages)
 					stateMessages = StateMessage{
 						Cars:   []state.CarChanges{},
 						Course: []state.CourseChanges{},

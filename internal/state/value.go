@@ -55,9 +55,9 @@ func (v *Value) Set(value interface{}) {
 	changed := false
 	if c, ok := value.(ComparableChange); ok {
 		if o, ok := v.value.(ComparableChange); ok {
-			changed = c.Compare(o)
+			changed = !c.Compare(o)
 		} else {
-			changed = true
+			changed = !false
 		}
 	} else {
 		changed = v.value != value

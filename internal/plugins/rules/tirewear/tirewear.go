@@ -39,7 +39,7 @@ func (t *TireWear) Notify(v *state.Value) {
 	}
 }
 
-func (t *TireWear) InitializeRaceState(race *state.Course) {
+func (t *TireWear) InitializeCourseState(race *state.Course) {
 
 }
 

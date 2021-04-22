@@ -13,7 +13,6 @@ import (
 var wg sync.WaitGroup
 
 func main() {
-
 	flagConfig := flag.String("config", "config.yaml", "OpenRMS Config file")
 	file, err := ioutil.ReadFile(*flagConfig)
 	if err != nil {
@@ -21,6 +20,7 @@ func main() {
 	}
 	// TODO: Make configurable
 	log.SetLevel(log.InfoLevel)
+	log.SetReportCaller(true)
 
 	implement, err := config.CreateImplementFromConfig(file)
 	if err != nil {

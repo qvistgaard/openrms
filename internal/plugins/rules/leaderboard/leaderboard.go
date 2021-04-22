@@ -2,59 +2,131 @@ package leaderboard
 
 import (
 	"github.com/qvistgaard/openrms/internal/state"
+	"sort"
 )
 
 const (
-	CarLastLaps = "car-last-laps"
+	CarLastLaps     = "car-last-laps"
+	RaceLeaderboard = "race-leaderboard"
 )
 
-type Board interface {
-	updateCar(car *state.Car)
+type Leaderboard interface {
+	updateCar(id state.CarId, lap state.Lap) Leaderboard
+}
+
+// Default Leaderboard implementation
+type Default struct {
+	Entries []BoardEntry
+}
+
+func (l *Default) Compare(v state.ComparableChange) bool {
+	if c, ok := v.(*Default); ok {
+		return l == c
+	}
+	return true
+}
+
+func (l *Default) updateCar(id state.CarId, lap state.Lap) Leaderboard {
+	r := &Default{Entries: l.Entries}
+	found := false
+	for k, v := range r.Entries {
+		if v.Car == id && lap.LapNumber >= v.Lap.LapNumber {
+			r.Entries[k].Lap = lap
+			found = true
+			break
+		}
+	}
+	if !found {
+		r.Entries = append(r.Entries, BoardEntry{
+			Car: id,
+			Lap: lap,
+		})
+	}
+
+	sort.Slice(r.Entries, func(i, j int) bool {
+		if r.Entries[i].Lap.LapNumber > r.Entries[j].Lap.LapNumber {
+			return true
+		} else if r.Entries[i].Lap.LapNumber == r.Entries[j].Lap.LapNumber {
+			if r.Entries[i].Lap.RaceTimer < r.Entries[j].Lap.RaceTimer {
+				return true
+			}
+			return false
+		} else {
+			return false
+		}
+	})
+	return r
+}
+
+type BoardEntry struct {
+	Car state.CarId
+	Lap state.Lap
 }
 
 type LastLaps interface {
-	update(car state.Lap) LastLapDefault
+	update(car state.Lap) *LastLapDefault
 }
 type LastLapDefault struct {
 	Laps []state.Lap
 }
 
-type BoardDefault struct {
+type Rule struct {
+	Course *state.Course
 }
 
 func (l *LastLapDefault) update(lap state.Lap) *LastLapDefault {
-
-	slice := []state.Lap{lap}
-	//	l.Laps =
-
 	return &LastLapDefault{
-		Laps: append(slice, l.Laps[0:len(l.Laps)-1]...),
+		Laps: append([]state.Lap{lap}, l.Laps[0:len(l.Laps)-1]...),
 	}
 }
 
 func (l *LastLapDefault) Compare(v state.ComparableChange) bool {
 	if c, ok := v.(*LastLapDefault); ok {
-		return c.Laps[0].LapNumber != l.Laps[0].LapNumber
+		return c.Laps[0].LapNumber == l.Laps[0].LapNumber &&
+			c.Laps[0].LapTime == l.Laps[0].LapTime &&
+			c.Laps[0].RaceTimer == l.Laps[0].RaceTimer
 	}
-	return false
+	return true
 }
 
-func (b *BoardDefault) InitializeCarState(car *state.Car) {
+func (b *Rule) InitializeCarState(car *state.Car) {
 	car.Set(CarLastLaps, &LastLapDefault{
 		Laps: make([]state.Lap, 5),
 	})
 	car.Subscribe(state.CarLap, b)
 }
 
-func (b *BoardDefault) InitializeRaceState(race *state.Course) {
+func (b *Rule) InitializeCourseState(c *state.Course) {
+	c.Set(RaceLeaderboard, &Default{
+		Entries: []BoardEntry{},
+	})
+	b.Course = c
+	c.Subscribe(state.RaceStatus, b)
 }
 
-func (b *BoardDefault) Notify(v *state.Value) {
+// TODO: test race reset of leader board
+func (b *Rule) Notify(v *state.Value) {
 	if c, ok := v.Owner().(*state.Car); ok {
 		if l, ok := v.Get().(state.Lap); ok && v.Name() == state.CarLap {
-			last := c.Get(CarLastLaps).(*LastLapDefault)
+			last := c.Get(CarLastLaps).(LastLaps)
 			c.Set(CarLastLaps, last.update(l))
-		}
 
+			leaderboard := b.Course.Get(RaceLeaderboard).(Leaderboard)
+			b.Course.Set(RaceLeaderboard, leaderboard.updateCar(c.Id(), l))
+		}
+	} else if c, ok := v.Owner().(*state.Course); ok {
+		if s, ok := v.Get().(uint8); ok && v.Name() == state.RaceStatus {
+			if l, ok := v.GetPrevious().(uint8); ok {
+				if s == state.RaceStatusRunning {
+					if l != state.RaceStatusFlaggedLCDisabled &&
+						l != state.RaceStatusFlaggedLCEnabled &&
+						l != state.RaceStatusPaused {
+						c.Set(RaceLeaderboard, &Default{
+							Entries: []BoardEntry{},
+						})
+					}
+				}
+			}
+		}
 	}
 }

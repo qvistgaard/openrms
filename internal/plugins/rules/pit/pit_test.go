@@ -21,7 +21,7 @@ func (SimpleTestPitRule) Priority() uint8 {
 func (r SimpleTestPitRule) InitializeCarState(car *state.Car) {
 }
 
-func (r SimpleTestPitRule) InitializeRaceState(race *state.Course) {
+func (r SimpleTestPitRule) InitializeCourseState(race *state.Course) {
 }
 
 func TestSomething(t *testing.T) {
@@ -34,7 +34,7 @@ func TestSomething(t *testing.T) {
 	c.Set(fuel.CarConfigFuel, float32(100))
 	c.Set(fuel.CarFuel, float32(50))
 	c.Set(state.CarInPit, true)
-	c.Set(state.ControllerTriggerValue, uint8(0))
+	c.Set(state.ControllerTriggerValue, state.TriggerValue(0))
 
 	assert.Equal(t, float32(100), c.Get(fuel.CarFuel))
 }

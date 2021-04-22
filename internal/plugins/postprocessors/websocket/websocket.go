@@ -13,6 +13,7 @@ type WebSocket struct {
 	race       chan state.CourseChanges
 	car        chan state.CarChanges
 	listen     string
+	command    chan<- interface{}
 }
 
 type StateMessage struct {
@@ -26,6 +27,10 @@ func (b *WebSocket) CarChannel() chan<- state.CarChanges {
 
 func (b *WebSocket) RaceChannel() chan<- state.CourseChanges {
 	return b.race
+}
+
+func (b *WebSocket) CommandChannel(c chan<- interface{}) {
+	b.command = c
 }
 
 func (b *WebSocket) Process() {
@@ -63,6 +68,15 @@ func (b *WebSocket) processWebsocket() {
 					delete(b.clients, client)
 				}
 			}
+		case message := <-b.race:
+			for client := range b.clients {
+				select {
+				case client.send <- message:
+				default:
+					close(client.send)
+					delete(b.clients, client)
+				}
+			}
 		}
 	}
 }
@@ -74,7 +88,7 @@ func serveWebSocket(ws *WebSocket, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	client := &Client{broadcast: ws, conn: conn, send: make(chan interface{}, 256), request: r}
+	client := &Client{broadcast: ws, conn: conn, send: make(chan interface{}, 256), request: r, command: ws.command}
 	client.broadcast.register <- client
 	log.WithFields(map[string]interface{}{
 		"ip_addr": conn.RemoteAddr(),

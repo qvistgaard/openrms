@@ -56,7 +56,7 @@ func (p *Pit) InitializeCarState(c *state.Car) {
 	c.Subscribe(state.ControllerTriggerValue, p)
 }
 
-func (p *Pit) InitializeRaceState(race *state.Course) {
+func (p *Pit) InitializeCourseState(race *state.Course) {
 	//panic("implement me")
 }
 

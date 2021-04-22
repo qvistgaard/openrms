@@ -22,7 +22,7 @@ type EventInterface interface {
 }
 
 type Event struct {
-	Id           uint8
+	Id           state.CarId
 	Controller   Controller
 	Car          Car
 	Lap          state.Lap

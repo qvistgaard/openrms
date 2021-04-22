@@ -51,7 +51,7 @@ func CreateCourse(config *CourseConfig, rules Rules) *Course {
 
 	course.state.SetDefaults()
 	for _, r := range rules.All() {
-		r.InitializeRaceState(course)
+		r.InitializeCourseState(course)
 	}
 	for _, s := range course.state.All() {
 		s.initialize()
@@ -69,21 +69,21 @@ type Course struct {
 	state    Repository
 }
 
-func (r *Course) Get(state string) interface{} {
-	return r.state.Get(state).Get()
+func (c *Course) Get(state string) interface{} {
+	return c.state.Get(state).Get()
 }
-func (r *Course) Set(state string, value interface{}) {
-	r.state.Get(state).Set(value)
-}
-
-func (r *Course) ResetStateChangeStatus() {
-	r.state.ResetChanges()
+func (c *Course) Set(state string, value interface{}) {
+	c.state.Get(state).Set(value)
 }
 
-func (r *Course) Changes() CourseChanges {
-	stateChanges := r.state.Changes()
+func (c *Course) ResetStateChangeStatus() {
+	c.state.ResetChanges()
+}
+
+func (c *Course) Changes() CourseChanges {
+	stateChanges := c.state.Changes()
 	changes := CourseChanges{
-		Changes: make([]Change, len(stateChanges)),
+		Changes: []Change{},
 		Time:    time.Now(),
 	}
 	for k, v := range stateChanges {
@@ -93,6 +93,10 @@ func (r *Course) Changes() CourseChanges {
 		})
 	}
 	return changes
+}
+
+func (c *Course) Subscribe(state string, s Subscriber) {
+	c.state.Get(state).Subscribe(s)
 }
 
 type Settings struct {

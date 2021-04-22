@@ -24,6 +24,7 @@ const (
 	ControllerBatteryWarning = "controller-battery-warning"
 )
 
+type CarId uint8
 type MaxSpeed uint8
 type TriggerValue uint8
 type LapNumber uint
@@ -35,7 +36,7 @@ type Lap struct {
 	LapTime   LapTime
 }
 
-func CreateCar(race *Course, id uint8, settings map[string]interface{}, rules Rules) *Car {
+func CreateCar(race *Course, id CarId, settings map[string]interface{}, rules Rules) *Car {
 	c := new(Car)
 	c.id = id
 	c.race = race
@@ -55,14 +56,14 @@ func CreateCar(race *Course, id uint8, settings map[string]interface{}, rules Ru
 }
 
 type Car struct {
-	id       uint8
+	id       CarId
 	settings map[string]interface{}
 	state    Repository
 	race     *Course
 }
 
 type CarChanges struct {
-	Car     uint8     `json:"id"`
+	Car     CarId     `json:"id"`
 	Changes []Change  `json:"changes"`
 	Time    time.Time `json:"time"`
 }
@@ -109,7 +110,7 @@ func (c *Car) SetDefault(state string) {
 	get.Set(get.Initial())
 }
 
-func (c *Car) Id() uint8 {
+func (c *Car) Id() CarId {
 	return c.id
 }
 

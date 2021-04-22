@@ -41,7 +41,7 @@ func (c *Consumption) Notify(v *state.Value) {
 	}
 }
 
-func (c *Consumption) InitializeRaceState(race *state.Course) {
+func (c *Consumption) InitializeCourseState(race *state.Course) {
 
 }
 

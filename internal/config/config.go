@@ -103,7 +103,7 @@ func CreateRaceRulesFromConfig(config []byte) (state.Rules, error) {
 		case "tirewear":
 			rules.Append(&tirewear.TireWear{})
 		case "leaderboard":
-			rules.Append(&leaderboard.BoardDefault{})
+			rules.Append(&leaderboard.Rule{})
 		default:
 			return nil, errors.New("Unknown rule: " + r.Name)
 		}

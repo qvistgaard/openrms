@@ -27,7 +27,7 @@ func (d *Damage) Notify(v *state.Value) {
 	}
 }
 
-func (d *Damage) InitializeRaceState(race *state.Course) {
+func (d *Damage) InitializeCourseState(race *state.Course) {
 
 }
 

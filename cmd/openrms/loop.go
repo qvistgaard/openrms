@@ -21,35 +21,54 @@ func processEvents(i implement.Implementer, postProcess postprocess.PostProcess,
 
 	log.Info("started event processor.")
 
-	cars := make(map[uint8]*state.Car)
-	course.Set(state.RaceStatus, state.RaceStatusRunning)
+	cars := make(map[state.CarId]*state.Car)
+	go processCommands(cars, postProcess, course)
 	for {
 		select {
 		case e := <-i.EventChannel():
+			log.Infof("Event: %+v", e)
 			var c *state.Car
-			if _, ok := cars[e.Id]; !ok {
-				c = state.CreateCar(course, e.Id, repository.GetCarById(e.Id), rules)
-				cars[e.Id] = c
-			} else {
-				c = cars[e.Id]
+			if e.Id > 0 {
+				if _, ok := cars[e.Id]; !ok {
+					c = state.CreateCar(course, e.Id, repository.GetCarById(e.Id), rules)
+					cars[e.Id] = c
+				} else {
+					c = cars[e.Id]
+				}
+				if c != nil {
+					e.SetCarState(c)
+
+					carChanges := c.Changes()
+					if len(carChanges.Changes) > 0 {
+						i.SendCarState(carChanges)
+						postProcess.PostProcessCar(c.Changes())
+					}
+					c.ResetStateChangeStatus()
+
+				}
 			}
-			if c != nil {
-				e.SetCarState(c)
+			raceChanges := course.Changes()
+			if len(raceChanges.Changes) > 0 {
+				i.SendRaceState(raceChanges)
+				postProcess.PostProcessRace(raceChanges)
+			}
+			course.ResetStateChangeStatus()
 
-				carChanges := c.Changes()
-				raceChanges := course.Changes()
+		}
+	}
+}
 
-				if len(raceChanges.Changes) > 0 {
-					log.Infof("RACE CHANGES: %+v", raceChanges)
-					i.SendRaceState(raceChanges)
-					postProcess.PostProcessRace(raceChanges)
+func processCommands(cars map[state.CarId]*state.Car, postProcess postprocess.PostProcess, course *state.Course) {
+	for {
+		select {
+		case command := <-postProcess.CommandChannel:
+			log.Infof("Received command: %T, %+v", command, command)
+			if cc, ok := command.(state.CarCommand); ok {
+				if c, ok := cars[cc.CarId]; ok {
+					c.Set(cc.Name, cc.Value)
 				}
-				if len(carChanges.Changes) > 0 {
-					i.SendCarState(carChanges)
-					postProcess.PostProcessCar(c.Changes())
-				}
-				c.ResetStateChangeStatus()
-				course.ResetStateChangeStatus()
+			} else if cc, ok := command.(state.CourseCommand); ok {
+				course.Set(cc.Name, cc.Value)
 			}
 		}
 	}

@@ -73,7 +73,7 @@ func (o *Oxigen) EventLoop() error {
 		select {
 		case cmd := <-o.commands:
 			command = cmd
-		case <-time.After(100 * time.Millisecond):
+		case <-time.After(1000 * time.Millisecond):
 			command = newEmptyCommand(state.CourseChanges{}, o.state, o.settings)
 		}
 
@@ -103,13 +103,12 @@ func (o *Oxigen) EventLoop() error {
 			timer = buffer[7:10]
 
 			event := o.event(buffer)
-			if event.Id > 0 {
-				o.events <- event
-			} else {
-				break
-			}
+			// if event.Id > 0 {
+			o.events <- event
+			//} else {
+			//	break
+			//}
 			if err != nil {
-				log.Print(err)
 				err = nil
 				break
 			}
@@ -128,7 +127,6 @@ func (o *Oxigen) EventChannel() <-chan implement.Event {
 
 func (o *Oxigen) SendRaceState(r state.CourseChanges) error {
 	o.commands <- newEmptyCommand(r, o.state, o.settings)
-	// log.Infof("%+v", r)
 	return nil
 }
 
@@ -136,7 +134,7 @@ func (o *Oxigen) SendCarState(c state.CarChanges) error {
 	if len(c.Changes) > 0 {
 		for _, v := range c.Changes {
 			ec := newEmptyCommand(state.CourseChanges{}, o.state, o.settings)
-			if ec.carCommand(c.Car, v.Name, v.Value) {
+			if ec.carCommand(uint8(c.Car), v.Name, v.Value) {
 				o.commands <- ec
 			}
 		}
@@ -148,7 +146,7 @@ func (o *Oxigen) event(b []byte) implement.Event {
 	rt := (uint(b[9]) * 16777216) + (uint(b[10]) * 65536) + (uint(b[11]) * 256) + uint(b[12]) - uint(b[4])
 	rtd := time.Duration(rt*10) * time.Millisecond
 	return implement.Event{
-		Id: b[1],
+		Id: state.CarId(b[1]),
 		Controller: implement.Controller{
 			BatteryWarning: 0x04&b[0] == 0x04,
 			Link:           0x02&b[0] == 0x02,
@@ -192,8 +190,8 @@ func (o *Oxigen) command(c *Command, timer []byte) []byte {
 		parameter,
 		0x00,     // unused
 		0x00,     // unused
-		timer[0], // Racetimer
-		timer[1], // Racetimer
-		timer[2], // Racetimer
+		timer[0], // Race timer
+		timer[1], // Race timer
+		timer[2], // Race timer
 	}
 }

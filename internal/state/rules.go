@@ -4,7 +4,7 @@ import "sort"
 
 type Rule interface {
 	InitializeCarState(car *Car)
-	InitializeRaceState(race *Course)
+	InitializeCourseState(race *Course)
 }
 
 type PitRule interface {
