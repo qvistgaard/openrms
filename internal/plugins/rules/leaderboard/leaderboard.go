@@ -33,7 +33,7 @@ func (l *Default) updateCar(id state.CarId, lap state.Lap) (Leaderboard, Positio
 	r := &Default{Entries: l.Entries}
 	found := false
 	for k, v := range r.Entries {
-		if v.Car == id && lap.LapNumber >= v.Lap.LapNumber {
+		if v.Car == id {
 			r.Entries[k].Lap = lap
 			found = true
 			break
@@ -115,13 +115,15 @@ func (b *Rule) InitializeCourseState(c *state.Course) {
 // TODO: test race reset of leader board
 func (b *Rule) Notify(v *state.Value) {
 	if c, ok := v.Owner().(*state.Car); ok {
-		if l, ok := v.Get().(state.Lap); ok && v.Name() == state.CarLap {
-			last := c.Get(CarLastLaps).(LastLaps)
-			c.Set(CarLastLaps, last.update(l))
+		if rs, ok := b.Course.Get(state.RaceStatus).(uint8); !ok || rs != state.RaceStatusStopped {
+			if l, ok := v.Get().(state.Lap); ok && v.Name() == state.CarLap {
+				last := c.Get(CarLastLaps).(LastLaps)
+				c.Set(CarLastLaps, last.update(l))
 
-			leaderboard, i := b.Course.Get(RaceLeaderboard).(Leaderboard).updateCar(c.Id(), l)
-			b.Course.Set(RaceLeaderboard, leaderboard)
-			c.Set(CarPosition, i)
+				leaderboard, i := b.Course.Get(RaceLeaderboard).(Leaderboard).updateCar(c.Id(), l)
+				b.Course.Set(RaceLeaderboard, leaderboard)
+				c.Set(CarPosition, i)
+			}
 		}
 	} else if c, ok := v.Owner().(*state.Course); ok {
 		if s, ok := v.Get().(uint8); ok && v.Name() == state.RaceStatus {
