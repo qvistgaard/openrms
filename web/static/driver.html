@@ -56,9 +56,9 @@
           </tr>
           </thead>
           <tbody>
-            <tr>
-              <td>{{value["car-lap-number"] && value["car-lap-number"].value || '0'}}</td>
-              <td>{{value["car-lap-time"] && value["car-lap-time"].value || '0'}}</td>
+            <tr v-for="(lap, name) in value['car-last-laps'].value.Laps">
+              <td>{{lap["LapNumber"] || ''}}</td>
+              <td>{{lap["LapTime"]|| ''}}</td>
             </tr>
           </tbody>
         </table>

@@ -1,7 +1,5 @@
 package state
 
-import log "github.com/sirupsen/logrus"
-
 func CreateState(owner Owner, name string, v interface{}) *Value {
 	s := new(Value)
 	s.value = v
@@ -28,6 +26,10 @@ type Value struct {
 	subscribers []Subscriber
 }
 
+type ComparableChange interface {
+	Compare(v ComparableChange) bool
+}
+
 type StateInterface interface {
 	Get() interface{}
 	GetPrevious() interface{}
@@ -50,11 +52,20 @@ func (v *Value) GetPrevious() interface{} {
 }
 
 func (v *Value) Set(value interface{}) {
-	if v.value != value {
+	changed := false
+	if c, ok := value.(ComparableChange); ok {
+		if o, ok := v.value.(ComparableChange); ok {
+			changed = c.Compare(o)
+		} else {
+			changed = true
+		}
+	} else {
+		changed = v.value != value
+	}
+	if changed {
 		v.previous = v.value
 		v.value = value
 		if v.initialized {
-			log.Infof("%s=%+v", v.name, value)
 			v.changed = true
 			for _, s := range v.subscribers {
 				s.Notify(v)

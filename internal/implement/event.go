@@ -2,7 +2,6 @@ package implement
 
 import (
 	"github.com/qvistgaard/openrms/internal/state"
-	"time"
 )
 
 type Command interface {
@@ -26,11 +25,9 @@ type Event struct {
 	Id           uint8
 	Controller   Controller
 	Car          Car
-	LapTime      time.Duration
-	LapNumber    uint16
-	TriggerValue uint8
+	Lap          state.Lap
+	TriggerValue state.TriggerValue
 	Ontrack      bool
-	RaceTimer    time.Duration
 }
 
 type Controller struct {
@@ -51,11 +48,9 @@ func (e *Event) SetCarState(c *state.Car) {
 		c.Set(state.CarEventSequence, c.Get(state.CarEventSequence).(uint)+1)
 		c.Set(state.CarOnTrack, e.Ontrack)
 		c.Set(state.CarControllerLink, e.Controller.Link)
-		c.Set(state.CarLapNumber, e.LapNumber)
-		c.Set(state.CarLapTime, e.LapTime)
+		c.Set(state.CarLap, e.Lap)
 		c.Set(state.CarInPit, e.Car.InPit)
 		c.Set(state.CarReset, e.Car.Reset)
-		c.Set(state.CarRaceTimer, e.RaceTimer)
 		c.Set(state.ControllerTriggerValue, e.TriggerValue)
 		c.Set(state.ControllerBtnUp, e.Controller.ArrowUp)
 		c.Set(state.ControllerBtnDown, e.Controller.ArrowDown)

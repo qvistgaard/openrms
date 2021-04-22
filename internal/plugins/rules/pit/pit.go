@@ -25,7 +25,7 @@ func CreatePitRule(rules state.Rules) state.Rule {
 func (p *Pit) Notify(v *state.Value) {
 	if c, ok := v.Owner().(*state.Car); ok {
 		if v.Name() == state.ControllerTriggerValue {
-			triggerValue := v.Get().(uint8)
+			triggerValue := v.Get().(state.TriggerValue)
 			if c.Get(state.CarInPit).(bool) {
 				rules := p.rules.PitRules()
 				if len(rules) > 0 {

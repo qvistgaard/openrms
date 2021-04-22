@@ -8,12 +8,12 @@ websocket:
 
 
 implement:
-  plugin: oxigen
+  plugin: generator
   oxigen:
     port: /dev/ttyACM0
 
   generator:
-    cars: 25
+    cars: 1
     interval: 600
 
 course:
@@ -50,6 +50,9 @@ rules:
     enabled: true
 
   - plugin: tirewear
+    enabled: true
+
+  - plugin: leaderboard
     enabled: true
 
 

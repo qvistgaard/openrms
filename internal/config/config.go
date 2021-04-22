@@ -10,6 +10,7 @@ import (
 	"github.com/qvistgaard/openrms/internal/plugins/postprocessors/websocket"
 	"github.com/qvistgaard/openrms/internal/plugins/rules/damage"
 	"github.com/qvistgaard/openrms/internal/plugins/rules/fuel"
+	"github.com/qvistgaard/openrms/internal/plugins/rules/leaderboard"
 	"github.com/qvistgaard/openrms/internal/plugins/rules/limbmode"
 	"github.com/qvistgaard/openrms/internal/plugins/rules/pit"
 	"github.com/qvistgaard/openrms/internal/plugins/rules/tirewear"
@@ -101,6 +102,8 @@ func CreateRaceRulesFromConfig(config []byte) (state.Rules, error) {
 			rules.Append(pit.CreatePitRule(rules))
 		case "tirewear":
 			rules.Append(&tirewear.TireWear{})
+		case "leaderboard":
+			rules.Append(&leaderboard.BoardDefault{})
 		default:
 			return nil, errors.New("Unknown rule: " + r.Name)
 		}

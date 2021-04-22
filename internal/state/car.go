@@ -13,11 +13,9 @@ const (
 	CarMaxBreaking           = "car-max-breaking"
 	CarOnTrack               = "car-ontrack"
 	CarControllerLink        = "car-controller-link"
-	CarLapNumber             = "car-lap-number"
-	CarLapTime               = "car-lap-time"
+	CarLap                   = "car-lap"
 	CarInPit                 = "car-in-pit"
 	CarReset                 = "car-reset"
-	CarRaceTimer             = "car-race-timer"
 	CarEventSequence         = "car-event-sequence"
 	ControllerTriggerValue   = "controller-trigger-value"
 	ControllerBtnUp          = "controller-btn-up"
@@ -27,6 +25,15 @@ const (
 )
 
 type MaxSpeed uint8
+type TriggerValue uint8
+type LapNumber uint
+type RaceTimer time.Duration
+type LapTime time.Duration
+type Lap struct {
+	LapNumber LapNumber
+	RaceTimer RaceTimer
+	LapTime   LapTime
+}
 
 func CreateCar(race *Course, id uint8, settings map[string]interface{}, rules Rules) *Car {
 	c := new(Car)

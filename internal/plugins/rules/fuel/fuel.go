@@ -10,7 +10,7 @@ type Liter float32
 type LiterPerSecond float32
 
 const (
-	defaultBurnRate   = LiterPerSecond(100)
+	defaultBurnRate   = LiterPerSecond(0.1)
 	defaultFuel       = Liter(90)
 	defaultRefuelRate = LiterPerSecond(2)
 
@@ -27,7 +27,8 @@ func (c *Consumption) Notify(v *state.Value) {
 		if v.Name() == state.CarEventSequence && c.Get(state.CarOnTrack).(bool) {
 			fs := c.Get(CarFuel).(Liter)
 			bs := c.Get(CarConfigBurnRate).(LiterPerSecond)
-			cf := calculateFuelState(bs, fs, v.Get().(uint))
+			tv := c.Get(state.ControllerTriggerValue).(state.TriggerValue)
+			cf := calculateFuelState(bs, fs, tv)
 
 			if cf <= 0 {
 				c.Set(limbmode.CarLimbMode, true)
@@ -81,6 +82,6 @@ func (c *Consumption) Priority() uint8 {
 	return 1
 }
 
-func calculateFuelState(burnRate LiterPerSecond, fuel Liter, triggerValue uint) Liter {
+func calculateFuelState(burnRate LiterPerSecond, fuel Liter, triggerValue state.TriggerValue) Liter {
 	return Liter(float32(fuel) - ((float32(triggerValue) / 255) * float32(burnRate)))
 }

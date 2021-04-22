@@ -162,10 +162,12 @@ func (o *Oxigen) event(b []byte) implement.Event {
 			InPit: 0x40&b[8] == 0x40,
 			// version:
 		},
-		LapTime:      time.Duration((float64((uint16(b[2])*256)+uint16(b[3])) / 99.25) * float64(time.Second)),
-		LapNumber:    (uint16(b[6]) * 256) + uint16(b[5]),
-		TriggerValue: 0x7F & b[7],
-		RaceTimer:    rtd,
+		Lap: state.Lap{
+			LapNumber: state.LapNumber((uint16(b[6]) * 256) + uint16(b[5])),
+			RaceTimer: state.RaceTimer(rtd),
+			LapTime:   state.LapTime(time.Duration((float64((uint16(b[2])*256)+uint16(b[3])) / 99.25) * float64(time.Second))),
+		},
+		TriggerValue: state.TriggerValue(0x7F & b[7]),
 		Ontrack:      0x80&b[7] == 0x80,
 	}
 }

@@ -37,7 +37,7 @@ func (g *Generator) SendRaceState(r state.CourseChanges) error {
 }
 
 func (g *Generator) eventGenerator(car uint8, interval uint) implement.Event {
-	laps := 0
+	laps := state.LapNumber(0)
 	for {
 		select {
 		case <-time.After(time.Duration(interval) * time.Millisecond):
@@ -55,9 +55,12 @@ func (g *Generator) eventGenerator(car uint8, interval uint) implement.Event {
 					Reset: false,
 					InPit: false,
 				},
-				LapTime:      time.Duration(rand.Intn(10000)) * time.Millisecond,
-				LapNumber:    uint16(laps),
-				TriggerValue: uint8(rand.Int31()),
+				Lap: state.Lap{
+					LapNumber: laps,
+					RaceTimer: 0,
+					LapTime:   state.LapTime(time.Duration(rand.Intn(10000)) * time.Millisecond),
+				},
+				TriggerValue: state.TriggerValue(uint8(rand.Int31())),
 				Ontrack:      true,
 			}
 
