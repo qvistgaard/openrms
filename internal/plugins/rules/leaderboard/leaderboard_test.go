@@ -125,20 +125,22 @@ func TestCarLapNotification(t *testing.T) {
 
 	laps := c.Get(CarLastLaps).(*LastLapDefault)
 	lb := co.Get(RaceLeaderboard).(*Default)
+	pos := c.Get(CarPosition).(Position)
 	assert.Equal(t, state.LapNumber(1), laps.Laps[0].LapNumber)
 	assert.Equal(t, state.LapNumber(1), lb.Entries[0].Lap.LapNumber)
+	assert.Equal(t, Position(1), pos)
 
 }
 
 func TestLeaderBoardDefaultSorting(t *testing.T) {
 	l0 := &Default{Entries: []BoardEntry{}}
-	l1 := l0.updateCar(state.CarId(1), state.Lap{
+	l1, _ := l0.updateCar(state.CarId(1), state.Lap{
 		LapNumber: 0, RaceTimer: 2, LapTime: 0,
 	})
-	l2 := l1.updateCar(state.CarId(2), state.Lap{
+	l2, _ := l1.updateCar(state.CarId(2), state.Lap{
 		LapNumber: 1, RaceTimer: 3, LapTime: 0,
 	})
-	l3 := l2.updateCar(state.CarId(3), state.Lap{
+	l3, _ := l2.updateCar(state.CarId(3), state.Lap{
 		LapNumber: 1, RaceTimer: 2, LapTime: 0,
 	})
 

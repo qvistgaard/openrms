@@ -57,7 +57,6 @@ func newMaxBreaking(id uint8, maxBreaking uint8) *Car {
 }
 
 func newEmptyCommand(race state.CourseChanges, currentState byte, settings *Settings) *Command {
-	log.Infof("currentState: %+v", currentState)
 	c := &Command{
 		state: currentState,
 		settings: Settings{
@@ -69,7 +68,6 @@ func newEmptyCommand(race state.CourseChanges, currentState byte, settings *Sett
 		},
 	}
 	for _, v := range race.Changes {
-		log.Infof("Race change %+v", v)
 		switch v.Name {
 		case state.RaceStatus:
 			bv := v.Value.(uint8)

@@ -36,12 +36,12 @@
 
   <!-- Primary Page Layout
   –––––––––––––––––––––––––––––––––––––––––––––––––– -->
-  <div class="container" id="app">
+  <div class="container" id="app" style="margin-top:20px">
     <div class="row">
       <div class="four columns" style="text-align: center"><h1>Car #1</h1></div>
       <div class="six columns">
-        <button v-on:click="start">start</button>
-        <button v-on:click="pause">pause</button>
+        <button v-on:click="start" class="button-primary">start</button>&#160;
+        <button v-on:click="pause">pause</button>&#160;
         <button v-on:click="stop">stop</button><br/>
         Postition: xx / {{ $store.state.connection }} /{{ $store.state.race }}
       </div>

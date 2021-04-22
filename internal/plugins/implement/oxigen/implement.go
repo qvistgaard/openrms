@@ -76,7 +76,6 @@ func (o *Oxigen) EventLoop() error {
 		case <-time.After(1000 * time.Millisecond):
 			command = newEmptyCommand(state.CourseChanges{}, o.state, o.settings)
 		}
-
 		if float32(len(o.commands)) > (float32(o.bufferSize) * 0.9) {
 			log.WithFields(map[string]interface{}{
 				"bufferSize": o.bufferSize,
@@ -84,6 +83,7 @@ func (o *Oxigen) EventLoop() error {
 			}).Warn("too many commands on command buffer")
 		}
 		b := o.command(command, timer)
+
 		_, err = o.serial.Write(b)
 		if err != nil {
 			log.WithField("error", err).Errorf("failed to send message to oxygen dongle")
@@ -91,24 +91,18 @@ func (o *Oxigen) EventLoop() error {
 		}
 		log.WithFields(map[string]interface{}{
 			"message": fmt.Sprintf("%x", b),
-		}).Tracef("send message to oxygen dongle")
+		}).Debug("send message to oxygen dongle")
 
 		for {
 			time.Sleep(10 * time.Millisecond)
 			buffer := make([]byte, 13)
-			_, err := o.serial.Read(buffer)
+			len, err := o.serial.Read(buffer)
 			log.WithFields(map[string]interface{}{
 				"message": fmt.Sprintf("%x", buffer),
 			}).Tracef("recevied message from oxygen dongle")
 			timer = buffer[7:10]
-
-			event := o.event(buffer)
-			// if event.Id > 0 {
-			o.events <- event
-			//} else {
-			//	break
-			//}
-			if err != nil {
+			o.events <- o.event(buffer)
+			if err != nil || len == 0 {
 				err = nil
 				break
 			}

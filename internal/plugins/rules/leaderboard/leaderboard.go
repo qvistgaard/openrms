@@ -7,11 +7,14 @@ import (
 
 const (
 	CarLastLaps     = "car-last-laps"
+	CarPosition     = "car-leaderboard-position"
 	RaceLeaderboard = "race-leaderboard"
 )
 
+type Position uint
+
 type Leaderboard interface {
-	updateCar(id state.CarId, lap state.Lap) Leaderboard
+	updateCar(id state.CarId, lap state.Lap) (Leaderboard, Position)
 }
 
 // Default Leaderboard implementation
@@ -26,7 +29,7 @@ func (l *Default) Compare(v state.ComparableChange) bool {
 	return true
 }
 
-func (l *Default) updateCar(id state.CarId, lap state.Lap) Leaderboard {
+func (l *Default) updateCar(id state.CarId, lap state.Lap) (Leaderboard, Position) {
 	r := &Default{Entries: l.Entries}
 	found := false
 	for k, v := range r.Entries {
@@ -55,7 +58,12 @@ func (l *Default) updateCar(id state.CarId, lap state.Lap) Leaderboard {
 			return false
 		}
 	})
-	return r
+	for p, v := range r.Entries {
+		if v.Car == id {
+			return r, Position(p) + 1
+		}
+	}
+	return r, Position(0)
 }
 
 type BoardEntry struct {
@@ -111,8 +119,9 @@ func (b *Rule) Notify(v *state.Value) {
 			last := c.Get(CarLastLaps).(LastLaps)
 			c.Set(CarLastLaps, last.update(l))
 
-			leaderboard := b.Course.Get(RaceLeaderboard).(Leaderboard)
-			b.Course.Set(RaceLeaderboard, leaderboard.updateCar(c.Id(), l))
+			leaderboard, i := b.Course.Get(RaceLeaderboard).(Leaderboard).updateCar(c.Id(), l)
+			b.Course.Set(RaceLeaderboard, leaderboard)
+			c.Set(CarPosition, i)
 		}
 	} else if c, ok := v.Owner().(*state.Course); ok {
 		if s, ok := v.Get().(uint8); ok && v.Name() == state.RaceStatus {
