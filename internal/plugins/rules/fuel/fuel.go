@@ -20,29 +20,31 @@ const (
 )
 
 type Consumption struct {
+	course *state.Course
 }
 
 func (c *Consumption) Notify(v *state.Value) {
-	if c, ok := v.Owner().(*state.Car); ok {
-		if v.Name() == state.CarEventSequence && c.Get(state.CarOnTrack).(bool) {
-			fs := c.Get(CarFuel).(Liter)
-			bs := c.Get(CarConfigBurnRate).(LiterPerSecond)
-			tv := c.Get(state.ControllerTriggerValue).(state.TriggerValue)
-			cf := calculateFuelState(bs, fs, tv)
+	if car, ok := v.Owner().(*state.Car); ok {
+		if v.Name() == state.CarEventSequence && car.Get(state.CarOnTrack).(bool) {
+			if rs, ok := c.course.Get(state.RaceStatus).(uint8); !ok || rs != state.RaceStatusPaused {
+				fs := car.Get(CarFuel).(Liter)
+				bs := car.Get(CarConfigBurnRate).(LiterPerSecond)
+				tv := car.Get(state.ControllerTriggerValue).(state.TriggerValue)
+				cf := calculateFuelState(bs, fs, tv)
 
-			if cf <= 0 {
-				c.Set(limbmode.CarLimbMode, true)
-				c.Set(CarFuel, Liter(0))
-			} else {
-				c.Set(CarFuel, cf)
-
+				if cf <= 0 {
+					car.Set(limbmode.CarLimbMode, true)
+					car.Set(CarFuel, Liter(0))
+				} else {
+					car.Set(CarFuel, cf)
+				}
 			}
 		}
 	}
 }
 
 func (c *Consumption) InitializeCourseState(race *state.Course) {
-
+	c.course = race
 }
 
 func (c *Consumption) InitializeCarState(car *state.Car) {
@@ -83,5 +85,12 @@ func (c *Consumption) Priority() uint8 {
 }
 
 func calculateFuelState(burnRate LiterPerSecond, fuel Liter, triggerValue state.TriggerValue) Liter {
-	return Liter(float32(fuel) - ((float32(triggerValue) / 255) * float32(burnRate)))
+	used := float32(triggerValue) * float32(burnRate)
+	remaining := float32(fuel) - used
+
+	if remaining > 0 {
+		return Liter(remaining)
+	} else {
+		return Liter(0)
+	}
 }
