@@ -1,7 +1,6 @@
 package state
 
 import (
-	"gopkg.in/yaml.v2"
 	"time"
 )
 
@@ -29,15 +28,6 @@ type CourseConfig struct {
 			} `yaml:"lap-counting"`
 		}
 	}
-}
-
-func CreateCourseFromConfig(config []byte, rules Rules) (*Course, error) {
-	c := &CourseConfig{}
-	perr := yaml.Unmarshal(config, c)
-	if perr != nil {
-		return nil, perr
-	}
-	return CreateCourse(c, rules), nil
 }
 
 func CreateCourse(config *CourseConfig, rules Rules) *Course {

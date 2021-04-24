@@ -1,8 +1,9 @@
 package generator
 
 import (
+	"github.com/mitchellh/mapstructure"
+	"github.com/qvistgaard/openrms/internal/config/context"
 	"github.com/qvistgaard/openrms/internal/implement"
-	"gopkg.in/yaml.v2"
 )
 
 type Config struct {
@@ -14,11 +15,11 @@ type Config struct {
 	}
 }
 
-func CreateFromConfig(config []byte) (*Generator, error) {
+func CreateFromConfig(ctx *context.Context) (*Generator, error) {
 	c := &Config{}
-	perr := yaml.Unmarshal(config, c)
-	if perr != nil {
-		return nil, perr
+	err := mapstructure.Decode(ctx.Config, c)
+	if err != nil {
+		return nil, err
 	}
 
 	return &Generator{

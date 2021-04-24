@@ -3,10 +3,8 @@ package main
 import (
 	"flag"
 	"github.com/qvistgaard/openrms/internal/config"
-	"github.com/qvistgaard/openrms/internal/postprocess"
+	"github.com/qvistgaard/openrms/internal/config/context"
 	log "github.com/sirupsen/logrus"
-	"io/ioutil"
-
 	"sync"
 )
 
@@ -14,45 +12,45 @@ var wg sync.WaitGroup
 
 func main() {
 	flagConfig := flag.String("config", "config.yaml", "OpenRMS Config file")
-	file, err := ioutil.ReadFile(*flagConfig)
+
+	c := &context.Context{}
+	var err error
+	err = config.FromFile(c, flagConfig)
 	if err != nil {
 		log.Fatal(err)
 	}
+	err = config.CreateImplement(c)
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = config.CreateRules(c)
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = config.CreatePostProcessors(c)
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = config.CreateCarRepository(c)
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = config.CreateCourse(c)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	// TODO: Make configurable
 	log.SetLevel(log.InfoLevel)
-	log.SetReportCaller(true)
-
-	implement, err := config.CreateImplementFromConfig(file)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	rules, err := config.CreateRaceRulesFromConfig(file)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	repository, err := config.CreateCarRepositoryFromConfig(file)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	course, err := config.CreateCourseFromConfig(file, rules)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	processors, err := config.CreatePostProcessors(file)
-	if err != nil {
-		log.Fatal(err)
-	}
-	postProcess := postprocess.CreatePostProcess(processors)
+	log.SetReportCaller(false)
 
 	wg.Add(1)
-	go eventloop(implement)
+	go eventloop(c.Implement)
 
 	wg.Add(1)
-	go processEvents(implement, postProcess, repository, course, rules)
+	// go processEvents(implement, postProcess, repository, course, rules)
+	go processEvents(c.Implement, c.Postprocessors, c.Cars, c.Course, c.Rules)
 
 	wg.Wait()
+
 }

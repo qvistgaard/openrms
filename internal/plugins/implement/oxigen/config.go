@@ -1,7 +1,9 @@
 package oxigen
 
 import (
-	"gopkg.in/yaml.v2"
+	"errors"
+	"github.com/mitchellh/mapstructure"
+	"github.com/qvistgaard/openrms/internal/config/context"
 )
 
 type Config struct {
@@ -12,16 +14,16 @@ type Config struct {
 	} `yaml:"implement"`
 }
 
-func CreateFromConfig(config []byte) (*Oxigen, error) {
+func CreateFromConfig(context *context.Context) (*Oxigen, error) {
 	c := &Config{}
-	perr := yaml.Unmarshal(config, c)
-	if perr != nil {
-		return nil, perr
+	err := mapstructure.Decode(context, c)
+	if err != nil {
+		return nil, err
 	}
 
 	connection, err := CreateUSBConnection(c.Implement.Oxigen.Port)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("Failed to open connection to USB Device: " + err.Error())
 	}
 	return CreateImplement(connection)
 }

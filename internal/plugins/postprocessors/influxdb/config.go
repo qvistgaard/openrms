@@ -2,8 +2,9 @@ package influxdb
 
 import (
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
+	"github.com/mitchellh/mapstructure"
+	"github.com/qvistgaard/openrms/internal/config/context"
 	"github.com/qvistgaard/openrms/internal/state"
-	"gopkg.in/yaml.v2"
 )
 
 type Config struct {
@@ -18,13 +19,9 @@ type Config struct {
 	} `yaml:"postprocessors"`
 }
 
-func CreateFromConfig(config []byte) (*InfluxDB, error) {
+func CreateFromConfig(ctx *context.Context) (*InfluxDB, error) {
 	c := &Config{}
-	perr := yaml.Unmarshal(config, c)
-	if perr != nil {
-		return nil, perr
-	}
-
+	mapstructure.Decode(ctx.Config, c)
 	i := new(InfluxDB)
 	db := c.Postprocessors.InfluxDB
 	if db.BatchSize == 0 {

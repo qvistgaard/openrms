@@ -18,7 +18,6 @@ const store = Vuex.createStore({
         }
       }
       for(const item of v.race){
-        console.log(item)
         for (const change of item.changes) {
           state.race[change.name] = change.value
         }

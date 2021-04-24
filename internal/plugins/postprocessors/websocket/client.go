@@ -158,12 +158,12 @@ func (c *Client) writePump() {
 					}
 					marshal, _ := json.Marshal(stateMessages)
 					w.Write(marshal)
-					// log.Infof("%+v", stateMessages)
 					stateMessages = StateMessage{
 						Cars:   []state.CarChanges{},
 						Course: []state.CourseChanges{},
 					}
 					if err := w.Close(); err != nil {
+						log.Error("Conncetion error: " + err.Error())
 						return
 					}
 				}

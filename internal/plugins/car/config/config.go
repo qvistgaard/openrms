@@ -1,8 +1,9 @@
 package config
 
 import (
+	"github.com/mitchellh/mapstructure"
+	"github.com/qvistgaard/openrms/internal/config/context"
 	"github.com/qvistgaard/openrms/internal/state"
-	"gopkg.in/yaml.v2"
 )
 
 type Config struct {
@@ -22,11 +23,11 @@ func (c *CarConfigRepository) GetCarById(id state.CarId) map[string]interface{} 
 	return make(map[string]interface{})
 }
 
-func CreateFromConfig(config []byte) (*CarConfigRepository, error) {
+func CreateFromConfig(ctx *context.Context) (*CarConfigRepository, error) {
 	c := &Config{}
-	perr := yaml.Unmarshal(config, c)
-	if perr != nil {
-		return nil, perr
+	err := mapstructure.Decode(ctx.Config, c)
+	if err != nil {
+		return nil, err
 	}
 
 	ccr := new(CarConfigRepository)

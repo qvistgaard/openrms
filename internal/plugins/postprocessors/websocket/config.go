@@ -1,8 +1,9 @@
 package websocket
 
 import (
+	"github.com/mitchellh/mapstructure"
+	"github.com/qvistgaard/openrms/internal/config/context"
 	"github.com/qvistgaard/openrms/internal/state"
-	"gopkg.in/yaml.v2"
 )
 
 type Config struct {
@@ -13,11 +14,11 @@ type Config struct {
 	}
 }
 
-func CreateFromConfig(config []byte) (*WebSocket, error) {
+func CreateFromConfig(ctx *context.Context) (*WebSocket, error) {
 	c := &Config{}
-	perr := yaml.Unmarshal(config, c)
-	if perr != nil {
-		return nil, perr
+	err := mapstructure.Decode(ctx.Config, c)
+	if err != nil {
+		return nil, err
 	}
 
 	ws := &WebSocket{
@@ -28,6 +29,5 @@ func CreateFromConfig(config []byte) (*WebSocket, error) {
 		car:        make(chan state.CarChanges, 1024),
 		listen:     c.Postprocessors.WebSocket.Listen,
 	}
-
 	return ws, nil
 }

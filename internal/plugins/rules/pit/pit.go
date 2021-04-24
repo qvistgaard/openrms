@@ -1,6 +1,7 @@
 package pit
 
 import (
+	"github.com/qvistgaard/openrms/internal/config/context"
 	"github.com/qvistgaard/openrms/internal/state"
 )
 
@@ -16,9 +17,9 @@ type Pit struct {
 	rules state.Rules
 }
 
-func CreatePitRule(rules state.Rules) state.Rule {
+func CreatePitRule(ctx *context.Context) state.Rule {
 	p := new(Pit)
-	p.rules = rules
+	p.rules = ctx.Rules
 	return p
 }
 
