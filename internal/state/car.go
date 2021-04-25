@@ -44,6 +44,7 @@ func CreateCar(id CarId, settings map[string]interface{}, rules Rules) *Car {
 	c.Create(CarEventSequence, uint(0))
 	c.Create(CarConfigMaxSpeed, uint8(255))
 	c.Create(CarOnTrack, false)
+	c.Create(CarPitLaneSpeed, uint8(100))
 	for _, r := range rules.All() {
 		r.InitializeCarState(c)
 	}

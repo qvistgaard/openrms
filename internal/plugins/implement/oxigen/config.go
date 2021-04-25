@@ -9,21 +9,21 @@ import (
 type Config struct {
 	Implement struct {
 		Oxigen struct {
-			Port string `yaml:"port"`
-		} `yaml:"oxigen"`
-	} `yaml:"implement"`
+			Port string
+		}
+	}
 }
 
 func CreateFromConfig(context *context.Context) (*Oxigen, error) {
 	c := &Config{}
-	err := mapstructure.Decode(context, c)
+	err := mapstructure.Decode(context.Config, c)
 	if err != nil {
 		return nil, err
 	}
 
 	connection, err := CreateUSBConnection(c.Implement.Oxigen.Port)
 	if err != nil {
-		return nil, errors.New("Failed to open connection to USB Device: " + err.Error())
+		return nil, errors.New("Failed to open connection to USB Device (" + c.Implement.Oxigen.Port + "): " + err.Error())
 	}
 	return CreateImplement(connection)
 }

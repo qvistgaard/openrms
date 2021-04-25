@@ -3,6 +3,7 @@ package pit
 import (
 	"github.com/qvistgaard/openrms/internal/config/context"
 	"github.com/qvistgaard/openrms/internal/state"
+	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -28,25 +29,28 @@ func (p *Pit) Notify(v *state.Value) {
 		if v.Name() == state.ControllerTriggerValue {
 			triggerValue := v.Get().(state.TriggerValue)
 			if c.Get(state.CarInPit).(bool) {
+				log.Infof("IN PIT %+v", c.Get(state.CarInPit))
 				rules := p.rules.PitRules()
-				if len(rules) > 0 {
-					cancel := make(chan bool)
-					o := make(chan state.PitRule, len(rules))
-					if triggerValue == 0 && c.Get(State) == Stopped {
-						c.Set(State, Started)
-						for _, pr := range rules {
-							o <- pr
-						}
-						go p.handlePitStop(c, o, cancel)
-					} else if c.Get(State) != Locked {
-						c.Set(State, Exiting)
-						cancel <- true
-						close(cancel)
-						close(o)
+				cancel := make(chan bool)
+				o := make(chan state.PitRule, len(rules))
+				log.Infof("Values: %+v, %+v", triggerValue, c.Get(State))
+				if triggerValue == 0 && c.Get(State) == Stopped {
+					c.Set(State, Started)
+					for _, pr := range rules {
+						o <- pr
 					}
+					go p.handlePitStop(c, o, cancel)
+				} else if c.Get(State) != Locked && c.Get(State) == Started {
+					log.Info("CANCEL PIT")
+					c.Set(State, Exiting)
+					cancel <- true
+					close(cancel)
+					close(o)
 				}
+				log.Info(c.Get(State))
 			} else {
 				c.Set(State, Stopped)
+				log.Infof("EXIT PIT %+v", c.Get(state.CarInPit))
 			}
 		}
 	}

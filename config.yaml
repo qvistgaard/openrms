@@ -8,9 +8,9 @@ websocket:
 
 
 implement:
-  plugin: generator
+  plugin: oxigen
   oxigen:
-    port: COM5
+    port: /dev/ttyACM0
 
   generator:
     cars: 2
@@ -36,8 +36,8 @@ car:
 
 
 rules:
-  - plugin: fuel
-    enabled: true
+#  - plugin: fuel
+#    enabled: true
 
 #  - plugin: limb-mode
 #    enabled: true
@@ -46,14 +46,14 @@ rules:
   - plugin: pit
     enabled: true
 
-  - plugin: damage
-    enabled: true
+#  - plugin: damage
+#    enabled: true
 
-  - plugin: tirewear
-    enabled: true
+#  - plugin: tirewear
+#    enabled: true
 
-  - plugin: leaderboard
-    enabled: true
+#   - plugin: leaderboard
+#    enabled: true
 
 
 postprocessors:
