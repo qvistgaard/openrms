@@ -16,6 +16,9 @@ type InfluxDB struct {
 }
 
 func (i InfluxDB) Process() {
+	defer func() {
+		log.Fatal("Influxdb process died")
+	}()
 	log.Info("started influxdb post processor.")
 	for {
 		select {

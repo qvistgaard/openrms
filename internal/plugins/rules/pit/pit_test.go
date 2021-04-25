@@ -30,7 +30,7 @@ func TestSomething(t *testing.T) {
 	r.Append(p)
 	r.Append(SimpleTestPitRule{})
 
-	c := state.CreateCar(nil, 1, nil, r)
+	c := state.CreateCar(1, nil, r)
 	c.Set(fuel.CarConfigFuel, float32(100))
 	c.Set(fuel.CarFuel, float32(50))
 	c.Set(state.CarInPit, true)

@@ -27,6 +27,9 @@ func Create(c *context.Context) *Runner {
 }
 
 func (r *Runner) eventloop() error {
+	defer func() {
+		log.Fatal("Eventloop died")
+	}()
 	defer r.wg.Done()
 	log.Info("started race OpenRMS connector.")
 	err := r.context.Implement.EventLoop()

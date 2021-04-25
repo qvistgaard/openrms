@@ -88,7 +88,7 @@ func TestLastLapDefaultCanCompare(t *testing.T) {
 }
 
 func TestCarInitialization(t *testing.T) {
-	c := state.CreateCar(nil, state.CarId(1), nil, &state.RuleList{})
+	c := state.CreateCar(state.CarId(1), nil, &state.RuleList{})
 	b := &Rule{}
 	b.InitializeCarState(c)
 
@@ -111,7 +111,7 @@ func TestRaceInitialization(t *testing.T) {
 func TestCarLapNotification(t *testing.T) {
 	config := &state.CourseConfig{}
 	co := state.CreateCourse(config, &state.RuleList{})
-	c := state.CreateCar(nil, state.CarId(1), nil, &state.RuleList{})
+	c := state.CreateCar(state.CarId(1), nil, &state.RuleList{})
 	v := state.CreateState(c, state.CarLap, state.Lap{
 		LapNumber: 1,
 		RaceTimer: 2,

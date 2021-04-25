@@ -36,6 +36,10 @@ func (b *WebSocket) CommandChannel(c chan<- interface{}) {
 }
 
 func (b *WebSocket) Process() {
+	defer func() {
+		log.Fatal("Websocket process died")
+	}()
+
 	log.Infof("started websocket post processor, listening on %s", b.listen)
 
 	go b.processWebsocket()
