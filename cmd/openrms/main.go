@@ -4,14 +4,16 @@ import (
 	"flag"
 	"github.com/qvistgaard/openrms/internal/config"
 	"github.com/qvistgaard/openrms/internal/config/context"
+	"github.com/qvistgaard/openrms/internal/rms"
 	log "github.com/sirupsen/logrus"
-	"sync"
 )
-
-var wg sync.WaitGroup
 
 func main() {
 	flagConfig := flag.String("config", "config.yaml", "OpenRMS Config file")
+
+	// TODO: Make configurable
+	log.SetLevel(log.InfoLevel)
+	log.SetReportCaller(false)
 
 	c := &context.Context{}
 	var err error
@@ -40,17 +42,6 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// TODO: Make configurable
-	log.SetLevel(log.InfoLevel)
-	log.SetReportCaller(false)
-
-	wg.Add(1)
-	go eventloop(c.Implement)
-
-	wg.Add(1)
-	// go processEvents(implement, postProcess, repository, course, rules)
-	go processEvents(c.Implement, c.Postprocessors, c.Cars, c.Course, c.Rules)
-
-	wg.Wait()
+	rms.Create(c).Run()
 
 }

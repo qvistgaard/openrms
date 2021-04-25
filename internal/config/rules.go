@@ -15,7 +15,8 @@ import (
 
 type RuleConfig struct {
 	Rules []struct {
-		Plugin string
+		Plugin  string
+		Enabled bool
 	}
 }
 
@@ -27,21 +28,23 @@ func CreateRules(ctx *context.Context) error {
 	}
 	ctx.Rules = state.CreateRuleList()
 	for _, r := range c.Rules {
-		switch r.Plugin {
-		case "fuel":
-			ctx.Rules.Append(&fuel.Consumption{})
-		case "limb-mode":
-			ctx.Rules.Append(&limbmode.LimbMode{})
-		case "damage":
-			ctx.Rules.Append(&damage.Damage{})
-		case "pit":
-			ctx.Rules.Append(pit.CreatePitRule(ctx))
-		case "tirewear":
-			ctx.Rules.Append(&tirewear.TireWear{})
-		case "leaderboard":
-			ctx.Rules.Append(&leaderboard.Rule{})
-		default:
-			return errors.New("Unknown rule: " + r.Plugin)
+		if r.Enabled {
+			switch r.Plugin {
+			case "fuel":
+				ctx.Rules.Append(&fuel.Consumption{})
+			case "limb-mode":
+				ctx.Rules.Append(&limbmode.LimbMode{})
+			case "damage":
+				ctx.Rules.Append(&damage.Damage{})
+			case "pit":
+				ctx.Rules.Append(pit.CreatePitRule(ctx))
+			case "tirewear":
+				ctx.Rules.Append(&tirewear.TireWear{})
+			case "leaderboard":
+				ctx.Rules.Append(&leaderboard.Rule{})
+			default:
+				return errors.New("Unknown rule: " + r.Plugin)
+			}
 		}
 	}
 	return nil

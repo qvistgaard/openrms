@@ -1,23 +1,45 @@
-package main
+package rms
 
 import (
+	"github.com/qvistgaard/openrms/internal/config/context"
 	"github.com/qvistgaard/openrms/internal/implement"
 	"github.com/qvistgaard/openrms/internal/postprocess"
 	"github.com/qvistgaard/openrms/internal/repostitory/car"
 	"github.com/qvistgaard/openrms/internal/state"
 	log "github.com/sirupsen/logrus"
+	"sync"
 )
 
-func eventloop(i implement.Implementer) error {
-	defer wg.Done()
+type Runner struct {
+	context *context.Context
+	wg      sync.WaitGroup
+}
+
+func (r *Runner) Run() {
+	r.wg.Add(1)
+	go r.eventloop()
+
+	r.wg.Add(1)
+	go r.processEvents(r.context.Implement, r.context.Postprocessors, r.context.Cars, r.context.Course, r.context.Rules)
+
+	r.wg.Wait()
+
+}
+
+func Create(c *context.Context) *Runner {
+	return &Runner{context: c}
+}
+
+func (r *Runner) eventloop() error {
+	defer r.wg.Done()
 	log.Info("started race OpenRMS connector.")
-	err := i.EventLoop()
+	err := r.context.Implement.EventLoop()
 	log.Println(err)
 	return err
 }
 
-func processEvents(i implement.Implementer, postProcess postprocess.PostProcess, repository car.Repository, course *state.Course, rules state.Rules) {
-	defer wg.Done()
+func (r *Runner) processEvents(i implement.Implementer, postProcess postprocess.PostProcess, repository car.Repository, course *state.Course, rules state.Rules) {
+	defer r.wg.Done()
 
 	log.Info("started event processor.")
 
@@ -52,7 +74,6 @@ func processEvents(i implement.Implementer, postProcess postprocess.PostProcess,
 				postProcess.PostProcessRace(raceChanges)
 			}
 			course.ResetStateChangeStatus()
-
 		}
 	}
 }
