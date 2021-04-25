@@ -13,14 +13,9 @@ type Config struct {
 }
 
 type CarConfigRepository struct {
-	cars map[state.CarId]map[string]interface{}
-}
-
-func (c *CarConfigRepository) GetCarById(id state.CarId) map[string]interface{} {
-	if settings, ok := c.cars[id]; ok {
-		return settings
-	}
-	return make(map[string]interface{})
+	cars    map[state.CarId]*state.Car
+	config  map[state.CarId]map[string]interface{}
+	context *context.Context
 }
 
 func CreateFromConfig(ctx *context.Context) (*CarConfigRepository, error) {
@@ -31,12 +26,28 @@ func CreateFromConfig(ctx *context.Context) (*CarConfigRepository, error) {
 	}
 
 	ccr := new(CarConfigRepository)
-	ccr.cars = make(map[state.CarId]map[string]interface{})
+	ccr.cars = make(map[state.CarId]*state.Car)
+	ccr.config = make(map[state.CarId]map[string]interface{})
+	ccr.context = ctx
 	for _, cs := range c.Car.Cars {
 		if id, ok := cs["id"]; ok {
 			i := id.(int)
-			ccr.cars[state.CarId(i)] = cs
+			ccr.config[state.CarId(i)] = cs
 		}
 	}
 	return ccr, nil
+}
+
+func (c *CarConfigRepository) Get(id state.CarId) (*state.Car, bool) {
+	if _, ok := c.cars[id]; !ok {
+		if _, ok := c.config[id]; !ok {
+			c.config[id] = make(map[string]interface{})
+		}
+		c.cars[id] = state.CreateCar(id, c.config[id], c.context.Rules)
+	}
+	return c.cars[id], true
+}
+
+func (c *CarConfigRepository) All() []*state.Car {
+	panic("implement me")
 }

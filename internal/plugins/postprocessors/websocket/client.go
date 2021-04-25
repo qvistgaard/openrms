@@ -2,6 +2,7 @@ package websocket
 
 import (
 	"encoding/json"
+	"github.com/qvistgaard/openrms/internal/config/context"
 	"github.com/qvistgaard/openrms/internal/state"
 	log "github.com/sirupsen/logrus"
 	"net/http"
@@ -48,6 +49,20 @@ type Command struct {
 		Name  string
 		Value interface{}
 	}
+	Get *struct {
+		Car *struct {
+			CarId []state.CarId
+			Name  []string
+		}
+		Race *struct {
+			Name []string
+		}
+	}
+}
+
+type State struct {
+	Race map[string]interface{}                 `json:"race"`
+	Cars map[state.CarId]map[string]interface{} `json:"cars"`
 }
 
 // Client is a middleman between the websocket connection and the broadcast.
@@ -61,6 +76,7 @@ type Client struct {
 	send    chan interface{}
 	request *http.Request
 	command chan<- interface{}
+	context *context.Context
 }
 
 // read pumps messages from the websocket connection to the broadcast.
@@ -107,13 +123,35 @@ func (c *Client) read() {
 					Value: o.Car.Value,
 				}
 			}
+			if o.Get != nil {
+				s := State{}
+				if o.Get.Car != nil {
+					s.Cars = make(map[state.CarId]map[string]interface{})
+					for _, car := range o.Get.Car.CarId {
+						s.Cars[car] = make(map[string]interface{})
+						if cs, ok := c.context.Cars.Get(car); ok {
+							for _, n := range o.Get.Car.Name {
+								s.Cars[car][n] = cs.Get(n)
+							}
+						}
+					}
+				}
+				if o.Get.Race != nil {
+					s.Race = make(map[string]interface{})
+					for _, n := range o.Get.Race.Name {
+						s.Race[n] = c.context.Course.Get(n)
+					}
+				}
+				marshal, _ := json.Marshal(s)
+				c.send <- marshal
+			}
 		} else {
 			log.Warn(ok)
+			marshal, _ := json.Marshal(map[string]interface{}{
+				"error": "no such command",
+			})
+			c.send <- marshal
 		}
-		marshal, _ := json.Marshal(map[string]interface{}{
-			"error": "no such command",
-		})
-		c.send <- marshal
 	}
 }
 
@@ -147,6 +185,14 @@ func (c *Client) writePump() {
 			}
 			if courseChanges, ok := message.(state.CourseChanges); ok {
 				stateMessages.Course = append(stateMessages.Course, courseChanges)
+			}
+			if json, ok := message.([]byte); ok {
+				c.conn.SetWriteDeadline(time.Now().Add(writeWait))
+				w, err := c.conn.NextWriter(websocket.TextMessage)
+				if err != nil {
+					return
+				}
+				w.Write(json)
 			}
 
 			if time.Now().After(nextTX) {

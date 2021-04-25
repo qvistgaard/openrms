@@ -27,6 +27,7 @@ func CreateFromConfig(ctx *context.Context) (*WebSocket, error) {
 		unregister: make(chan *Client),
 		race:       make(chan state.CourseChanges, 1024),
 		car:        make(chan state.CarChanges, 1024),
+		context:    ctx,
 		listen:     c.Postprocessors.WebSocket.Listen,
 	}
 	return ws, nil

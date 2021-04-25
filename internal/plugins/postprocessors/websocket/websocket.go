@@ -1,6 +1,7 @@
 package websocket
 
 import (
+	"github.com/qvistgaard/openrms/internal/config/context"
 	"github.com/qvistgaard/openrms/internal/state"
 	log "github.com/sirupsen/logrus"
 	"net/http"
@@ -14,6 +15,7 @@ type WebSocket struct {
 	car        chan state.CarChanges
 	listen     string
 	command    chan<- interface{}
+	context    *context.Context
 }
 
 type StateMessage struct {
@@ -88,7 +90,14 @@ func serveWebSocket(ws *WebSocket, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	client := &Client{broadcast: ws, conn: conn, send: make(chan interface{}, 256), request: r, command: ws.command}
+	client := &Client{
+		broadcast: ws,
+		conn:      conn,
+		send:      make(chan interface{}, 256),
+		request:   r,
+		command:   ws.command,
+		context:   ws.context,
+	}
 	client.broadcast.register <- client
 	log.WithFields(map[string]interface{}{
 		"ip_addr": conn.RemoteAddr(),

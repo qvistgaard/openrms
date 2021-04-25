@@ -2,9 +2,6 @@ package rms
 
 import (
 	"github.com/qvistgaard/openrms/internal/config/context"
-	"github.com/qvistgaard/openrms/internal/implement"
-	"github.com/qvistgaard/openrms/internal/postprocess"
-	"github.com/qvistgaard/openrms/internal/repostitory/car"
 	"github.com/qvistgaard/openrms/internal/state"
 	log "github.com/sirupsen/logrus"
 	"sync"
@@ -20,10 +17,9 @@ func (r *Runner) Run() {
 	go r.eventloop()
 
 	r.wg.Add(1)
-	go r.processEvents(r.context.Implement, r.context.Postprocessors, r.context.Cars, r.context.Course, r.context.Rules)
+	go r.processEvents()
 
 	r.wg.Wait()
-
 }
 
 func Create(c *context.Context) *Runner {
@@ -38,57 +34,47 @@ func (r *Runner) eventloop() error {
 	return err
 }
 
-func (r *Runner) processEvents(i implement.Implementer, postProcess postprocess.PostProcess, repository car.Repository, course *state.Course, rules state.Rules) {
+func (r *Runner) processEvents() {
 	defer r.wg.Done()
 
 	log.Info("started event processor.")
 
-	cars := make(map[state.CarId]*state.Car)
-	go processCommands(cars, postProcess, course)
+	go r.processCommands()
 	for {
 		select {
-		case e := <-i.EventChannel():
-			var c *state.Car
+		case e := <-r.context.Implement.EventChannel():
 			if e.Id > 0 {
-				if _, ok := cars[e.Id]; !ok {
-					c = state.CreateCar(course, e.Id, repository.GetCarById(e.Id), rules)
-					cars[e.Id] = c
-				} else {
-					c = cars[e.Id]
-				}
-				if c != nil {
+				if c, ok := r.context.Cars.Get(e.Id); ok {
 					e.SetCarState(c)
-
 					carChanges := c.Changes()
 					if len(carChanges.Changes) > 0 {
-						i.SendCarState(carChanges)
-						postProcess.PostProcessCar(c.Changes())
+						r.context.Implement.SendCarState(carChanges)
+						r.context.Postprocessors.PostProcessCar(c.Changes())
 					}
 					c.ResetStateChangeStatus()
-
 				}
 			}
-			raceChanges := course.Changes()
+			raceChanges := r.context.Course.Changes()
 			if len(raceChanges.Changes) > 0 {
-				i.SendRaceState(raceChanges)
-				postProcess.PostProcessRace(raceChanges)
+				r.context.Implement.SendRaceState(raceChanges)
+				r.context.Postprocessors.PostProcessRace(raceChanges)
 			}
-			course.ResetStateChangeStatus()
+			r.context.Course.ResetStateChangeStatus()
 		}
 	}
 }
 
-func processCommands(cars map[state.CarId]*state.Car, postProcess postprocess.PostProcess, course *state.Course) {
+func (r *Runner) processCommands() {
 	for {
 		select {
-		case command := <-postProcess.CommandChannel:
+		case command := <-r.context.Postprocessors.CommandChannel:
 			log.Infof("Received command: %T, %+v", command, command)
 			if cc, ok := command.(state.CarCommand); ok {
-				if c, ok := cars[cc.CarId]; ok {
+				if c, ok := r.context.Cars.Get(cc.CarId); ok {
 					c.Set(cc.Name, cc.Value)
 				}
 			} else if cc, ok := command.(state.CourseCommand); ok {
-				course.Set(cc.Name, cc.Value)
+				r.context.Course.Set(cc.Name, cc.Value)
 			}
 		}
 	}

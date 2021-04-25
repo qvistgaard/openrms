@@ -36,10 +36,9 @@ type Lap struct {
 	LapTime   LapTime
 }
 
-func CreateCar(race *Course, id CarId, settings map[string]interface{}, rules Rules) *Car {
+func CreateCar(id CarId, settings map[string]interface{}, rules Rules) *Car {
 	c := new(Car)
 	c.id = id
-	c.race = race
 	c.settings = settings
 	c.state = CreateInMemoryRepository(c)
 	c.Create(CarEventSequence, uint(0))
@@ -59,17 +58,12 @@ type Car struct {
 	id       CarId
 	settings map[string]interface{}
 	state    Repository
-	race     *Course
 }
 
 type CarChanges struct {
 	Car     CarId     `json:"id"`
 	Changes []Change  `json:"changes"`
 	Time    time.Time `json:"time"`
-}
-
-func (c *Car) Race() *Course {
-	return c.race
 }
 
 func (c *Car) Settings(v interface{}) error {

@@ -10,11 +10,11 @@ websocket:
 implement:
   plugin: generator
   oxigen:
-    port: /dev/ttyACM0
+    port: COM5
 
   generator:
     cars: 2
-    interval: 600
+    interval: 15000
 
 course:
   max-speed: 255

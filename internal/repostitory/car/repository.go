@@ -8,6 +8,6 @@ type Settings struct {
 }
 
 type Repository interface {
-	GetCarById(uint8 state.CarId) map[string]interface{}
+	Get(id state.CarId) (*state.Car, bool)
 	All() []*state.Car
 }

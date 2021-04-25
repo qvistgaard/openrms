@@ -19,7 +19,7 @@ type Leaderboard interface {
 
 // Default Leaderboard implementation
 type Default struct {
-	Entries []BoardEntry
+	Entries []BoardEntry `json:"entries"`
 }
 
 func (l *Default) Compare(v state.ComparableChange) bool {
