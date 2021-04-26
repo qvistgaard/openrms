@@ -3,6 +3,7 @@ package fuel
 import (
 	"github.com/qvistgaard/openrms/internal/plugins/rules/limbmode"
 	"github.com/qvistgaard/openrms/internal/state"
+	log "github.com/sirupsen/logrus"
 	"time"
 )
 
@@ -31,19 +32,22 @@ type Consumption struct {
 }
 
 func (c *Consumption) Notify(v *state.Value) {
-	if car, ok := v.Owner().(*state.Car); ok {
-		if v.Name() == state.CarEventSequence && car.Get(state.CarOnTrack).(bool) {
-			if rs, ok := c.course.Get(state.RaceStatus).(uint8); !ok || rs != state.RaceStatusPaused {
-				fs := car.Get(CarFuel).(Liter)
-				bs := car.Get(CarConfigBurnRate).(LiterPerSecond)
-				tv := car.Get(state.ControllerTriggerValue).(state.TriggerValue)
-				cf := calculateFuelState(bs, fs, tv)
+	if c.course.Get(state.RaceStatus) != state.RaceStatusStopped {
+		if car, ok := v.Owner().(*state.Car); ok {
+			if v.Name() == state.CarEventSequence && car.Get(state.CarOnTrack).(bool) {
+				if rs, ok := c.course.Get(state.RaceStatus).(uint8); !ok || rs != state.RaceStatusPaused {
+					fs := car.Get(CarFuel).(Liter)
+					bs := car.Get(CarConfigBurnRate).(LiterPerSecond)
+					tv := car.Get(state.ControllerTriggerValue).(state.TriggerValue)
+					cf := calculateFuelState(bs, fs, tv)
 
-				if cf <= 0 {
-					car.Set(limbmode.CarLimbMode, true)
-					car.Set(CarFuel, Liter(0))
-				} else {
-					car.Set(CarFuel, cf)
+					if cf <= 0 {
+						log.WithField("car", car.Id()).Info("car has run out of fuel.")
+						car.Set(limbmode.CarLimbMode, true)
+						car.Set(CarFuel, Liter(0))
+					} else {
+						car.Set(CarFuel, cf)
+					}
 				}
 			}
 		}

@@ -16,8 +16,9 @@ const (
 )
 
 type Pit struct {
-	rules state.Rules
-	stops map[state.CarId]chan bool
+	rules  state.Rules
+	stops  map[state.CarId]chan bool
+	course *state.Course
 }
 
 func CreatePitRule(ctx *context.Context) *Pit {
@@ -28,38 +29,40 @@ func CreatePitRule(ctx *context.Context) *Pit {
 }
 
 func (p *Pit) Notify(v *state.Value) {
-	if c, ok := v.Owner().(*state.Car); ok {
-		if v.Name() == state.CarInPit {
-			if b, ok := v.Get().(bool); ok && !b {
-				c.Set(State, Stopped)
-				log.WithField("car", c.Id()).Debugf("pit handler: car exited pitlane")
-			} else {
-				log.WithField("car", c.Id()).Debugf("pit handler: car entered pitlane")
-			}
-			return
-		}
-
-		if v.Name() == state.ControllerTriggerValue {
-			if b, ok := c.Get(state.CarInPit).(bool); ok && b {
-				triggerValue := v.Get().(state.TriggerValue)
-				if triggerValue == 0 && c.Get(State) == Stopped {
-					c.Set(State, Started)
-				} else if triggerValue > 0 && c.Get(State) == Started {
-					c.Set(State, Cancelled)
+	if p.course.Get(state.RaceStatus) != state.RaceStatusStopped {
+		if c, ok := v.Owner().(*state.Car); ok {
+			if v.Name() == state.CarInPit {
+				if b, ok := v.Get().(bool); ok && !b {
+					c.Set(State, Stopped)
+					log.WithField("car", c.Id()).Debugf("pit handler: car exited pitlane")
+				} else {
+					log.WithField("car", c.Id()).Debugf("pit handler: car entered pitlane")
 				}
+				return
 			}
-			return
-		}
 
-		if v.Name() == State {
-			if v.Get().(string) == Started {
-				log.WithField("car", c.Id()).Debugf("pit handler: pit stop started")
-				go p.handlePitStop(c, p.stops[c.Id()])
-			} else if v.Get().(string) == Cancelled {
-				log.WithField("car", c.Id()).Debugf("pit handler: pit stop cancelled")
-				p.stops[c.Id()] <- true
+			if v.Name() == state.ControllerTriggerValue {
+				if b, ok := c.Get(state.CarInPit).(bool); ok && b {
+					triggerValue := v.Get().(state.TriggerValue)
+					if triggerValue == 0 && c.Get(State) == Stopped {
+						c.Set(State, Started)
+					} else if triggerValue > 0 && c.Get(State) == Started {
+						c.Set(State, Cancelled)
+					}
+				}
+				return
 			}
-			return
+
+			if v.Name() == State {
+				if v.Get().(string) == Started {
+					log.WithField("car", c.Id()).Debugf("pit handler: pit stop started")
+					go p.handlePitStop(c, p.stops[c.Id()])
+				} else if v.Get().(string) == Cancelled {
+					log.WithField("car", c.Id()).Debugf("pit handler: pit stop cancelled")
+					p.stops[c.Id()] <- true
+				}
+				return
+			}
 		}
 	}
 }
@@ -72,8 +75,8 @@ func (p *Pit) InitializeCarState(c *state.Car) {
 	c.Subscribe(State, p)
 }
 
-func (p *Pit) InitializeCourseState(race *state.Course) {
-	//panic("implement me")
+func (p *Pit) InitializeCourseState(course *state.Course) {
+	p.course = course
 }
 
 func (p *Pit) handlePitStop(c *state.Car, cancel chan bool) {

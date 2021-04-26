@@ -17,33 +17,38 @@ type Settings struct {
 
 type LimbMode struct {
 	MaxSpeed state.Speed
+	course   *state.Course
 }
 
 func (l *LimbMode) Notify(v *state.Value) {
-	if c, ok := v.Owner().(*state.Car); ok {
-		switch v.Name() {
-		case CarLimbMode:
-			if v.Get().(bool) {
-				c.Set(state.CarMaxSpeed, c.Get(CarLimbModeMaxSpeed))
-				log.WithField("car", c.Id()).
-					WithField("speed", c.Get(state.CarMaxSpeed)).
-					Debugf("limb-mode: enabled")
+	if l.course.Get(state.RaceStatus) != state.RaceStatusStopped {
+		if c, ok := v.Owner().(*state.Car); ok {
+			switch v.Name() {
+			case CarLimbMode:
+				if v.Get().(bool) {
+					c.Set(state.CarMaxSpeed, c.Get(CarLimbModeMaxSpeed))
+					log.WithField("car", c.Id()).
+						WithField("speed", c.Get(state.CarMaxSpeed)).
+						Debugf("limb-mode: enabled")
 
-			} else {
-				c.SetDefault(state.CarMaxSpeed)
-				log.WithField("car", c.Id()).
-					WithField("speed", c.Get(state.CarMaxSpeed)).
-					Debugf("limb-mode: disabled")
-			}
-		case pit.State:
-			if v.Get().(string) == pit.Stopped {
-				c.Set(CarLimbMode, false)
+				} else {
+					c.SetDefault(state.CarMaxSpeed)
+					log.WithField("car", c.Id()).
+						WithField("speed", c.Get(state.CarMaxSpeed)).
+						Debugf("limb-mode: disabled")
+				}
+			case pit.State:
+				if v.Get().(string) == pit.Stopped {
+					c.Set(CarLimbMode, false)
+				}
 			}
 		}
 	}
 }
 
-func (l *LimbMode) InitializeCourseState(race *state.Course) {}
+func (l *LimbMode) InitializeCourseState(course *state.Course) {
+	l.course = course
+}
 
 func (l *LimbMode) InitializeCarState(car *state.Car) {
 	settings := &Settings{}

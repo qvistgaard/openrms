@@ -5,6 +5,7 @@ import (
 	"github.com/qvistgaard/openrms/internal/state"
 	log "github.com/sirupsen/logrus"
 	"sync"
+	"time"
 )
 
 type Runner struct {
@@ -49,6 +50,7 @@ func (r *Runner) processEvents() {
 	for {
 		select {
 		case e := <-r.context.Implement.EventChannel():
+			start := time.Now()
 			if e.Id > 0 {
 				if c, ok := r.context.Cars.Get(e.Id); ok {
 					e.SetCarState(c)
@@ -66,6 +68,7 @@ func (r *Runner) processEvents() {
 				r.context.Postprocessors.PostProcessRace(raceChanges)
 			}
 			r.context.Course.ResetStateChangeStatus()
+			log.Debugf("processing time: %s", time.Now().Sub(start))
 		}
 	}
 }

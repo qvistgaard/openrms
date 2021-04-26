@@ -93,7 +93,7 @@ func (o *Oxigen) EventLoop() error {
 		}).Trace("send message to oxygen dongle")
 
 		for {
-			time.Sleep(10 * time.Millisecond)
+			time.Sleep(5 * time.Millisecond)
 			buffer := make([]byte, 13)
 			len, err := o.serial.Read(buffer)
 			log.WithFields(map[string]interface{}{
