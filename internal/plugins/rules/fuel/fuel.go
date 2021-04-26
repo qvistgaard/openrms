@@ -10,9 +10,14 @@ type Liter float32
 type LiterPerSecond float32
 
 const (
-	defaultBurnRate   = LiterPerSecond(0.1)
+	// Using Lemans fuel rules for normal petrol cars burn rate it 110kg/h
+	// that leads to 0.03 kg pr second, petrol has a weight around 775 gr / liter
+	// that means the burn it is about 0.023 l/per second scaling that by the random number
+	// Gotten from a internet forum about scale models and wind tunnel testing (5.65) we get the
+	// burn rate.
+	defaultBurnRate   = LiterPerSecond(0.023 / 5.65)
 	defaultFuel       = Liter(90)
-	defaultRefuelRate = LiterPerSecond(2)
+	defaultRefuelRate = LiterPerSecond(2 * 5.65)
 
 	CarFuel           = "car-fuel"
 	CarConfigFuel     = "car-config-fuel"
@@ -69,9 +74,9 @@ func (c *Consumption) HandlePitStop(car *state.Car, cancel chan bool) {
 		select {
 		case <-cancel:
 			return
-		case <-time.After(500 * time.Millisecond):
+		case <-time.After(250 * time.Millisecond):
 			f := car.Get(CarFuel).(Liter)
-			v := f + Liter(defaultRefuelRate/2)
+			v := f + Liter(defaultRefuelRate/4)
 			m := car.Get(CarConfigFuel).(Liter)
 			d := false
 			if v >= m {
