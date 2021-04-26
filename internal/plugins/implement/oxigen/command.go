@@ -24,7 +24,7 @@ type Car struct {
 	value   byte
 }
 
-func newPitLaneSpeed(id uint8, speed state.MaxSpeed) *Car {
+func newPitLaneSpeed(id uint8, speed state.Speed) *Car {
 	return &Car{
 		id:      id,
 		command: 0x81,
@@ -32,7 +32,7 @@ func newPitLaneSpeed(id uint8, speed state.MaxSpeed) *Car {
 	}
 }
 
-func newMaxSpeed(id uint8, speed state.MaxSpeed) *Car {
+func newMaxSpeed(id uint8, speed state.Speed) *Car {
 	return &Car{
 		id:      id,
 		command: 0x82,
@@ -84,7 +84,7 @@ func newEmptyCommand(race state.CourseChanges, currentState byte, settings *Sett
 				c.flag(true)
 			}
 		case state.CourseMaxSpeed:
-			bv := v.Value.(uint8)
+			bv := v.Value.(state.Speed)
 			c.maxSpeed(bv)
 		}
 	}
@@ -104,15 +104,27 @@ func newSettings() *Settings {
 func (c *Command) carCommand(id uint8, s string, v interface{}) bool {
 	switch s {
 	case state.CarMaxSpeed:
-		c.car = newMaxSpeed(id, v.(state.MaxSpeed))
-		log.Infof("Got car max speed command: %+v, %+v, %+v", id, s, v)
+		c.car = newMaxSpeed(id, v.(state.Speed))
+		log.WithField("car", id).
+			WithField("max-speed", v).
+			Debugf("oxigen: new car max speed requested")
 	case state.CarMaxBreaking:
 		c.car = newMaxBreaking(id, v.(uint8))
+		log.WithField("car", id).
+			WithField("max-breaking", v).
+			Debugf("oxigen: new car max breaking requested")
 	case state.CarMinSpeed:
 		c.car = newMinSpeed(id, v.(uint8), CarForceLaneChangeNone)
+		log.WithField("car", id).
+			WithField("min-speed", v).
+			WithField("force-lc", CarForceLaneChangeNone).
+			Debugf("oxigen: new car min speed requested")
 	case state.CarPitLaneSpeed:
 		log.Infof("Got car max speed pit command: %+v, %+v, %+v", id, s, v)
-		c.car = newPitLaneSpeed(id, v.(state.MaxSpeed))
+		c.car = newPitLaneSpeed(id, v.(state.Speed))
+		log.WithField("car", id).
+			WithField("max-pit-speed", v).
+			Debugf("oxigen: new car max pit speed requested")
 	}
 	if c.car != nil {
 		return true
@@ -122,16 +134,12 @@ func (c *Command) carCommand(id uint8, s string, v interface{}) bool {
 
 }
 
-func (c *Command) maxSpeed(speed uint8) {
-	c.settings.maxSpeed = speed
-	log.WithField("max-speed", c.state).Debug("oxigen max car speed set.")
-
+func (c *Command) maxSpeed(speed state.Speed) {
+	c.settings.maxSpeed = uint8(speed)
 }
 
 func (c *Command) start() {
 	c.state = 0x03
-	log.WithField("state", c.state).Debug("oxigen race state set to started.")
-
 }
 
 func (c *Command) pitLaneLapCount(enabled bool, entry bool) {

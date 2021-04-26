@@ -25,7 +25,7 @@ const (
 )
 
 type CarId uint8
-type MaxSpeed uint8
+type Speed uint8
 type TriggerValue uint8
 type LapNumber uint
 type RaceTimer time.Duration
@@ -50,9 +50,9 @@ func CreateCar(id CarId, settings map[string]interface{}, rules Rules) *Car {
 		s.initialize()
 	}
 	// TODO: mape these values configurable
-	c.Create(CarConfigMaxSpeed, MaxSpeed(255))
-	c.Create(CarMaxSpeed, MaxSpeed(255))
-	c.Create(CarPitLaneSpeed, MaxSpeed(75))
+	c.Create(CarConfigMaxSpeed, Speed(255))
+	c.Create(CarMaxSpeed, Speed(255))
+	c.Create(CarPitLaneSpeed, Speed(75))
 
 	return c
 }

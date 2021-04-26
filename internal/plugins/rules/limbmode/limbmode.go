@@ -11,12 +11,12 @@ const CarLimbModeMaxSpeed = "limb-mode-max-speed"
 
 type Settings struct {
 	LimbMode struct {
-		MaxSpeed state.MaxSpeed `mapstructure:"max-speed,omitempty"`
+		MaxSpeed state.Speed `mapstructure:"max-speed,omitempty"`
 	} `mapstructure:"limb-mode"`
 }
 
 type LimbMode struct {
-	MaxSpeed state.MaxSpeed
+	MaxSpeed state.Speed
 }
 
 func (l *LimbMode) Notify(v *state.Value) {
@@ -24,11 +24,16 @@ func (l *LimbMode) Notify(v *state.Value) {
 		switch v.Name() {
 		case CarLimbMode:
 			if v.Get().(bool) {
-				log.Infof("Limb mode enabled, Stetting car max speed")
 				c.Set(state.CarMaxSpeed, c.Get(CarLimbModeMaxSpeed))
+				log.WithField("car", c.Id()).
+					WithField("speed", c.Get(state.CarMaxSpeed)).
+					Debugf("limb-mode: enabled")
+
 			} else {
-				log.Infof("Limb mode disabled, Stetting car max speed")
 				c.SetDefault(state.CarMaxSpeed)
+				log.WithField("car", c.Id()).
+					WithField("speed", c.Get(state.CarMaxSpeed)).
+					Debugf("limb-mode: disabled")
 			}
 		case pit.State:
 			if v.Get().(string) == pit.Stopped {

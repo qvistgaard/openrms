@@ -158,10 +158,10 @@ func createTestValue(n string, v interface{}) (bool, *Command) {
 }
 
 func TestCarCommandSetMaxSpeed(t *testing.T) {
-	b, c := createTestValue(state.CarMaxSpeed, state.MaxSpeed(25))
+	b, c := createTestValue(state.CarMaxSpeed, state.Speed(25))
 
 	assert.True(t, b)
-	assert.Equal(t, uint8(255), c.car.value)
+	assert.Equal(t, uint8(25), c.car.value)
 }
 
 func TestCarCommandSetMaxBreaking(t *testing.T) {
@@ -179,7 +179,7 @@ func TestCarCommandSetMinSpeed(t *testing.T) {
 }
 
 func TestCarCommandSetPitLaneSpeed(t *testing.T) {
-	b, c := createTestValue(state.CarPitLaneSpeed, uint8(255))
+	b, c := createTestValue(state.CarPitLaneSpeed, state.Speed(255))
 
 	assert.True(t, b)
 	assert.Equal(t, uint8(255), c.car.value)
@@ -243,7 +243,7 @@ func TestRaceStatusChangeFromRaceStateFlaggedLCEnabled(t *testing.T) {
 func TestRaceStatusChangeFromRaceStateMaxSpeed(t *testing.T) {
 	s := state.CourseChanges{
 		Changes: []state.Change{
-			{Name: state.CarMaxSpeed, Value: uint8(100)},
+			{Name: state.CourseMaxSpeed, Value: state.Speed(100)},
 		},
 		Time: time.Now(),
 	}
@@ -271,7 +271,7 @@ func TestRaceStateSetToPause(t *testing.T) {
 func TestRaceStateSetToStopAndMaxSpeedFull(t *testing.T) {
 	o := new(Oxigen)
 	o.Stop()
-	o.MaxSpeed(255)
+	o.Speed(255)
 	m := o.command(*ipc.NewEmptyCommand())
 	assert.Equal(t, "01ff0000000000000000", hex.EncodeToString(m))
 }
@@ -279,7 +279,7 @@ func TestRaceStateSetToStopAndMaxSpeedFull(t *testing.T) {
 func TestRaceStateSetToStopPitLaneLapCountExitEnabledAndMaxSpeedFull(t *testing.T) {
 	o := new(Oxigen)
 	o.Stop()
-	o.MaxSpeed(255)
+	o.Speed(255)
 	o.PitLaneLapCount(true, false)
 	m := o.command(*ipc.NewEmptyCommand())
 

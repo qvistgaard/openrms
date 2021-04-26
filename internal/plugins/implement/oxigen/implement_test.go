@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	queue "github.com/enriquebris/goconcurrentqueue"
 	"github.com/qvistgaard/openrms/internal/state"
+	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"io"
 	"testing"
@@ -84,15 +85,35 @@ func TestTestSendSingleCommandOnCarStateChanges(t *testing.T) {
 	o.commands = make(chan *Command, 10)
 	// race := state.CreateCourse(&state.CourseConfig{}, &state.RuleList{})
 	car := state.CreateCar(state.CarId(1), map[string]interface{}{}, &state.RuleList{})
-	car.Set(state.CarMaxSpeed, state.MaxSpeed(255))
+	car.Set(state.CarMaxSpeed, state.Speed(100))
 
 	o.SendCarState(car.Changes())
 
 	command := <-o.commands
 	assert.Equal(t, 0, len(o.commands))
 	assert.Equal(t, uint8(1), command.car.id)
-	assert.Equal(t, uint8(0x02), command.car.command)
-	assert.Equal(t, uint8(0xFF), command.car.value)
+	assert.Equal(t, uint8(0x82), command.car.command)
+	assert.Equal(t, uint8(0x64), command.car.value)
+}
+
+func TestMaxSpeedCommandWillBeTranslatedToProtocol(t *testing.T) {
+	o := new(Oxigen)
+	o.settings = newSettings()
+	c := &Command{
+		settings: Settings{
+			maxSpeed: 255,
+			pitLane: PitLane{
+				lapCounting: 0,
+				lapTrigger:  0,
+			},
+		},
+		state: 0,
+		car:   newMaxSpeed(1, state.Speed(255)),
+	}
+	command := o.command(c, []byte{0, 0, 0})
+
+	log.Infof("%s", hex.EncodeToString(command))
+
 }
 
 func TestEventLoopCanReadMessages(t *testing.T) {

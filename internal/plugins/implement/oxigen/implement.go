@@ -83,7 +83,6 @@ func (o *Oxigen) EventLoop() error {
 			}).Warn("too many commands on command buffer")
 		}
 		b := o.command(command, timer)
-		log.Infof("%x", b)
 		_, err = o.serial.Write(b)
 		if err != nil {
 			log.WithField("error", err).Errorf("failed to send message to oxygen dongle")
@@ -91,7 +90,7 @@ func (o *Oxigen) EventLoop() error {
 		}
 		log.WithFields(map[string]interface{}{
 			"message": fmt.Sprintf("%x", b),
-		}).Debug("send message to oxygen dongle")
+		}).Trace("send message to oxygen dongle")
 
 		for {
 			time.Sleep(10 * time.Millisecond)
@@ -99,7 +98,7 @@ func (o *Oxigen) EventLoop() error {
 			len, err := o.serial.Read(buffer)
 			log.WithFields(map[string]interface{}{
 				"message": fmt.Sprintf("%x", buffer),
-			}).Tracef("recevied message from oxygen dongle")
+			}).Trace("received message from oxygen dongle")
 			timer = buffer[7:10]
 			o.events <- o.event(buffer)
 			if err != nil || len == 0 {
@@ -111,7 +110,7 @@ func (o *Oxigen) EventLoop() error {
 			break
 		}
 	}
-	log.Printf("error: %s", err)
+	log.Errorf("error: %s", err)
 	return err
 }
 

@@ -32,9 +32,9 @@ func (p *Pit) Notify(v *state.Value) {
 		if v.Name() == state.CarInPit {
 			if b, ok := v.Get().(bool); ok && !b {
 				c.Set(State, Stopped)
-				log.Debugf("EXIT PIT %+v", c.Get(state.CarInPit))
+				log.WithField("car", c.Id()).Debugf("pit handler: car exited pitlane")
 			} else {
-				log.Debugf("Enter PIT %+v", c.Get(state.CarInPit))
+				log.WithField("car", c.Id()).Debugf("pit handler: car entered pitlane")
 			}
 			return
 		}
@@ -43,11 +43,8 @@ func (p *Pit) Notify(v *state.Value) {
 			if b, ok := c.Get(state.CarInPit).(bool); ok && b {
 				triggerValue := v.Get().(state.TriggerValue)
 				if triggerValue == 0 && c.Get(State) == Stopped {
-					log.Debugf("Start PIT %+v", c.Get(state.CarInPit))
-
 					c.Set(State, Started)
 				} else if triggerValue > 0 && c.Get(State) == Started {
-					log.Debugf("Cancel PIT %+v", c.Get(state.CarInPit))
 					c.Set(State, Cancelled)
 				}
 			}
@@ -56,10 +53,10 @@ func (p *Pit) Notify(v *state.Value) {
 
 		if v.Name() == State {
 			if v.Get().(string) == Started {
-				log.Debugf("Start pithandler %+v", c.Get(state.CarInPit))
+				log.WithField("car", c.Id()).Debugf("pit handler: pit stop started")
 				go p.handlePitStop(c, p.stops[c.Id()])
 			} else if v.Get().(string) == Cancelled {
-				log.Debugf("Cancelled PIT %+v", c.Get(state.CarInPit))
+				log.WithField("car", c.Id()).Debugf("pit handler: pit stop cancelled")
 				p.stops[c.Id()] <- true
 			}
 			return
@@ -80,13 +77,13 @@ func (p *Pit) InitializeCourseState(race *state.Course) {
 }
 
 func (p *Pit) handlePitStop(c *state.Car, cancel chan bool) {
-	log.Debugf("Pit stop handler startet")
+	log.WithField("car", c.Id()).Debugf("pit handler: started")
 	defer func() {
 		for len(cancel) > 0 {
-			log.Debugf("FLushing cancel")
+			log.WithField("car", c.Id()).Debugf("pit handler: flushing cancel channel")
 			<-cancel
 		}
-		log.Debugf("Pit stop handler ended")
+		log.WithField("car", c.Id()).Debugf("pit handler: ended")
 	}()
 	for _, r := range p.rules.PitRules() {
 		r.HandlePitStop(c, cancel)
