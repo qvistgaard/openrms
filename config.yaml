@@ -36,8 +36,8 @@ car:
 
 
 rules:
-#  - plugin: fuel
-#    enabled: true
+  - plugin: fuel
+    enabled: true
 
 #  - plugin: limb-mode
 #    enabled: true
@@ -52,8 +52,8 @@ rules:
 #  - plugin: tirewear
 #    enabled: true
 
-#   - plugin: leaderboard
-#    enabled: true
+  - plugin: leaderboard
+    enabled: true
 
 
 postprocessors:

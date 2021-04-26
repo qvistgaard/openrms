@@ -139,7 +139,7 @@ func (o *Oxigen) SendCarState(c state.CarChanges) error {
 func (o *Oxigen) event(b []byte) implement.Event {
 	rt := (uint(b[9]) * 16777216) + (uint(b[10]) * 65536) + (uint(b[11]) * 256) + uint(b[12]) - uint(b[4])
 	rtd := time.Duration(rt*10) * time.Millisecond
-	return implement.Event{
+	e := implement.Event{
 		Id: state.CarId(b[1]),
 		Controller: implement.Controller{
 			BatteryWarning: 0x04&b[0] == 0x04,
@@ -162,6 +162,7 @@ func (o *Oxigen) event(b []byte) implement.Event {
 		TriggerValue: state.TriggerValue(0x7F & b[7]),
 		Ontrack:      0x80&b[7] == 0x80,
 	}
+	return e
 }
 
 func (o *Oxigen) command(c *Command, timer []byte) []byte {

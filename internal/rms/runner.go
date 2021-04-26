@@ -38,6 +38,9 @@ func (r *Runner) eventloop() error {
 }
 
 func (r *Runner) processEvents() {
+	defer func() {
+		log.Fatal("process events died")
+	}()
 	defer r.wg.Done()
 
 	log.Info("started event processor.")
