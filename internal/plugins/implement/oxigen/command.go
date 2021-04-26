@@ -24,11 +24,11 @@ type Car struct {
 	value   byte
 }
 
-func newPitLaneSpeed(id uint8, speed uint8) *Car {
+func newPitLaneSpeed(id uint8, speed state.MaxSpeed) *Car {
 	return &Car{
 		id:      id,
 		command: 0x01,
-		value:   speed,
+		value:   uint8(speed),
 	}
 }
 
@@ -110,7 +110,7 @@ func (c *Command) carCommand(id uint8, s string, v interface{}) bool {
 	case state.CarMinSpeed:
 		c.car = newMinSpeed(id, v.(uint8), CarForceLaneChangeNone)
 	case state.CarPitLaneSpeed:
-		c.car = newPitLaneSpeed(id, v.(uint8))
+		c.car = newPitLaneSpeed(id, v.(state.MaxSpeed))
 	}
 	if c.car != nil {
 		return true

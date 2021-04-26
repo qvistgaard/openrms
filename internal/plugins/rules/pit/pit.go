@@ -29,13 +29,12 @@ func CreatePitRule(ctx *context.Context) *Pit {
 
 func (p *Pit) Notify(v *state.Value) {
 	if c, ok := v.Owner().(*state.Car); ok {
-		log.Infof("%s, %+v, %+v, %+v", v.Name(), c.Get(state.CarInPit), c.Get(State), c.Get(state.ControllerTriggerValue))
 		if v.Name() == state.CarInPit {
 			if b, ok := v.Get().(bool); ok && !b {
 				c.Set(State, Stopped)
-				log.Infof("EXIT PIT %+v", c.Get(state.CarInPit))
+				log.Debugf("EXIT PIT %+v", c.Get(state.CarInPit))
 			} else {
-				log.Infof("Enter PIT %+v", c.Get(state.CarInPit))
+				log.Debugf("Enter PIT %+v", c.Get(state.CarInPit))
 			}
 			return
 		}
@@ -44,11 +43,11 @@ func (p *Pit) Notify(v *state.Value) {
 			if b, ok := c.Get(state.CarInPit).(bool); ok && b {
 				triggerValue := v.Get().(state.TriggerValue)
 				if triggerValue == 0 && c.Get(State) == Stopped {
-					log.Infof("Start PIT %+v", c.Get(state.CarInPit))
+					log.Debugf("Start PIT %+v", c.Get(state.CarInPit))
 
 					c.Set(State, Started)
 				} else if triggerValue > 0 && c.Get(State) == Started {
-					log.Infof("Cancel PIT %+v", c.Get(state.CarInPit))
+					log.Debugf("Cancel PIT %+v", c.Get(state.CarInPit))
 					c.Set(State, Cancelled)
 				}
 			}
@@ -57,10 +56,10 @@ func (p *Pit) Notify(v *state.Value) {
 
 		if v.Name() == State {
 			if v.Get().(string) == Started {
-				log.Infof("Start pithandler %+v", c.Get(state.CarInPit))
+				log.Debugf("Start pithandler %+v", c.Get(state.CarInPit))
 				go p.handlePitStop(c, p.stops[c.Id()])
 			} else if v.Get().(string) == Cancelled {
-				log.Infof("Cancelled PIT %+v", c.Get(state.CarInPit))
+				log.Debugf("Cancelled PIT %+v", c.Get(state.CarInPit))
 				p.stops[c.Id()] <- true
 			}
 			return
@@ -81,13 +80,13 @@ func (p *Pit) InitializeCourseState(race *state.Course) {
 }
 
 func (p *Pit) handlePitStop(c *state.Car, cancel chan bool) {
-	log.Info("Pit stop handler startet")
+	log.Debugf("Pit stop handler startet")
 	defer func() {
 		for len(cancel) > 0 {
-			log.Info("FLushing cancel")
+			log.Debugf("FLushing cancel")
 			<-cancel
 		}
-		log.Info("Pit stop handler ended")
+		log.Debugf("Pit stop handler ended")
 	}()
 	for _, r := range p.rules.PitRules() {
 		r.HandlePitStop(c, cancel)

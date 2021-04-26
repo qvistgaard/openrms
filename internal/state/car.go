@@ -42,15 +42,17 @@ func CreateCar(id CarId, settings map[string]interface{}, rules Rules) *Car {
 	c.settings = settings
 	c.state = CreateInMemoryRepository(c)
 	c.Create(CarEventSequence, uint(0))
-	c.Create(CarConfigMaxSpeed, uint8(255))
 	c.Create(CarOnTrack, false)
-	c.Create(CarPitLaneSpeed, uint8(100))
 	for _, r := range rules.All() {
 		r.InitializeCarState(c)
 	}
 	for _, s := range c.state.All() {
 		s.initialize()
 	}
+	// TODO: mape these values configurable
+	c.Create(CarConfigMaxSpeed, MaxSpeed(255))
+	c.Create(CarMaxSpeed, MaxSpeed(255))
+	c.Create(CarPitLaneSpeed, MaxSpeed(75))
 
 	return c
 }

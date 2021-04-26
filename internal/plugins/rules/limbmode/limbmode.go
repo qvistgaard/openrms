@@ -28,7 +28,7 @@ func (l *LimbMode) Notify(v *state.Value) {
 				c.SetDefault(state.CarMaxSpeed)
 			}
 		case pit.State:
-			if v.Get().(string) == pit.Stopped {
+			if v.Get().(string) == pit.Started {
 				c.Set(CarLimbMode, false)
 			}
 		}
@@ -54,4 +54,5 @@ func (l *LimbMode) InitializeCarState(car *state.Car) {
 		}
 	}
 	car.Subscribe(CarLimbMode, l)
+	car.Subscribe(pit.State, l)
 }
