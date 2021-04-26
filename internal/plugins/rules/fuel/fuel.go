@@ -15,8 +15,10 @@ const (
 	// that means the burn it is about 0.023 l/per second scaling that by the random number
 	// Gotten from a internet forum about scale models and wind tunnel testing (5.65) we get the
 	// burn rate.
-	defaultBurnRate   = LiterPerSecond(0.023 / 5.65)
-	defaultFuel       = Liter(90)
+	defaultBurnRate = LiterPerSecond(0.023 / 5.65)
+
+	// LMP1 fuel tank size is 75 Liters
+	defaultFuel       = Liter(75)
 	defaultRefuelRate = LiterPerSecond(2 * 5.65)
 
 	CarFuel           = "car-fuel"
@@ -53,6 +55,7 @@ func (c *Consumption) InitializeCourseState(race *state.Course) {
 }
 
 func (c *Consumption) InitializeCarState(car *state.Car) {
+	// TODO: Allow for default values to be configured in the config file
 	f := car.Get(CarFuel)
 	cf := car.Get(CarConfigFuel)
 	cb := car.Get(CarConfigBurnRate)

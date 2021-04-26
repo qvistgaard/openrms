@@ -39,9 +39,9 @@ rules:
   - plugin: fuel
     enabled: true
 
-#  - plugin: limb-mode
-#    enabled: true
-#    max-speed: 50
+  - plugin: limb-mode
+    enabled: true
+    max-speed: 50
 
   - plugin: pit
     enabled: true
