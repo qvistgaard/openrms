@@ -83,7 +83,7 @@ func (o *Oxigen) EventLoop() error {
 			}).Warn("too many commands on command buffer")
 		}
 		b := o.command(command, timer)
-
+		log.Infof("%x", b)
 		_, err = o.serial.Write(b)
 		if err != nil {
 			log.WithField("error", err).Errorf("failed to send message to oxygen dongle")

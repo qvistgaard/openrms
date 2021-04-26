@@ -27,7 +27,7 @@ type Car struct {
 func newPitLaneSpeed(id uint8, speed state.MaxSpeed) *Car {
 	return &Car{
 		id:      id,
-		command: 0x01,
+		command: 0x81,
 		value:   uint8(speed),
 	}
 }
@@ -35,7 +35,7 @@ func newPitLaneSpeed(id uint8, speed state.MaxSpeed) *Car {
 func newMaxSpeed(id uint8, speed state.MaxSpeed) *Car {
 	return &Car{
 		id:      id,
-		command: 0x02,
+		command: 0x82,
 		value:   uint8(speed),
 	}
 }
@@ -105,11 +105,13 @@ func (c *Command) carCommand(id uint8, s string, v interface{}) bool {
 	switch s {
 	case state.CarMaxSpeed:
 		c.car = newMaxSpeed(id, v.(state.MaxSpeed))
+		log.Infof("Got car max speed command: %+v, %+v, %+v", id, s, v)
 	case state.CarMaxBreaking:
 		c.car = newMaxBreaking(id, v.(uint8))
 	case state.CarMinSpeed:
 		c.car = newMinSpeed(id, v.(uint8), CarForceLaneChangeNone)
 	case state.CarPitLaneSpeed:
+		log.Infof("Got car max speed pit command: %+v, %+v, %+v", id, s, v)
 		c.car = newPitLaneSpeed(id, v.(state.MaxSpeed))
 	}
 	if c.car != nil {

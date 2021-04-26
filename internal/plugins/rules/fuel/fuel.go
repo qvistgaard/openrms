@@ -15,10 +15,10 @@ const (
 	// that means the burn it is about 0.023 l/per second scaling that by the random number
 	// Gotten from a internet forum about scale models and wind tunnel testing (5.65) we get the
 	// burn rate.
-	defaultBurnRate = LiterPerSecond(0.023 / 5.65)
+	defaultBurnRate = LiterPerSecond(0.023 / 2) // / 5.65)
 
 	// LMP1 fuel tank size is 75 Liters
-	defaultFuel       = Liter(75)
+	defaultFuel       = Liter(5)
 	defaultRefuelRate = LiterPerSecond(2 * 5.65)
 
 	CarFuel           = "car-fuel"
