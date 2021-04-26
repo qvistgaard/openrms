@@ -1,6 +1,9 @@
 package limbmode
 
-import "github.com/qvistgaard/openrms/internal/state"
+import (
+	"github.com/qvistgaard/openrms/internal/plugins/rules/pit"
+	"github.com/qvistgaard/openrms/internal/state"
+)
 
 const CarLimbMode = "limb-mode"
 const CarLimbModeMaxSpeed = "limb-mode-max-speed"
@@ -23,6 +26,10 @@ func (l *LimbMode) Notify(v *state.Value) {
 				c.Set(state.CarMaxSpeed, c.Get(CarLimbModeMaxSpeed))
 			} else {
 				c.SetDefault(state.CarMaxSpeed)
+			}
+		case pit.State:
+			if v.Get().(string) == pit.Stopped {
+				c.Set(CarLimbMode, false)
 			}
 		}
 	}
