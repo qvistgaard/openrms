@@ -65,22 +65,23 @@ func (c *Consumption) InitializeCarState(car *state.Car) {
 }
 
 func (c *Consumption) HandlePitStop(car *state.Car, cancel chan bool) {
-	select {
-	case <-cancel:
-		return
-	case <-time.After(500 * time.Millisecond):
-		f := car.Get(CarFuel).(Liter)
-		v := f + Liter(defaultRefuelRate/2)
-		m := car.Get(CarConfigFuel).(Liter)
-		d := false
-		if v >= m {
-			v = m
-			d = true
-
-		}
-		car.Set(CarFuel, v)
-		if d {
+	for {
+		select {
+		case <-cancel:
 			return
+		case <-time.After(500 * time.Millisecond):
+			f := car.Get(CarFuel).(Liter)
+			v := f + Liter(defaultRefuelRate/2)
+			m := car.Get(CarConfigFuel).(Liter)
+			d := false
+			if v >= m {
+				v = m
+				d = true
+			}
+			car.Set(CarFuel, v)
+			if d {
+				return
+			}
 		}
 	}
 }

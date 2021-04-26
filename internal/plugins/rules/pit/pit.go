@@ -20,7 +20,7 @@ type Pit struct {
 	stops map[state.CarId]chan bool
 }
 
-func CreatePitRule(ctx *context.Context) state.Rule {
+func CreatePitRule(ctx *context.Context) *Pit {
 	p := new(Pit)
 	p.rules = ctx.Rules
 	p.stops = make(map[state.CarId]chan bool)
@@ -57,7 +57,7 @@ func (p *Pit) Notify(v *state.Value) {
 
 		if v.Name() == State {
 			if v.Get().(string) == Started {
-				log.Infof("Run PIT %+v", c.Get(state.CarInPit))
+				log.Infof("Start pithandler %+v", c.Get(state.CarInPit))
 				go p.handlePitStop(c, p.stops[c.Id()])
 			} else if v.Get().(string) == Cancelled {
 				log.Infof("Cancelled PIT %+v", c.Get(state.CarInPit))
@@ -81,6 +81,7 @@ func (p *Pit) InitializeCourseState(race *state.Course) {
 }
 
 func (p *Pit) handlePitStop(c *state.Car, cancel chan bool) {
+	log.Info("Pit stop handler startet")
 	defer func() {
 		for len(cancel) > 0 {
 			log.Info("FLushing cancel")
