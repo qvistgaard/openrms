@@ -31,9 +31,9 @@ type LapNumber uint
 type RaceTimer time.Duration
 type LapTime time.Duration
 type Lap struct {
-	LapNumber LapNumber
-	RaceTimer RaceTimer
-	LapTime   LapTime
+	LapNumber LapNumber `json:"lap-number"`
+	RaceTimer RaceTimer `json:"race-timer"`
+	LapTime   LapTime   `json:"lap-time"`
 }
 
 func CreateCar(id CarId, settings map[string]interface{}, rules Rules) *Car {

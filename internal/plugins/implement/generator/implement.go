@@ -68,3 +68,6 @@ func (g *Generator) eventGenerator(car uint8, interval uint) implement.Event {
 	}
 
 }
+
+func (g *Generator) ResendCarState(c *state.Car) {
+}

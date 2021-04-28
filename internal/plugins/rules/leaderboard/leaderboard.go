@@ -75,7 +75,7 @@ type LastLaps interface {
 	update(car state.Lap) *LastLapDefault
 }
 type LastLapDefault struct {
-	Laps []state.Lap
+	Laps []state.Lap `json:"laps"`
 }
 
 type Rule struct {

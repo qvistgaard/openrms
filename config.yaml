@@ -8,13 +8,13 @@ websocket:
 
 
 implement:
-  plugin: oxigen
+  plugin: generator
   oxigen:
     port: /dev/ttyACM0
 
   generator:
     cars: 2
-    interval: 15000
+    interval: 1000
 
 course:
   max-speed: 255
@@ -29,6 +29,7 @@ car:
   cars:
     - id: 1
       max-speed: 255
+      fuel: 100
 #      limb-mode:
 #        max-speed: 100
     - id: 2
@@ -38,6 +39,9 @@ car:
 rules:
   - plugin: fuel
     enabled: true
+    fuel: 75
+    burn-rate: 0.033
+    # flow-rate: 11.3
 
   - plugin: limb-mode
     enabled: true

@@ -29,10 +29,10 @@ func Create(c *context.Context) *Runner {
 
 func (r *Runner) eventloop() error {
 	defer func() {
-		log.Fatal("Eventloop died")
+		log.Fatal("rms: Eventloop died")
 	}()
 	defer r.wg.Done()
-	log.Info("started race OpenRMS connector.")
+	log.Info("rms: started race OpenRMS connector.")
 	err := r.context.Implement.EventLoop()
 	log.Println(err)
 	return err
@@ -40,11 +40,11 @@ func (r *Runner) eventloop() error {
 
 func (r *Runner) processEvents() {
 	defer func() {
-		log.Fatal("process events died")
+		log.Fatal("rms: process events died")
 	}()
 	defer r.wg.Done()
 
-	log.Info("started event processor.")
+	log.Info("rms: started event processor.")
 
 	go r.processCommands()
 	for {
@@ -64,6 +64,11 @@ func (r *Runner) processEvents() {
 			}
 			raceChanges := r.context.Course.Changes()
 			if len(raceChanges.Changes) > 0 {
+				if r.context.Course.IsChanged(state.RaceStatus) {
+					for _, c := range r.context.Cars.All() {
+						r.context.Implement.ResendCarState(c)
+					}
+				}
 				r.context.Implement.SendRaceState(raceChanges)
 				r.context.Postprocessors.PostProcessRace(raceChanges)
 			}

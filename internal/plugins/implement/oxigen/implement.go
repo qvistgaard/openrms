@@ -68,13 +68,19 @@ func (o *Oxigen) EventLoop() error {
 	defer o.serial.Close()
 	var err error
 	timer := []byte{0x00, 0x00, 0x00}
+
+	go func() {
+		select {
+		case <-time.After(100 * time.Millisecond):
+			o.commands <- newEmptyCommand(state.CourseChanges{}, o.state, o.settings)
+		}
+	}()
+
 	for {
 		var command *Command
 		select {
 		case cmd := <-o.commands:
 			command = cmd
-		case <-time.After(1000 * time.Millisecond):
-			command = newEmptyCommand(state.CourseChanges{}, o.state, o.settings)
 		}
 		if float32(len(o.commands)) > (float32(o.bufferSize) * 0.9) {
 			log.WithFields(map[string]interface{}{
@@ -135,6 +141,18 @@ func (o *Oxigen) SendCarState(c state.CarChanges) error {
 	return nil
 }
 
+func (o *Oxigen) ResendCarState(c *state.Car) {
+	resendStates := []string{
+		state.CarMaxSpeed, state.CarMaxBreaking, state.CarMinSpeed, state.CarPitLaneSpeed,
+	}
+	for _, n := range resendStates {
+		ec := newEmptyCommand(state.CourseChanges{}, o.state, o.settings)
+		if ec.carCommand(uint8(c.Id()), n, c.Get(n)) {
+			o.commands <- ec
+		}
+	}
+}
+
 func (o *Oxigen) event(b []byte) implement.Event {
 	rt := (uint(b[9]) * 16777216) + (uint(b[10]) * 65536) + (uint(b[11]) * 256) + uint(b[12]) - uint(b[4])
 	rtd := time.Duration(rt*10) * time.Millisecond
@@ -146,12 +164,10 @@ func (o *Oxigen) event(b []byte) implement.Event {
 			TrackCall:      0x08&b[0] == 0x08,
 			ArrowUp:        0x20&b[0] == 0x20,
 			ArrowDown:      0x40&b[0] == 0x40,
-			// version: ,
 		},
 		Car: implement.Car{
 			Reset: 0x01&b[0] == 0x01,
 			InPit: 0x40&b[8] == 0x40,
-			// version:
 		},
 		Lap: state.Lap{
 			LapNumber: state.LapNumber((uint16(b[6]) * 256) + uint16(b[5])),

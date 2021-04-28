@@ -19,16 +19,18 @@ const (
 	defaultBurnRate = LiterPerSecond(0.023 / 2) // / 5.65)
 
 	// LMP1 fuel tank size is 75 Liters
-	defaultFuel       = Liter(5)
-	defaultRefuelRate = LiterPerSecond(2 * 5.65)
+	defaultFuel     = Liter(75)
+	defaultFlowRate = LiterPerSecond(2 * 5.65)
 
 	CarFuel           = "car-fuel"
+	CarConfigFlowRate = "car-config-flow-rate"
 	CarConfigFuel     = "car-config-fuel"
 	CarConfigBurnRate = "car-config-fuel-burn-rate"
 )
 
 type Consumption struct {
 	course *state.Course
+	config *Config
 }
 
 func (c *Consumption) Notify(v *state.Value) {
@@ -59,20 +61,50 @@ func (c *Consumption) InitializeCourseState(race *state.Course) {
 }
 
 func (c *Consumption) InitializeCarState(car *state.Car) {
-	// TODO: Allow for default values to be configured in the config file
-	f := car.Get(CarFuel)
-	cf := car.Get(CarConfigFuel)
-	cb := car.Get(CarConfigBurnRate)
+	cc := &Config{}
+	err := car.Settings(cc)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	if cf == nil {
-		car.Set(CarConfigFuel, defaultFuel)
+	var fuel Liter
+	if cc.Fuel != nil {
+		fuel = *cc.Fuel
+	} else if c.config.Fuel != nil {
+		fuel = *c.config.Fuel
+	} else {
+		fuel = defaultFuel
 	}
-	if f == nil {
-		car.Set(CarFuel, car.Get(CarConfigFuel))
+	car.Set(CarConfigFuel, fuel)
+
+	var startingFuel Liter
+	if cc.StartingFuel != nil {
+		startingFuel = *cc.StartingFuel
+	} else if c.config.StartingFuel != nil {
+		startingFuel = *c.config.StartingFuel
+	} else {
+		startingFuel = fuel
 	}
-	if cb == nil {
-		car.Set(CarConfigBurnRate, defaultBurnRate)
+	car.Set(CarFuel, startingFuel)
+
+	var burnRate LiterPerSecond
+	if cc.BurnRate != nil {
+		burnRate = *cc.BurnRate
+	} else if c.config.BurnRate != nil {
+		burnRate = *c.config.BurnRate
+	} else {
+		burnRate = defaultBurnRate
 	}
+	car.Set(CarConfigBurnRate, burnRate)
+
+	var flowRate LiterPerSecond
+	if c.config.FlowRate != nil {
+		flowRate = *c.config.FlowRate
+	} else {
+		flowRate = defaultFlowRate
+	}
+	car.Set(CarConfigFlowRate, flowRate)
+
 	car.Subscribe(state.CarEventSequence, c)
 }
 
@@ -83,7 +115,7 @@ func (c *Consumption) HandlePitStop(car *state.Car, cancel chan bool) {
 			return
 		case <-time.After(250 * time.Millisecond):
 			f := car.Get(CarFuel).(Liter)
-			v := f + Liter(defaultRefuelRate/4)
+			v := f + Liter(car.Get(CarConfigFlowRate).(LiterPerSecond)/4)
 			m := car.Get(CarConfigFuel).(Liter)
 			d := false
 			if v >= m {

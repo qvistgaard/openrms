@@ -89,5 +89,9 @@ func (c *Course) Subscribe(state string, s Subscriber) {
 	c.state.Get(state).Subscribe(s)
 }
 
+func (c *Course) IsChanged(state string) bool {
+	return c.state.Get(state).Changed()
+}
+
 type Settings struct {
 }

@@ -6,6 +6,20 @@ const store = Vuex.createStore({
       race: { }
     }
   },
+
+  getters: {
+    getCarState: (state) => (car, n, d = null) => {
+      if (typeof state.cars[car] !== "undefined"){
+        if (typeof state.cars[car][n] !== "undefined"){
+          if (typeof state.cars[car][n].value !== "undefined"){
+            return state.cars[car][n].value
+          }
+        }
+      }
+      return d
+    }
+  },
+
   mutations: {
     updateStateFromWebsocket(state, v) {
       for(const item of v.cars) {
@@ -39,7 +53,6 @@ function websocketConnection(params) {
   this.connection = new WebSocket("ws://localhost:8080/ws?"+query)
   this.connection.onmessage = function(event) {
     store.commit('updateStateFromWebsocket', JSON.parse(event.data))
-
   }
 
   this.connection.onopen = function(event) {

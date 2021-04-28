@@ -20,18 +20,28 @@ type RuleConfig struct {
 	}
 }
 
+type RuleConfigMaps struct {
+	Rules []map[string]interface{}
+}
+
 func CreateRules(ctx *context.Context) error {
 	c := &RuleConfig{}
+	rm := &RuleConfigMaps{}
 	err := mapstructure.Decode(ctx.Config, c)
 	if err != nil {
 		return err
 	}
+	err = mapstructure.Decode(ctx.Config, rm)
+	if err != nil {
+		return err
+	}
+
 	ctx.Rules = state.CreateRuleList()
-	for _, r := range c.Rules {
+	for k, r := range c.Rules {
 		if r.Enabled {
 			switch r.Plugin {
 			case "fuel":
-				ctx.Rules.Append(&fuel.Consumption{})
+				ctx.Rules.Append(fuel.Create(rm.Rules[k]))
 			case "limb-mode":
 				ctx.Rules.Append(&limbmode.LimbMode{})
 			case "damage":
