@@ -67,8 +67,8 @@ func (l *Default) updateCar(id state.CarId, lap state.Lap) (Leaderboard, Positio
 }
 
 type BoardEntry struct {
-	Car state.CarId
-	Lap state.Lap
+	Car state.CarId `json:"car"`
+	Lap state.Lap   `json:"lap"`
 }
 
 type LastLaps interface {

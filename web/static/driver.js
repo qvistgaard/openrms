@@ -16,7 +16,6 @@ const app = Vue.createApp({
               .map(x =>  {
                   let v = moment.duration(x["lap-time"] / 1000 / 1000).asSeconds()
                   x["lap-time"] = Number((v)).toFixed(3)
-
                   return x
               })
         },

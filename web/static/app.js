@@ -17,6 +17,14 @@ const store = Vuex.createStore({
         }
       }
       return d
+    },
+    getRaceState: (state) => (n, d) => {
+      if (typeof state.race[n] !== "undefined"){
+        if (typeof state.race[n].value !== "undefined") {
+          return state.race[n].value
+        }
+      }
+      return d
     }
   },
 
@@ -33,7 +41,7 @@ const store = Vuex.createStore({
       }
       for(const item of v.race){
         for (const change of item.changes) {
-          state.race[change.name] = change.value
+          state.race[change.name] = { value: change.value }
         }
       }
     },

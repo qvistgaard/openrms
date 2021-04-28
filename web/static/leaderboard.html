@@ -10,9 +10,6 @@
   <script src="https://unpkg.com/vue@next"></script>
   <script src="https://unpkg.com/vuex@next"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
-  <script>
-    moment().format();
-  </script>
 
   <meta name="description" content="">
   <meta name="author" content="">
@@ -34,6 +31,28 @@
   –––––––––––––––––––––––––––––––––––––––––––––––––– -->
   <link rel="icon" type="image/png" href="skeleton/images/favicon.png">
 
+  <style>
+    table.leaderboard tr td,
+    table.leaderboard tr th {
+      text-align: right;
+    }
+
+    table.leaderboard tr th:first-child {
+      width: 10%;
+    }
+    table.leaderboard tr th:nth-child(2) {
+      width: 10%;
+    }
+    table.leaderboard tr th:nth-child(3) {
+      text-align: left;
+    }
+    table.leaderboard tr th:nth-child(4) {
+      width: 10%;
+    }
+    table.leaderboard tr th:nth-child(5) {
+      width: 10%;
+    }
+  </style>
 </head>
 <body>
 
@@ -51,28 +70,29 @@
       <div class="four columns" style="text-align: center">Pause</div>
     </div>
     <div class="row" style="margin-top: 50px">
-        <table class="u-full-width">
+        <table class="u-full-width leaderboard">
           <thead>
           <tr>
-            <th style="text-align: right">Position</th>
-            <th style="text-align: right">Car</th>
-            <th style="text-align: right">Lap</th>
-            <th style="text-align: right">Lap time</th>
+            <th>Position</th>
+            <th>Car</th>
+            <th>Driver</th>
+            <th>Lap</th>
+            <th>Lap time</th>
           </tr>
           </thead>
           <tbody>
           <tr v-if="!$store.state.race['race-leaderboard']">
-            <td  style="text-align: center" colspan="3">
+            <td  style="text-align: center" colspan="5">
               No data</td>
           </tr>
-            <template v-else v-for="(value, name) in $store.state.race['race-leaderboard']">
-              <tr v-for="(k, v) in value" >
-                <td style="text-align: right">#{{v+1}}</td>
-                <td style="text-align: right">{{k["Car"]}}</td>
-                <td style="text-align: right">{{k["Lap"]["LapNumber"]}}</td>
-                <td style="text-align: right">{{ $filters.lapTime( k["Lap"]["LapTime"] )}}<small>s</small></td>
-              </tr>
-            </template>
+
+          <tr v-else v-for="(k, v) in leaderboard" >
+            <td>#{{v+1}}</td>
+            <td>{{k["car"]}}</td>
+            <td></td>
+            <td>{{k["lap"]["lap-number"]}}</td>
+            <td>{{k["lap"]["lap-time"] }}<small>s</small></td>
+          </tr>
           </tbody>
         </table>
     </div>
