@@ -65,15 +65,15 @@ func (r *Runner) processEvents() {
 			raceChanges := r.context.Course.Changes()
 			if len(raceChanges.Changes) > 0 {
 				if r.context.Course.IsChanged(state.RaceStatus) {
-					for _, c := range r.context.Cars.All() {
-						r.context.Implement.ResendCarState(c)
-					}
+					//for _, c := range r.context.Cars.All() {
+					//	r.context.Implement.ResendCarState(c)
+					//}
 				}
 				r.context.Implement.SendRaceState(raceChanges)
 				r.context.Postprocessors.PostProcessRace(raceChanges)
 			}
 			r.context.Course.ResetStateChangeStatus()
-			log.Debugf("processing time: %s", time.Now().Sub(start))
+			log.Tracef("processing time: %s", time.Now().Sub(start))
 		}
 	}
 }

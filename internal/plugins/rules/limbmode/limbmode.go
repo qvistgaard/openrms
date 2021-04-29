@@ -60,6 +60,7 @@ func (l *LimbMode) InitializeCarState(car *state.Car) {
 
 	ms := car.Get(CarLimbModeMaxSpeed)
 	if ms == nil {
+		// TODO: Fix configuration reading
 		if settings.LimbMode.MaxSpeed > 0 {
 			car.Set(CarLimbModeMaxSpeed, settings.LimbMode.MaxSpeed)
 		} else {

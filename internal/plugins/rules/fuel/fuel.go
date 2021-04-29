@@ -34,6 +34,7 @@ type Consumption struct {
 }
 
 func (c *Consumption) Notify(v *state.Value) {
+	log.Infof("state: %+v", c.course.Get(state.RaceStatus))
 	if c.course.Get(state.RaceStatus) != state.RaceStatusStopped {
 		if car, ok := v.Owner().(*state.Car); ok {
 			if v.Name() == state.CarEventSequence && car.Get(state.CarOnTrack).(bool) {
@@ -56,8 +57,8 @@ func (c *Consumption) Notify(v *state.Value) {
 	}
 }
 
-func (c *Consumption) InitializeCourseState(race *state.Course) {
-	c.course = race
+func (c *Consumption) InitializeCourseState(course *state.Course) {
+	c.course = course
 }
 
 func (c *Consumption) InitializeCarState(car *state.Car) {
@@ -109,9 +110,11 @@ func (c *Consumption) InitializeCarState(car *state.Car) {
 }
 
 func (c *Consumption) HandlePitStop(car *state.Car, cancel chan bool) {
+	log.WithField("car", car.Id()).Infof("fuel: refuelling started")
 	for {
 		select {
 		case <-cancel:
+			log.WithField("car", car.Id()).Infof("fuel: refuelling cancelled")
 			return
 		case <-time.After(250 * time.Millisecond):
 			f := car.Get(CarFuel).(Liter)
@@ -124,6 +127,7 @@ func (c *Consumption) HandlePitStop(car *state.Car, cancel chan bool) {
 			}
 			car.Set(CarFuel, v)
 			if d {
+				log.WithField("car", car.Id()).Infof("fuel: refuelling complete")
 				return
 			}
 		}

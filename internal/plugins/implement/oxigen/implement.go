@@ -81,6 +81,8 @@ func (o *Oxigen) EventLoop() error {
 		select {
 		case cmd := <-o.commands:
 			command = cmd
+		case <-time.After(1000 * time.Millisecond):
+			command = newEmptyCommand(state.CourseChanges{}, o.state, o.settings)
 		}
 		if float32(len(o.commands)) > (float32(o.bufferSize) * 0.9) {
 			log.WithFields(map[string]interface{}{

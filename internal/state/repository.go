@@ -40,11 +40,11 @@ func (r *InMemoryRepository) Get(n string) StateInterface {
 }
 
 func (r *InMemoryRepository) SetDefaults() {
-	state := make(map[string]StateInterface)
+	// state := make(map[string]StateInterface)
 	for n, element := range r.state {
 		r.state[n] = CreateState(r, n, element.Initial())
 	}
-	r.state = state
+	// r.state = state
 }
 
 func (r *InMemoryRepository) ResetChanges() {

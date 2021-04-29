@@ -38,6 +38,7 @@ func CreateCourse(config *CourseConfig, rules Rules) *Course {
 	course.state.Create(PitlaneLapCountingOnEntry, config.Course.PitLane.LapCounting.Entry)
 	course.state.Create(CourseLength, config.Course.Length)
 	course.state.Create(CourseMaxSpeed, config.Course.MaxSpeed)
+	course.state.Create(RaceStatus, RaceStatusStopped)
 
 	course.state.SetDefaults()
 	for _, r := range rules.All() {

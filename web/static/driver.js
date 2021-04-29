@@ -9,6 +9,7 @@ const app = Vue.createApp({
     computed: {
         fuel: function () {
             let v = this.$store.getters.getCarState(this.car, "fuel", 0.00)
+            console.log(v)
             return Number((v)).toFixed(1)
         },
         lastLaps: function(){

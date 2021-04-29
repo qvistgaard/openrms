@@ -140,6 +140,7 @@ func (c *Command) maxSpeed(speed state.Speed) {
 
 func (c *Command) start() {
 	c.state = 0x03
+	log.WithField("state", c.state).Debug("oxigen: race state set to started.")
 }
 
 func (c *Command) pitLaneLapCount(enabled bool, entry bool) {
@@ -148,7 +149,7 @@ func (c *Command) pitLaneLapCount(enabled bool, entry bool) {
 		c.settings.pitLane.lapTrigger = 0x00
 		log.WithField("lap-counting", c.settings.pitLane.lapCounting).
 			WithField("lap-trigger-on-entry", c.settings.pitLane.lapTrigger).
-			Debug("oxigen pit lane lap counting disabled.")
+			Debug("oxigen: pit lane lap counting disabled.")
 	} else {
 		c.settings.pitLane.lapCounting = 0x00
 		if entry {
@@ -158,26 +159,26 @@ func (c *Command) pitLaneLapCount(enabled bool, entry bool) {
 		}
 		log.WithField("lap-counting", c.settings.pitLane.lapCounting).
 			WithField("lap-trigger-on-entry", c.settings.pitLane.lapTrigger).
-			Debug("oxigen pit lane lap counting enabled.")
+			Debug("oxigen: pit lane lap counting enabled.")
 	}
 }
 
 func (c *Command) stop() {
 	c.state = 0x01
-	log.WithField("state", c.state).Debug("oxigen race state set to stopped.")
+	log.WithField("state", c.state).Debug("oxigen: race state set to stopped.")
 }
 
 func (c *Command) pause() {
 	c.state = 0x04
-	log.WithField("state", c.state).Debug("oxigen race state set to paused.")
+	log.WithField("state", c.state).Debug("oxigen: race state set to paused.")
 }
 
 func (c *Command) flag(lc bool) {
 	if lc {
 		c.state = 0x05
-		log.WithField("state", c.state).Debug("oxigen race state set to flagged with lane change enabled.")
+		log.WithField("state", c.state).Debug("oxigen: race state set to flagged with lane change enabled.")
 	} else {
 		c.state = 0x15
-		log.WithField("state", c.state).Debug("oxigen race state set to flagged with lane change disabled.")
+		log.WithField("state", c.state).Debug("oxigen: race state set to flagged with lane change disabled.")
 	}
 }

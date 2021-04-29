@@ -12,7 +12,7 @@ func main() {
 	flagConfig := flag.String("config", "config.yaml", "OpenRMS Config file")
 
 	// TODO: Make configurable
-	log.SetLevel(log.InfoLevel)
+	log.SetLevel(log.DebugLevel)
 	log.SetReportCaller(false)
 
 	c := &context.Context{}

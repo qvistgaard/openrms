@@ -33,20 +33,23 @@ const store = Vuex.createStore({
 
   mutations: {
     updateStateFromWebsocket(state, v) {
+      let s = state
       for(const item of v.cars) {
         const id = item.id;
-        if (typeof state.cars[id] === 'undefined') {
-          state.cars[id] = {}
+        if (typeof s.cars[id] === 'undefined') {
+          s.cars[id] = {}
         }
         for (const change of item.changes) {
-          state.cars[id][change.name] = { value: change.value }
+          s.cars[id][change.name] = { value: change.value }
         }
       }
       for(const item of v.race){
         for (const change of item.changes) {
-          state.race[change.name] = { value: change.value }
+          s.race[change.name] = { value: change.value }
         }
       }
+      state.cars = s.cars
+      state.race = s.race
     },
     connectionState(state, v){
       state.connection = v
