@@ -25,6 +25,9 @@ const store = Vuex.createStore({
         }
       }
       return d
+    },
+    getCarCount: state => () => {
+      return Object.keys(state.cars).length
     }
   },
 

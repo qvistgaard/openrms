@@ -7,15 +7,6 @@ const app = Vue.createApp({
     },
     computed: {
         leaderboard: function(){
-            /*
-            return this.$store.getters.getRaceState("race-leaderboard", { "laps": [] }).laps
-              .map(x =>  {
-                  let v = moment.duration(x["lap-time"] / 1000 / 1000).asSeconds()
-                  x["lap-time"] = Number((v)).toFixed(3)
-                  return x
-              })
-
-             */
             return this.$store.getters.getRaceState("race-leaderboard", { entries: [] }).entries
               .map(x =>  {
                   let v = moment.duration(x["lap"]["lap-time"] / 1000 / 1000).asSeconds()
@@ -25,18 +16,45 @@ const app = Vue.createApp({
         },
     },
     store,
-
     mounted: function (){
         this.connection = websocketConnection({})
     },
+
+    methods: {
+        start: function() {
+            this.connection.send(JSON.stringify({
+                race: {
+                    name: "race-status",
+                    value: "start"
+                }
+            }))
+        },
+        stop: function(){
+            this.connection.send(JSON.stringify({
+                race: {
+                    name: "race-status",
+                    value: "stop"
+                }
+            }))
+        },
+        pause: function(){
+            this.connection.send(JSON.stringify({
+                race: {
+                    name: "race-status",
+                    value: "pause"
+                }
+            }))
+        },
+        trackCall: function(){
+            this.connection.send(JSON.stringify({
+                race: {
+                    name: "race-status",
+                    value: "track-call"
+                }
+            }))
+        }
+    }
 })
 
 app.use(store)
 const vm = app.mount('#app')
-
-
-app.config.globalProperties.$filters = {
-    lapTime(value) {
-        return moment.duration(value / 1000 / 1000).asSeconds()
-    }
-}

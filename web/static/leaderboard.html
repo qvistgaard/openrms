@@ -59,17 +59,20 @@
   <!-- Primary Page Layout
   –––––––––––––––––––––––––––––––––––––––––––––––––– -->
   <div class="container" id="app">
-    <div class="row" style="margin-top: 50px">
-      <div class="twelve columns">
-        <h1>OpenRMS</h1>
+    <div class="row" style="margin-top: 50px;  border-bottom: #CDCDCD 1px solid">
+      <div class="five columns">
+        <h1 style="font-style: italic; margin-bottom: 5px">
+          OpenRMS
+        </h1>
+      </div>
+      <div class="seven columns" style="margin-top: 8px;">
+        <button v-on:click="start" class="button-primary" style="margin-left: 81px">start</button>&#160;
+        <button v-on:click="pause">pause</button>&#160;
+        <button v-on:click="trackCall">track call</button>&#160;
+        <button v-on:click="stop">stop</button>
       </div>
     </div>
     <div class="row">
-      <div class="four columns" style="text-align: center">Start</div>
-      <div class="four columns" style="text-align: center">Stop</div>
-      <div class="four columns" style="text-align: center">Pause</div>
-    </div>
-    <div class="row" style="margin-top: 50px">
         <table class="u-full-width leaderboard">
           <thead>
           <tr>

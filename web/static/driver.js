@@ -41,6 +41,9 @@ const app = Vue.createApp({
         },
         onTrack: function(){
             return this.$store.getters.getCarState(this.car, "car-ontrack", false)
+        },
+        carCount: function(){
+            return this.$store.getters.getCarCount()
         }
     },
 
@@ -74,8 +77,17 @@ const app = Vue.createApp({
                     value: "pause"
                 }
             }))
+        },
+        trackCall: function(){
+            this.connection.send(JSON.stringify({
+                race: {
+                    name: "race-status",
+                    value: "track-call"
+                }
+            }))
         }
     }
+
 })
 
 app.use(store)
