@@ -8,8 +8,7 @@ const app = Vue.createApp({
     store,
     computed: {
         fuel: function () {
-            let v = this.$store.getters.getCarState(this.car, "fuel", 0.00)
-            console.log(v)
+            let v = this.$store.getters.getCarState(this.car, "car-fuel", 0.00)
             return Number((v)).toFixed(1)
         },
         lastLaps: function(){
@@ -43,6 +42,9 @@ const app = Vue.createApp({
         onTrack: function(){
             return this.$store.getters.getCarState(this.car, "car-ontrack", false)
         },
+        connectionState: function(){
+           return this.$store.getters.connection()
+        },
         carCount: function(){
             return this.$store.getters.getCarCount()
         }
@@ -50,13 +52,13 @@ const app = Vue.createApp({
 
     watch: {
         car: function(val){
-            this.connection = websocketConnection({ car: val })
+            this.websocket = websocketConnection({ car: val })
         }
     },
 
     methods: {
         start: function() {
-            this.connection.send(JSON.stringify({
+            this.websocket.send(JSON.stringify({
                 race: {
                     name: "race-status",
                     value: "start"
@@ -64,7 +66,7 @@ const app = Vue.createApp({
             }))
         },
         stop: function(){
-            this.connection.send(JSON.stringify({
+            this.websocket.send(JSON.stringify({
                 race: {
                     name: "race-status",
                     value: "stop"
@@ -72,7 +74,7 @@ const app = Vue.createApp({
             }))
         },
         pause: function(){
-            this.connection.send(JSON.stringify({
+            this.websocket.send(JSON.stringify({
                 race: {
                     name: "race-status",
                     value: "pause"
@@ -80,7 +82,7 @@ const app = Vue.createApp({
             }))
         },
         trackCall: function(){
-            this.connection.send(JSON.stringify({
+            this.websocket.send(JSON.stringify({
                 race: {
                     name: "race-status",
                     value: "track-call"

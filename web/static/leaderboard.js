@@ -17,12 +17,12 @@ const app = Vue.createApp({
     },
     store,
     mounted: function (){
-        this.connection = websocketConnection({})
+        this.websocket = websocketConnection({})
     },
 
     methods: {
         start: function() {
-            this.connection.send(JSON.stringify({
+            this.websocket.send(JSON.stringify({
                 race: {
                     name: "race-status",
                     value: "start"
@@ -30,7 +30,7 @@ const app = Vue.createApp({
             }))
         },
         stop: function(){
-            this.connection.send(JSON.stringify({
+            this.websocket.send(JSON.stringify({
                 race: {
                     name: "race-status",
                     value: "stop"
@@ -38,7 +38,7 @@ const app = Vue.createApp({
             }))
         },
         pause: function(){
-            this.connection.send(JSON.stringify({
+            this.websocket.send(JSON.stringify({
                 race: {
                     name: "race-status",
                     value: "pause"
@@ -46,7 +46,7 @@ const app = Vue.createApp({
             }))
         },
         trackCall: function(){
-            this.connection.send(JSON.stringify({
+            this.websocket.send(JSON.stringify({
                 race: {
                     name: "race-status",
                     value: "track-call"

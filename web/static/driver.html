@@ -81,13 +81,15 @@
     </div>
     <div v-else>
         <div class="row">
-            <div class="three columns"><h1>Car #{{ car }}</h1></div>
+            <div class="three columns">
+                {{ connectionState }}
+                <h1>Car #{{ car }}</h1>
+             </div>
             <div class="seven columns">
                 <button v-on:click="start" class="button-primary">start</button>&#160;
                 <button v-on:click="pause">pause</button>&#160;
                 <button v-on:click="pause">track call</button>&#160;
                 <button v-on:click="stop">stop</button>
-                <br/>
                 <h5><b>Postition</b>: {{ position }}</h5>
             </div>
         </div>

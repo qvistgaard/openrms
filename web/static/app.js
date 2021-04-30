@@ -3,7 +3,8 @@ const store = Vuex.createStore({
   state () {
     return {
       cars: { },
-      race: { }
+      race: { },
+      connection: "disconnected"
     }
   },
 
@@ -28,6 +29,10 @@ const store = Vuex.createStore({
     },
     getCarCount: state => () => {
       return Object.keys(state.cars).length
+    },
+
+    connection: state => () => {
+      return state.connection
     }
   },
 
@@ -42,16 +47,23 @@ const store = Vuex.createStore({
         for (const change of item.changes) {
           s.cars[id][change.name] = { value: change.value }
         }
+        state.cars = {
+          ...state.cars,
+          [id]: { ...s.cars[id] }
+        }
+
       }
       for(const item of v.race){
         for (const change of item.changes) {
           s.race[change.name] = { value: change.value }
         }
       }
-      state.cars = s.cars
-      state.race = s.race
+      state.race = {
+        ...s.race
+      }
     },
     connectionState(state, v){
+      console.log(v)
       state.connection = v
     }
   }
@@ -64,25 +76,28 @@ function websocketConnection(params) {
 
   console.log("Starting connection to WebSocket Server")
 
-  this.connection = new WebSocket("ws://localhost:8080/ws?"+query)
-  this.connection.onmessage = function(event) {
+  this.websocket = new WebSocket("ws://localhost:8080/ws?"+query)
+  this.websocket.onmessage = function(event) {
     store.commit('updateStateFromWebsocket', JSON.parse(event.data))
   }
 
-  this.connection.onopen = function(event) {
+  this.websocket.onopen = function(event) {
     console.log("Successfully connected to the echo websocket server...")
     store.commit('connectionState', "connected")
   }
-  this.connection.onerror = function(event) {
+  this.websocket.onerror = function(event) {
     console.log("Error in connection")
     store.commit('connectionState', "error")
   }
-  this.connection.onclose = function(event) {
+  this.websocket.onclose = function(event) {
     console.log("Closed Connection")
     store.commit('connectionState', "closed")
+    setTimeout(function() {
+      websocketConnection(params);
+    }, 1000);
   }
 
-  return this.connection
+  return this.websocket
 }
 
 
