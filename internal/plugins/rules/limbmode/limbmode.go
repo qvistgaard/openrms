@@ -11,12 +11,12 @@ const CarLimbModeMaxSpeed = "limb-mode-max-speed"
 
 type Settings struct {
 	LimbMode struct {
-		MaxSpeed state.Speed `mapstructure:"max-speed,omitempty"`
+		MaxSpeed *state.Speed `mapstructure:"max-speed,omitempty"`
 	} `mapstructure:"limb-mode"`
 }
 
 type LimbMode struct {
-	MaxSpeed state.Speed
+	MaxSpeed *state.Speed
 	course   *state.Course
 }
 
@@ -60,11 +60,10 @@ func (l *LimbMode) InitializeCarState(car *state.Car) {
 
 	ms := car.Get(CarLimbModeMaxSpeed)
 	if ms == nil {
-		// TODO: Fix configuration reading
-		if settings.LimbMode.MaxSpeed > 0 {
-			car.Set(CarLimbModeMaxSpeed, settings.LimbMode.MaxSpeed)
+		if settings.LimbMode.MaxSpeed != nil {
+			car.Set(CarLimbModeMaxSpeed, *settings.LimbMode.MaxSpeed)
 		} else {
-			car.Set(CarLimbModeMaxSpeed, l.MaxSpeed)
+			car.Set(CarLimbModeMaxSpeed, *l.MaxSpeed)
 		}
 	}
 	car.Subscribe(CarLimbMode, l)
