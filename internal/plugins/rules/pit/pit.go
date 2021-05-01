@@ -12,6 +12,7 @@ const (
 	Stopped   = "stopped"
 	Cancelled = "cancelled"
 	Exiting   = "exiting"
+	Complete  = "complete"
 	Locked    = "locked"
 )
 
@@ -34,9 +35,13 @@ func (p *Pit) Notify(v *state.Value) {
 			if v.Name() == state.CarInPit {
 				if b, ok := v.Get().(bool); ok && !b {
 					c.Set(State, Stopped)
-					log.WithField("car", c.Id()).Debugf("pit handler: car exited pitlane")
+					log.WithField("car", c.Id()).
+						WithField(State, v.Get()).
+						Debugf("pit handler: car exited pitlane")
 				} else {
-					log.WithField("car", c.Id()).Debugf("pit handler: car entered pitlane")
+					log.WithField("car", c.Id()).
+						WithField(State, v.Get()).
+						Debugf("pit handler: car entered pitlane")
 				}
 				return
 			}
@@ -45,8 +50,16 @@ func (p *Pit) Notify(v *state.Value) {
 				if b, ok := c.Get(state.CarInPit).(bool); ok && b {
 					triggerValue := v.Get().(state.TriggerValue)
 					if triggerValue == 0 && c.Get(State) == Stopped {
+						log.WithField("car", c.Id()).
+							WithField("triggerValue", triggerValue).
+							WithField(State, v.Get()).
+							Debugf("pit handler: detected triggerValue change")
 						c.Set(State, Started)
 					} else if triggerValue > 0 && c.Get(State) == Started {
+						log.WithField("car", c.Id()).
+							WithField(State, v.Get()).
+							WithField("triggerValue", triggerValue).
+							Debugf("pit handler: detected triggerValue change")
 						c.Set(State, Cancelled)
 					}
 				}
@@ -55,10 +68,14 @@ func (p *Pit) Notify(v *state.Value) {
 
 			if v.Name() == State {
 				if v.Get().(string) == Started {
-					log.WithField("car", c.Id()).Debugf("pit handler: pit stop started")
+					log.WithField("car", c.Id()).
+						WithField(State, v.Get()).
+						Debugf("pit handler: pit stop started")
 					go p.handlePitStop(c, p.stops[c.Id()])
 				} else if v.Get().(string) == Cancelled {
-					log.WithField("car", c.Id()).Debugf("pit handler: pit stop cancelled")
+					log.WithField("car", c.Id()).
+						WithField(State, v.Get()).
+						Debugf("pit handler: pit stop cancelled")
 					p.stops[c.Id()] <- true
 				}
 				return
@@ -89,6 +106,12 @@ func (p *Pit) handlePitStop(c *state.Car, cancel chan bool) {
 		log.WithField("car", c.Id()).Debugf("pit handler: ended")
 	}()
 	for _, r := range p.rules.PitRules() {
-		r.HandlePitStop(c, cancel)
+		if !r.HandlePitStop(c, cancel) {
+			break
+		}
 	}
+	c.Set(State, Complete)
+	log.WithField("car", c.Id()).
+		WithField(State, c.Get(State)).
+		Debugf("pit handler: ended")
 }
