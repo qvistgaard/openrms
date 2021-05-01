@@ -43,7 +43,7 @@ func CreateRules(ctx *context.Context) error {
 			case "fuel":
 				ctx.Rules.Append(fuel.Create(rm.Rules[k]))
 			case "limb-mode":
-				ctx.Rules.Append(limbmode.CreateFromConfig(ctx))
+				ctx.Rules.Append(limbmode.CreateFromConfig(rm.Rules[k]))
 			case "damage":
 				ctx.Rules.Append(&damage.Damage{})
 			case "pit":
