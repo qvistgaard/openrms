@@ -11,25 +11,24 @@ const (
 	Started   = "started"
 	Stopped   = "stopped"
 	Cancelled = "cancelled"
-	Exiting   = "exiting"
 	Complete  = "complete"
 	Locked    = "locked"
 )
 
-type Pit struct {
+type Rule struct {
 	rules  state.Rules
 	stops  map[state.CarId]chan bool
 	course *state.Course
 }
 
-func CreatePitRule(ctx *context.Context) *Pit {
-	p := new(Pit)
+func CreatePitRule(ctx *context.Context) *Rule {
+	p := new(Rule)
 	p.rules = ctx.Rules
 	p.stops = make(map[state.CarId]chan bool)
 	return p
 }
 
-func (p *Pit) Notify(v *state.Value) {
+func (p *Rule) Notify(v *state.Value) {
 	if p.course.Get(state.RaceStatus) != state.RaceStatusStopped {
 		if c, ok := v.Owner().(*state.Car); ok {
 			if v.Name() == state.CarInPit {
@@ -72,6 +71,8 @@ func (p *Pit) Notify(v *state.Value) {
 						WithField(State, v.Get()).
 						Debugf("pit handler: pit stop started")
 					go p.handlePitStop(c, p.stops[c.Id()])
+				} else if v.Get().(string) == Locked {
+					c.Set(state.CarMaxSpeed, state.Speed(0))
 				} else if v.Get().(string) == Cancelled {
 					log.WithField("car", c.Id()).
 						WithField(State, v.Get()).
@@ -84,7 +85,7 @@ func (p *Pit) Notify(v *state.Value) {
 	}
 }
 
-func (p *Pit) InitializeCarState(c *state.Car) {
+func (p *Rule) InitializeCarState(c *state.Car) {
 	p.stops[c.Id()] = make(chan bool, 10)
 	c.Set(State, Stopped)
 	c.Subscribe(state.ControllerTriggerValue, p)
@@ -92,11 +93,11 @@ func (p *Pit) InitializeCarState(c *state.Car) {
 	c.Subscribe(State, p)
 }
 
-func (p *Pit) InitializeCourseState(course *state.Course) {
+func (p *Rule) InitializeCourseState(course *state.Course) {
 	p.course = course
 }
 
-func (p *Pit) handlePitStop(c *state.Car, cancel chan bool) {
+func (p *Rule) handlePitStop(c *state.Car, cancel chan bool) {
 	log.WithField("car", c.Id()).Debugf("pit handler: started")
 	defer func() {
 		for len(cancel) > 0 {
@@ -110,6 +111,7 @@ func (p *Pit) handlePitStop(c *state.Car, cancel chan bool) {
 			break
 		}
 	}
+	c.SetDefault(state.CarMaxSpeed)
 	c.Set(State, Complete)
 	log.WithField("car", c.Id()).
 		WithField(State, c.Get(State)).
