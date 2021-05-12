@@ -11,23 +11,23 @@ type WebSocket struct {
 	clients    map[*Client]bool
 	register   chan *Client
 	unregister chan *Client
-	race       chan state.CourseChanges
-	car        chan state.CarChanges
+	race       chan state.CourseState
+	car        chan state.CarState
 	listen     string
 	command    chan<- interface{}
 	context    *context.Context
 }
 
 type StateMessage struct {
-	Cars   []state.CarChanges    `json:"cars"`
-	Course []state.CourseChanges `json:"race"`
+	Cars   []state.CarState    `json:"cars"`
+	Course []state.CourseState `json:"race"`
 }
 
-func (b *WebSocket) CarChannel() chan<- state.CarChanges {
+func (b *WebSocket) CarChannel() chan<- state.CarState {
 	return b.car
 }
 
-func (b *WebSocket) RaceChannel() chan<- state.CourseChanges {
+func (b *WebSocket) RaceChannel() chan<- state.CourseState {
 	return b.race
 }
 

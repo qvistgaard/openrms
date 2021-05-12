@@ -45,7 +45,7 @@ type Command struct {
 		Value interface{}
 	}
 	Car *struct {
-		CarId state.CarId
+		CarId int64
 		Name  string
 		Value interface{}
 	}
@@ -104,24 +104,23 @@ func (c *Client) read() {
 		ok := json.Unmarshal(b, o)
 		if ok == nil {
 			if o.Race != nil {
-				log.Infof("%s == %s", o.Race.Name, state.RaceStatus)
-				if o.Race.Name == state.RaceStatus {
-					switch o.Race.Value {
-					case "start":
-						c.command <- state.CourseCommand{Name: o.Race.Name, Value: state.RaceStatusRunning}
-					case "stop":
-						c.command <- state.CourseCommand{Name: o.Race.Name, Value: state.RaceStatusStopped}
-					case "pause":
-						c.command <- state.CourseCommand{Name: o.Race.Name, Value: state.RaceStatusPaused}
-					}
-				}
+				log.WithField("state", o.Race.Name).
+					WithField("value", o.Race.Value).
+					Infof("race command recieved")
+				c.command <- state.CourseCommand{Name: o.Race.Name, Value: o.Race.Value}
 			}
 			if o.Car != nil {
+				log.WithField("state", o.Car.Name).
+					WithField("value", o.Car.Value).
+					WithField("car", o.Car.CarId).
+					Infof("car command received")
+					//if cid, ok := o.Car.CarId.Int64(); ok == nil {
 				c.command <- state.CarCommand{
-					CarId: o.Car.CarId,
+					CarId: state.CarId(o.Car.CarId),
 					Name:  o.Car.Name,
 					Value: o.Car.Value,
 				}
+				// }
 			}
 			if o.Get != nil {
 				s := State{}
@@ -168,10 +167,19 @@ func (c *Client) writePump() {
 	}()
 
 	var stateMessages = StateMessage{
-		Cars:   []state.CarChanges{},
-		Course: []state.CourseChanges{},
+		Cars:   []state.CarState{},
+		Course: []state.CourseState{},
 	}
 	nextTX := time.Now()
+
+	for _, car := range c.context.Cars.All() {
+		carState := car.State()
+		if c.filterCarChanges(carState) {
+			stateMessages.Cars = append(stateMessages.Cars, carState)
+		}
+	}
+	stateMessages.Course = append(stateMessages.Course, c.context.Course.State())
+
 	for {
 		select {
 		case message, ok := <-c.send:
@@ -180,10 +188,10 @@ func (c *Client) writePump() {
 				c.conn.WriteMessage(websocket.CloseMessage, []byte{})
 				return
 			}
-			if carChanges, ok := message.(state.CarChanges); ok && c.filterCarChanges(carChanges) {
+			if carChanges, ok := message.(state.CarState); ok && c.filterCarChanges(carChanges) {
 				stateMessages.Cars = append(stateMessages.Cars, carChanges)
 			}
-			if courseChanges, ok := message.(state.CourseChanges); ok {
+			if courseChanges, ok := message.(state.CourseState); ok {
 				stateMessages.Course = append(stateMessages.Course, courseChanges)
 			}
 			if json, ok := message.([]byte); ok {
@@ -205,8 +213,8 @@ func (c *Client) writePump() {
 					marshal, _ := json.Marshal(stateMessages)
 					w.Write(marshal)
 					stateMessages = StateMessage{
-						Cars:   []state.CarChanges{},
-						Course: []state.CourseChanges{},
+						Cars:   []state.CarState{},
+						Course: []state.CourseState{},
 					}
 					if err := w.Close(); err != nil {
 						log.Error("Conncetion error: " + err.Error())
@@ -228,7 +236,7 @@ func (c *Client) collectAndSendChanges() {
 
 }
 
-func (c *Client) filterCarChanges(changes state.CarChanges) bool {
+func (c *Client) filterCarChanges(changes state.CarState) bool {
 	get := c.request.URL.Query().Get("car")
 	if get == "" || get == strconv.FormatUint(uint64(changes.Car), 10) {
 		return true

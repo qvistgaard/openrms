@@ -8,6 +8,8 @@ const (
 	RaceStatus                  = "race-status"
 	CourseMaxSpeed              = "course-length-max-speed"
 	CourseLength                = "course-length"
+	RMSStatus                   = "rms-status"
+	Initialized                 = "initialized"
 	PitlaneLapCounting          = "cource-pitlane-lap-counting"
 	PitlaneLapCountingOnEntry   = "cource-pitlane-lap-counting-on-entry"
 	RaceStatusStopped           = uint8(0x00)
@@ -50,7 +52,7 @@ func CreateCourse(config *CourseConfig, rules Rules) *Course {
 	return course
 }
 
-type CourseChanges struct {
+type CourseState struct {
 	Changes []Change  `json:"changes"`
 	Time    time.Time `json:"time"`
 }
@@ -71,19 +73,9 @@ func (c *Course) ResetStateChangeStatus() {
 	c.state.ResetChanges()
 }
 
-func (c *Course) Changes() CourseChanges {
-	stateChanges := c.state.Changes()
-	changes := CourseChanges{
-		Changes: []Change{},
-		Time:    time.Now(),
-	}
-	for k, v := range stateChanges {
-		changes.Changes = append(changes.Changes, Change{
-			Name:  k,
-			Value: v.Get(),
-		})
-	}
-	return changes
+func (c *Course) Changes() CourseState {
+	return c.mapState(c.state.Changes())
+
 }
 
 func (c *Course) Subscribe(state string, s Subscriber) {
@@ -92,6 +84,24 @@ func (c *Course) Subscribe(state string, s Subscriber) {
 
 func (c *Course) IsChanged(state string) bool {
 	return c.state.Get(state).Changed()
+}
+
+func (c *Course) State() CourseState {
+	return c.mapState(c.state.All())
+}
+
+func (c *Course) mapState(state map[string]StateInterface) CourseState {
+	changes := CourseState{
+		Changes: []Change{},
+		Time:    time.Now(),
+	}
+	for k, v := range state {
+		changes.Changes = append(changes.Changes, Change{
+			Name:  k,
+			Value: v.Get(),
+		})
+	}
+	return changes
 }
 
 type Settings struct {

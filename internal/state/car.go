@@ -49,11 +49,10 @@ func CreateCar(id CarId, settings map[string]interface{}, rules Rules) *Car {
 	for _, s := range c.state.All() {
 		s.initialize()
 	}
-	// TODO: mape these values configurable
+	// TODO: make these values configurable
 	c.Create(CarConfigMaxSpeed, Speed(255))
 	c.Create(CarMaxSpeed, Speed(255))
 	c.Create(CarPitLaneSpeed, Speed(75))
-
 	return c
 }
 
@@ -63,7 +62,7 @@ type Car struct {
 	state    Repository
 }
 
-type CarChanges struct {
+type CarState struct {
 	Car     CarId     `json:"id"`
 	Changes []Change  `json:"changes"`
 	Time    time.Time `json:"time"`
@@ -77,19 +76,13 @@ func (c *Car) ResetStateChangeStatus() {
 	c.state.ResetChanges()
 }
 
-func (c *Car) Changes() CarChanges {
-	changes := CarChanges{
-		Car:     c.id,
-		Changes: make([]Change, 0),
-		Time:    time.Now(),
-	}
-	for k, v := range c.state.Changes() {
-		changes.Changes = append(changes.Changes, Change{
-			Name:  k,
-			Value: v.Get(),
-		})
-	}
-	return changes
+func (c *Car) State() CarState {
+	return c.mapState(c.state.All())
+
+}
+
+func (c *Car) Changes() CarState {
+	return c.mapState(c.state.Changes())
 }
 
 func (c *Car) Get(state string) interface{} {
@@ -113,4 +106,19 @@ func (c *Car) Id() CarId {
 
 func (c *Car) Subscribe(state string, s Subscriber) {
 	c.state.Get(state).Subscribe(s)
+}
+
+func (c *Car) mapState(state map[string]StateInterface) CarState {
+	changes := CarState{
+		Car:     c.id,
+		Changes: make([]Change, 0),
+		Time:    time.Now(),
+	}
+	for k, v := range state {
+		changes.Changes = append(changes.Changes, Change{
+			Name:  k,
+			Value: v.Get(),
+		})
+	}
+	return changes
 }
