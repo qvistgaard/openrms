@@ -56,7 +56,7 @@ func newMaxBreaking(id uint8, maxBreaking uint8) *Car {
 	}
 }
 
-func newEmptyCommand(race state.CourseChanges, currentState byte, settings *Settings) *Command {
+func newEmptyCommand(race state.CourseState, currentState byte, settings *Settings) *Command {
 	c := &Command{
 		state: currentState,
 		settings: Settings{

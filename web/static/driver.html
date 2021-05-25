@@ -79,6 +79,16 @@
             <option value="4">4</option>
         </select>
     </div>
+    <div v-else-if="raceState == 'started' && raceConfirmed == 'unconfirmed' && !isReady">
+        <input type="button" value="Confirm Ready" v-on:click="ready"/>
+    </div>
+    <div v-else-if="raceState == 'started' && raceConfirmed == 'unconfirmed' && isReady">
+        <h1>READY TO RACE!</h1>
+        <h2>Drivers ready: {{ numCarsReady }} / {{ numCars }}</h2>
+    </div>
+    <div v-else-if="raceState == 'started' && raceConfirmed == 'confirmed'">
+        <h1>{{ countdown }}</h1>
+    </div>
     <div v-else>
         <div class="row">
             <div class="three columns">
@@ -117,6 +127,11 @@
                 </table>
             </div>
             <div class="three columns">
+                <h5><b>Pit Plan </b></h5>
+                <label>Tires</label><input type="checkbox">
+                <label>Fuel</label><input type="checkbox">
+                <label>Repair</label><input type="checkbox">
+
                 <h5><b>Status </b></h5>
                 <table class="car-status">
                     <tbody>
@@ -138,7 +153,7 @@
                     </tr>
                     <tr>
                         <td>Fuel:</td>
-                        <td>{{ fuel }} %</td>
+                        <td>{{ fuel }} L</td>
                     </tr>
                     <tr>
                         <td>Damage:</td>
@@ -153,7 +168,16 @@
             </div>
         </div>
     </div>
-    <pre>{{ JSON.stringify($store.state, null, 2) }}</pre>
+    <div class="row">
+        <div class="six columns">
+            <pre>{{ JSON.stringify($store.state.cars, null, 2) }}</pre>
+
+        </div>
+        <div class="six columns">
+            <pre>{{ JSON.stringify($store.state.race, null, 2) }}</pre>
+        </div>
+    </div>
+
 
 </div>
 

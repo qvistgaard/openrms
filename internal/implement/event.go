@@ -48,7 +48,7 @@ func (e *Event) SetCarState(c *state.Car) {
 		c.Set(state.CarEventSequence, c.Get(state.CarEventSequence).(uint)+1)
 		c.Set(state.CarOnTrack, e.Ontrack)
 		c.Set(state.CarControllerLink, e.Controller.Link)
-		c.Set(state.CarLap, e.Lap)
+		c.Set(state.CarLap, &e.Lap)
 		c.Set(state.CarInPit, e.Car.InPit)
 		c.Set(state.CarReset, e.Car.Reset)
 		c.Set(state.ControllerTriggerValue, e.TriggerValue)
@@ -57,4 +57,8 @@ func (e *Event) SetCarState(c *state.Car) {
 		c.Set(state.ControllerBtnTrackCall, e.Controller.TrackCall)
 		c.Set(state.ControllerBatteryWarning, e.Controller.BatteryWarning)
 	}
+}
+
+func (e *Event) SetCourseState(course *state.Course) {
+	course.Set(state.RaceTime, e.Lap.RaceTimer)
 }

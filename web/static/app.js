@@ -69,12 +69,55 @@ const store = Vuex.createStore({
   }
 })
 
+
+const openrms = {
+  data: function(){
+    return {
+      car: "",
+    }
+  },
+  methods: {
+    connect: function (params = {}){
+      this.websocket = websocketConnection(params)
+    },
+
+    carState: function(car, state, d){
+      return this.$store.getters.getCarState(car, state, d)
+    },
+    raceState: function(state, d){
+      return this.$store.getters.getRaceState(state, d)
+    },
+
+    raceCommand: function (state, value) {
+      this.websocket.sendRaceCommand( state, value)
+    },
+    carCommand: function (car, state, value) {
+      this.websocket.sendCarCommand( car, state, value)
+    },
+
+    start: function() {
+      this.raceCommand( "race-state", "started")
+    },
+    stop: function(){
+      this.websocket.sendRaceCommand("race-state", "stopped")
+    },
+    pause: function(){
+      this.websocket.sendRaceCommand("race-status", "pause")
+    },
+    trackCall: function(){
+      this.websocket.sendRaceCommand("race-status", "track-call")
+    }
+  }
+}
+
+
+
 function websocketConnection(params) {
   var query = Object.keys(params)
       .map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k]))
       .join('&');
 
-  console.log("Starting connection to WebSocket Server")
+  console.log("Starting connection to WebSocket Server", params)
 
   this.websocket = new WebSocket("ws://localhost:8080/ws?"+query)
   this.websocket.onmessage = function(event) {
@@ -95,6 +138,53 @@ function websocketConnection(params) {
     setTimeout(function() {
       websocketConnection(params);
     }, 1000);
+  }
+  this.websocket.sendRaceCommand = function (name, value){
+    console.log(this)
+    this.send(JSON.stringify({
+      race: {
+        name: name,
+        value: value
+      }
+    }))
+  }
+  this.websocket.sendCarCommand = function (id, name, value){
+    console.log(this)
+    this.send(JSON.stringify({
+      car: {
+        carId: parseInt(id, 10),
+        name: name,
+        value: value
+      }
+    }))
+  }
+  this.websocket.sendRaceCommand = function (name, value){
+    console.log(this)
+    this.send(JSON.stringify({
+      race: {
+        name: name,
+        value: value
+      }
+    }))
+  }
+  this.websocket.requestRaceState = function (name,){
+    this.send(JSON.stringify({
+      get: {
+        race: {
+          name: name
+        }
+      }
+    }))
+  }
+  this.websocket.requestCarState = function (car, name){
+    this.send(JSON.stringify({
+      get: {
+        car: {
+          carId: car,
+          name: name
+        }
+      }
+    }))
   }
 
   return this.websocket

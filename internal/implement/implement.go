@@ -5,8 +5,8 @@ import "github.com/qvistgaard/openrms/internal/state"
 type Implementer interface {
 	EventLoop() error
 	EventChannel() <-chan Event
-	SendCarState(c state.CarChanges) error
-	SendRaceState(r state.CourseChanges) error
+	SendCarState(c state.CarState) error
+	SendRaceState(r state.CourseState) error
 
 	// Resend relevant car state to implement.
 	//

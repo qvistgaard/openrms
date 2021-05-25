@@ -28,16 +28,17 @@ func (g *Generator) EventChannel() <-chan implement.Event {
 	return g.events
 }
 
-func (g *Generator) SendCarState(c state.CarChanges) error {
+func (g *Generator) SendCarState(c state.CarState) error {
 	return nil
 }
 
-func (g *Generator) SendRaceState(r state.CourseChanges) error {
+func (g *Generator) SendRaceState(r state.CourseState) error {
 	return nil
 }
 
 func (g *Generator) eventGenerator(car uint8, interval uint) implement.Event {
 	laps := state.LapNumber(0)
+	start := time.Now()
 	for {
 		select {
 		case <-time.After(time.Duration(interval) * time.Millisecond):
@@ -57,7 +58,7 @@ func (g *Generator) eventGenerator(car uint8, interval uint) implement.Event {
 				},
 				Lap: state.Lap{
 					LapNumber: laps,
-					RaceTimer: 0,
+					RaceTimer: state.RaceTimer(time.Now().Sub(start)),
 					LapTime:   state.LapTime(time.Duration(rand.Intn(10000)) * time.Millisecond),
 				},
 				TriggerValue: state.TriggerValue(uint8(rand.Int31())),

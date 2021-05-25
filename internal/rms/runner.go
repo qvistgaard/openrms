@@ -24,6 +24,7 @@ func (r *Runner) Run() {
 }
 
 func Create(c *context.Context) *Runner {
+	c.Course.Set(state.RMSStatus, state.Initialized)
 	return &Runner{context: c}
 }
 
@@ -54,6 +55,7 @@ func (r *Runner) processEvents() {
 			if e.Id > 0 {
 				if c, ok := r.context.Cars.Get(e.Id); ok {
 					e.SetCarState(c)
+					e.SetCourseState(r.context.Course)
 					carChanges := c.Changes()
 					if len(carChanges.Changes) > 0 {
 						r.context.Implement.SendCarState(carChanges)
@@ -65,9 +67,9 @@ func (r *Runner) processEvents() {
 			raceChanges := r.context.Course.Changes()
 			if len(raceChanges.Changes) > 0 {
 				if r.context.Course.IsChanged(state.RaceStatus) {
-					//for _, c := range r.context.Cars.All() {
-					//	r.context.Implement.ResendCarState(c)
-					//}
+					for _, c := range r.context.Cars.All() {
+						r.context.Implement.ResendCarState(c)
+					}
 				}
 				r.context.Implement.SendRaceState(raceChanges)
 				r.context.Postprocessors.PostProcessRace(raceChanges)

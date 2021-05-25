@@ -72,7 +72,7 @@ func (o *Oxigen) EventLoop() error {
 	go func() {
 		select {
 		case <-time.After(100 * time.Millisecond):
-			o.commands <- newEmptyCommand(state.CourseChanges{}, o.state, o.settings)
+			o.commands <- newEmptyCommand(state.CourseState{}, o.state, o.settings)
 		}
 	}()
 
@@ -82,7 +82,7 @@ func (o *Oxigen) EventLoop() error {
 		case cmd := <-o.commands:
 			command = cmd
 		case <-time.After(1000 * time.Millisecond):
-			command = newEmptyCommand(state.CourseChanges{}, o.state, o.settings)
+			command = newEmptyCommand(state.CourseState{}, o.state, o.settings)
 		}
 		if float32(len(o.commands)) > (float32(o.bufferSize) * 0.9) {
 			log.WithFields(map[string]interface{}{
@@ -126,15 +126,15 @@ func (o *Oxigen) EventChannel() <-chan implement.Event {
 	return o.events
 }
 
-func (o *Oxigen) SendRaceState(r state.CourseChanges) error {
+func (o *Oxigen) SendRaceState(r state.CourseState) error {
 	o.commands <- newEmptyCommand(r, o.state, o.settings)
 	return nil
 }
 
-func (o *Oxigen) SendCarState(c state.CarChanges) error {
+func (o *Oxigen) SendCarState(c state.CarState) error {
 	if len(c.Changes) > 0 {
 		for _, v := range c.Changes {
-			ec := newEmptyCommand(state.CourseChanges{}, o.state, o.settings)
+			ec := newEmptyCommand(state.CourseState{}, o.state, o.settings)
 			if ec.carCommand(uint8(c.Car), v.Name, v.Value) {
 				o.commands <- ec
 			}
@@ -148,7 +148,7 @@ func (o *Oxigen) ResendCarState(c *state.Car) {
 		state.CarMaxSpeed, state.CarMaxBreaking, state.CarMinSpeed, state.CarPitLaneSpeed,
 	}
 	for _, n := range resendStates {
-		ec := newEmptyCommand(state.CourseChanges{}, o.state, o.settings)
+		ec := newEmptyCommand(state.CourseState{}, o.state, o.settings)
 		if ec.carCommand(uint8(c.Id()), n, c.Get(n)) {
 			o.commands <- ec
 		}

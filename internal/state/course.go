@@ -6,6 +6,7 @@ import (
 
 const (
 	RaceStatus                  = "race-status"
+	RaceTime                    = "race-time"
 	CourseMaxSpeed              = "course-length-max-speed"
 	CourseLength                = "course-length"
 	RMSStatus                   = "rms-status"

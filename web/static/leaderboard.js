@@ -1,10 +1,7 @@
 const app = Vue.createApp({
     name: 'App',
-    data: function() {
-        return {
+    mixins: [openrms],
 
-        }
-    },
     computed: {
         leaderboard: function(){
             return this.$store.getters.getRaceState("race-leaderboard", { entries: [] }).entries
@@ -16,44 +13,10 @@ const app = Vue.createApp({
         },
     },
     store,
-    mounted: function (){
-        this.websocket = websocketConnection({})
-    },
 
-    methods: {
-        start: function() {
-            this.websocket.send(JSON.stringify({
-                race: {
-                    name: "race-status",
-                    value: "start"
-                }
-            }))
-        },
-        stop: function(){
-            this.websocket.send(JSON.stringify({
-                race: {
-                    name: "race-status",
-                    value: "stop"
-                }
-            }))
-        },
-        pause: function(){
-            this.websocket.send(JSON.stringify({
-                race: {
-                    name: "race-status",
-                    value: "pause"
-                }
-            }))
-        },
-        trackCall: function(){
-            this.websocket.send(JSON.stringify({
-                race: {
-                    name: "race-status",
-                    value: "track-call"
-                }
-            }))
-        }
-    }
+    mounted: function (){
+        this.connect()
+    },
 })
 
 app.use(store)

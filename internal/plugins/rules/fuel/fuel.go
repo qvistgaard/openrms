@@ -43,7 +43,7 @@ func (c *Consumption) Notify(v *state.Value) {
 					tv := car.Get(state.ControllerTriggerValue).(state.TriggerValue)
 					cf := calculateFuelState(bs, fs, tv)
 
-					if cf <= 0 {
+					if cf <= 0 && !car.Get(limbmode.CarLimbMode).(bool) {
 						log.WithField("car", car.Id()).Info("car has run out of fuel.")
 						car.Set(limbmode.CarLimbMode, true)
 						car.Set(CarFuel, Liter(0))

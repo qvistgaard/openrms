@@ -1,10 +1,13 @@
 const app = Vue.createApp({
     name: 'App',
+    mixins: [openrms],
+
     data: function(){
         return {
             car: "",
         }
     },
+
     store,
     computed: {
         fuel: function () {
@@ -39,14 +42,29 @@ const app = Vue.createApp({
         pitStop: function(){
             return this.$store.getters.getCarState(this.car, "pit-rule-pit-stop-state", "stopped")
         },
+        isReady: function(){
+            return this.$store.getters.getCarState(this.car, "car-ready", false)
+        },
         onTrack: function(){
             return this.$store.getters.getCarState(this.car, "car-ontrack", false)
         },
         connectionState: function(){
            return this.$store.getters.connection()
         },
-        carCount: function(){
-            return this.$store.getters.getCarCount()
+        raceConfirmed: function(){
+            return this.$store.getters.getRaceState("race-confirmation")
+        },
+        raceState: function(){
+            return this.$store.getters.getRaceState("race-state")
+        },
+        numCars: function(){
+            return this.$store.getters.getRaceState("race-cars", 0)
+        },
+        numCarsReady: function(){
+            return this.$store.getters.getRaceState("race-cars-ready", 0)
+        },
+        countdown: function(){
+            return this.$store.getters.getRaceState("race-countdown", 0)
         }
     },
 
@@ -57,38 +75,10 @@ const app = Vue.createApp({
     },
 
     methods: {
-        start: function() {
-            this.websocket.send(JSON.stringify({
-                race: {
-                    name: "race-status",
-                    value: "start"
-                }
-            }))
+        ready: function() {
+            console.log(this.car)
+            this.websocket.sendCarCommand(this.car, "car-ready", true)
         },
-        stop: function(){
-            this.websocket.send(JSON.stringify({
-                race: {
-                    name: "race-status",
-                    value: "stop"
-                }
-            }))
-        },
-        pause: function(){
-            this.websocket.send(JSON.stringify({
-                race: {
-                    name: "race-status",
-                    value: "pause"
-                }
-            }))
-        },
-        trackCall: function(){
-            this.websocket.send(JSON.stringify({
-                race: {
-                    name: "race-status",
-                    value: "track-call"
-                }
-            }))
-        }
     }
 
 })

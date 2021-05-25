@@ -2,6 +2,7 @@ package leaderboard
 
 import (
 	"github.com/qvistgaard/openrms/internal/state"
+	"github.com/qvistgaard/openrms/internal/telemetry"
 	"sort"
 )
 
@@ -113,6 +114,9 @@ func (b *Rule) InitializeCourseState(c *state.Course) {
 }
 
 // TODO: test race reset of leader board
+// TODO: Reset leaderboard when race starts
+// TODO: add diff field
+// TODO: Add best lap field
 func (b *Rule) Notify(v *state.Value) {
 	if c, ok := v.Owner().(*state.Car); ok {
 		if rs, ok := b.Course.Get(state.RaceStatus).(uint8); !ok || rs != state.RaceStatusStopped {
@@ -140,4 +144,12 @@ func (b *Rule) Notify(v *state.Value) {
 			}
 		}
 	}
+}
+
+func (l *Default) Metrics() []telemetry.Metric {
+	return make([]telemetry.Metric, 0)
+}
+
+func (l *LastLapDefault) Metrics() []telemetry.Metric {
+	return make([]telemetry.Metric, 0)
 }

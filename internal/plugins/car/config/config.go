@@ -49,5 +49,9 @@ func (c *CarConfigRepository) Get(id state.CarId) (*state.Car, bool) {
 }
 
 func (c *CarConfigRepository) All() []*state.Car {
-	panic("implement me")
+	cars := make([]*state.Car, 0, len(c.cars))
+	for _, car := range c.cars {
+		cars = append(cars, car)
+	}
+	return cars
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/qvistgaard/openrms/internal/plugins/rules/leaderboard"
 	"github.com/qvistgaard/openrms/internal/plugins/rules/limbmode"
 	"github.com/qvistgaard/openrms/internal/plugins/rules/pit"
+	"github.com/qvistgaard/openrms/internal/plugins/rules/race"
 	"github.com/qvistgaard/openrms/internal/plugins/rules/tirewear"
 	"github.com/qvistgaard/openrms/internal/state"
 )
@@ -45,13 +46,15 @@ func CreateRules(ctx *context.Context) error {
 			case "limb-mode":
 				ctx.Rules.Append(limbmode.CreateFromConfig(rm.Rules[k]))
 			case "damage":
-				ctx.Rules.Append(&damage.Damage{})
+				ctx.Rules.Append(&damage.Rule{})
 			case "pit":
 				ctx.Rules.Append(pit.CreatePitRule(ctx))
 			case "tirewear":
-				ctx.Rules.Append(&tirewear.TireWear{})
+				ctx.Rules.Append(&tirewear.Rule{})
 			case "leaderboard":
 				ctx.Rules.Append(&leaderboard.Rule{})
+			case "race":
+				ctx.Rules.Append(race.Create(rm.Rules[k]))
 			default:
 				return errors.New("Unknown rule: " + r.Plugin)
 			}

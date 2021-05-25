@@ -6,8 +6,8 @@ import (
 )
 
 type PostProcessor interface {
-	CarChannel() chan<- state.CarChanges
-	RaceChannel() chan<- state.CourseChanges
+	CarChannel() chan<- state.CarState
+	RaceChannel() chan<- state.CourseState
 	Process()
 }
 
@@ -39,13 +39,13 @@ func CreatePostProcess(postProcessors []PostProcessor) PostProcess {
 	}
 }
 
-func (p *PostProcess) PostProcessCar(changes state.CarChanges) {
+func (p *PostProcess) PostProcessCar(changes state.CarState) {
 	for _, pp := range p.postProcessors {
 		pp.CarChannel() <- changes
 	}
 }
 
-func (p *PostProcess) PostProcessRace(changes state.CourseChanges) {
+func (p *PostProcess) PostProcessRace(changes state.CourseState) {
 	for _, pp := range p.postProcessors {
 		pp.RaceChannel() <- changes
 	}

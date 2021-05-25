@@ -2,6 +2,7 @@ package state
 
 import (
 	"github.com/mitchellh/mapstructure"
+	"github.com/qvistgaard/openrms/internal/telemetry"
 	"time"
 )
 
@@ -121,4 +122,12 @@ func (c *Car) mapState(state map[string]StateInterface) CarState {
 		})
 	}
 	return changes
+}
+
+func (l *Lap) Metrics() []telemetry.Metric {
+	return []telemetry.Metric{
+		{Name: "car-lap-time", Value: l.LapTime},
+		{Name: "car-lap-race-timer", Value: l.RaceTimer},
+		{Name: "car-lap-number", Value: l.LapNumber},
+	}
 }

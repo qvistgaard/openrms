@@ -119,7 +119,7 @@ func TestMaxSpeedCommandWillBeTranslatedToProtocol(t *testing.T) {
 func TestEventLoopCanReadMessages(t *testing.T) {
 	input := queue.NewFIFO()
 	output := queue.NewFIFO()
-	c := newEmptyCommand(state.CourseChanges{}, 0x00, newSettings())
+	c := newEmptyCommand(state.CourseState{}, 0x00, newSettings())
 	o := Oxigen{
 		settings: newSettings(),
 		commands: make(chan *Command, 10),
@@ -128,13 +128,3 @@ func TestEventLoopCanReadMessages(t *testing.T) {
 	o.commands <- c
 	o.EventLoop()
 }
-
-/*
-func TestRaceTimerTranslation(t *testing.T) {
-	b := []byte{0x00, 0x00, 0xe8, 0x0b, 0x09}
-	r := ((uint(b[0]) * 16777216) + (uint(b[1]) * 65536) + (uint(b[2]) * 256) + uint(b[3])) - uint(b[4])
-	time.Duration(r * 10)
-	// TODO: FIX RACE TIMER
-
-}
-*/

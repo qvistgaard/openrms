@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <!-- Basic Page Needs
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <meta charset="utf-8">
+    <title>Your page title here :)</title>
+
+    <script src="https://unpkg.com/vue@next"></script>
+    <script src="https://unpkg.com/vuex@next"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <!-- Mobile Specific Metas
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- FONT
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@500&display=swap" rel="stylesheet">
+
+    <!-- CSS
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <link rel="stylesheet" href="skeleton/css/normalize.css">
+    <link rel="stylesheet" href="skeleton/css/skeleton.css">
+
+    <!-- Favicon
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <link rel="icon" type="image/png" href="skeleton/images/favicon.png">
+
+    <style>
+        body {
+            font-family: Roboto;
+        }
+        table.leaderboard tr td,
+        table.leaderboard tr th {
+            text-align: right;
+        }
+
+        table.leaderboard tr th:first-child {
+            width: 5%;
+        }
+        table.leaderboard tr th:nth-child(2) {
+            width: 5%;
+        }
+        table.leaderboard tr th:nth-child(3), table.leaderboard tr td:nth-child(3) {
+            text-align: left;
+        }
+        table.leaderboard tr th:nth-child(4) {
+            width: 10%;
+            white-space: nowrap;
+        }
+        table.leaderboard tr th:nth-child(5) {
+            width: 5%;
+        }
+        table.leaderboard tr th:nth-child(6) {
+            width: 5%;
+        }
+        table.leaderboard tr th:nth-child(7) {
+            width: 7%;
+        }
+        table.leaderboard tr th:nth-child(8) {
+            width: 3%;
+        }
+
+        .critical {
+            background-color: #ffb0b0;
+            animation: flashing-critical 0.25s infinite alternate;
+        }
+        .unconfirmed {
+            background-color: #ffb0b0;
+            animation: flashing-critical 1s infinite alternate;
+        }
+
+        @keyframes flashing-critical {
+            from {
+                background-color: #ffb0b0;
+            }
+            to {
+                background-color: #ff3434;
+            }
+        }
+
+        .confirmed, .ok {
+            background-color: #b0ffb0;
+        }
+
+        .warning {
+            background-color: #ffffb0;
+        }
+
+    </style>
+</head>
+<body>
+
+<!-- Primary Page Layout
+–––––––––––––––––––––––––––––––––––––––––––––––––– -->
+<div class="container" id="app">
+    <div v-if="isStarted() && isConfirmed()">
+        <h1>{{ countdown }}</h1>
+    </div>
+    <div class="row" style="margin-top: 50px;  border-bottom: #CDCDCD 1px solid">
+        <div class="five columns">
+            <h1 style="font-style: italic; margin-bottom: 5px">
+                OpenRMS
+            </h1>
+        </div>
+        <div class="seven columns" style="margin-top: 8px;">
+            <button v-on:click="start" class="button-primary" style="margin-left: 81px">start</button>&#160;
+            <button v-on:click="pause">pause</button>&#160;
+            <button v-on:click="trackCall">track call</button>&#160;
+            <button v-on:click="stop">stop</button>
+        </div>
+    </div>
+    <div class="row">
+        <table class="u-full-width leaderboard">
+            <thead>
+            <tr>
+                <th>Car</th>
+                <th>Pos</th>
+                <th>Driver</th>
+                <th>Fuel</th>
+                <th>Tires</th>
+                <th>Damage</th>
+                <th>Lap</th>
+                <th>Time</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr v-if="cars.length == 0">
+                <td  style="text-align: center" colspan="8">No data</td>
+            </tr>
+            <tr v-else v-for="v in cars"  v-bind:class="{
+                unconfirmed: isStarted() && !isConfirmed() && !isReady(v),
+                confirmed: isStarted() && !isConfirmed() && isReady(v),
+                inPit: isRunning() && inPit(v)
+            }">
+                <td>#{{ v }}</td>
+                <td>{{ position(v) }}</td>
+                <td>-</td>
+                <td v-bind:class="{
+                    ok: isRunning() && fuel(v) > 50,
+                    warning: isRunning() && fuel(v) <= 50 && fuel() >= 20,
+                    critical: isRunning() && fuel(v) < 20
+                }">
+                    {{ fuel(v) }} L
+                </td>
+                <td>-</td>
+                <td>-</td>
+                <td>{{ lap(v) }}</td>
+                <td>{{ time(v) }}<small>s</small></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="row">
+        <div class="six columns">
+            <pre>{{ JSON.stringify($store.state.cars, null, 2) }}</pre>
+        </div>
+        <div class="six columns">
+            <pre>{{ JSON.stringify($store.state.race, null, 2) }}</pre>
+        </div>
+    </div>
+
+</div>
+
+
+<!-- End Document
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+<script src="app.js"></script>
+<script src="classic.js"></script>
+
+</body>
+</html>
