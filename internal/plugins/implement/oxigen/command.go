@@ -104,27 +104,35 @@ func newSettings() *Settings {
 func (c *Command) carCommand(id uint8, s string, v interface{}) bool {
 	switch s {
 	case state.CarMaxSpeed:
-		c.car = newMaxSpeed(id, v.(state.Speed))
-		log.WithField("car", id).
-			WithField("max-speed", v).
-			Debugf("oxigen: new car max speed requested")
+		if speed, ok := v.(state.Speed); ok {
+			c.car = newMaxSpeed(id, speed)
+			log.WithField("car", id).
+				WithField("max-speed", v).
+				Debugf("oxigen: new car max speed requested")
+		}
 	case state.CarMaxBreaking:
-		c.car = newMaxBreaking(id, v.(uint8))
-		log.WithField("car", id).
-			WithField("max-breaking", v).
-			Debugf("oxigen: new car max breaking requested")
+		if uintv, ok := v.(uint8); ok {
+			c.car = newMaxBreaking(id, uintv)
+			log.WithField("car", id).
+				WithField("max-breaking", v).
+				Debugf("oxigen: new car max breaking requested")
+		}
 	case state.CarMinSpeed:
-		c.car = newMinSpeed(id, v.(uint8), CarForceLaneChangeNone)
-		log.WithField("car", id).
-			WithField("min-speed", v).
-			WithField("force-lc", CarForceLaneChangeNone).
-			Debugf("oxigen: new car min speed requested")
+		if uintv, ok := v.(uint8); ok {
+			c.car = newMinSpeed(id, uintv, CarForceLaneChangeNone)
+			log.WithField("car", id).
+				WithField("min-speed", v).
+				WithField("force-lc", CarForceLaneChangeNone).
+				Debugf("oxigen: new car min speed requested")
+		}
 	case state.CarPitLaneSpeed:
-		log.Infof("Got car max speed pit command: %+v, %+v, %+v", id, s, v)
-		c.car = newPitLaneSpeed(id, v.(state.Speed))
-		log.WithField("car", id).
-			WithField("max-pit-speed", v).
-			Debugf("oxigen: new car max pit speed requested")
+		if speed, ok := v.(state.Speed); ok {
+			log.Infof("Got car max speed pit command: %+v, %+v, %+v", id, s, v)
+			c.car = newPitLaneSpeed(id, speed)
+			log.WithField("car", id).
+				WithField("max-pit-speed", v).
+				Debugf("oxigen: new car max pit speed requested")
+		}
 	}
 	if c.car != nil {
 		return true
