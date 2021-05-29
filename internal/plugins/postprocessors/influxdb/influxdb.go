@@ -51,6 +51,7 @@ func (i InfluxDB) Process() {
 				AddField("alloc", m.Alloc).
 				AddField("total", m.TotalAlloc).
 				AddField("sys", m.Alloc))
+
 		i.api.WritePoint(
 			influxdb2.NewPointWithMeasurement("gc").
 				AddField("count", m.NumGC))

@@ -41,25 +41,34 @@ func (r *Runner) eventloop() error {
 
 func (r *Runner) processEvents() {
 	defer func() {
-		log.Fatal("rms: process events died")
+		panic("rms: process events died")
 	}()
 	defer r.wg.Done()
 
 	log.Info("rms: started event processor.")
 
 	go r.processCommands()
+
+	r.context.Implement.SendRaceState(r.context.Course.State())
+
 	for {
 		select {
 		case e := <-r.context.Implement.EventChannel():
 			start := time.Now()
 			if e.Id > 0 {
-				if c, ok := r.context.Cars.Get(e.Id); ok {
+				if c, ok, created := r.context.Cars.Get(e.Id); ok {
 					e.SetCarState(c)
 					e.SetCourseState(r.context.Course)
-					carChanges := c.Changes()
-					if len(carChanges.Changes) > 0 {
-						r.context.Implement.SendCarState(carChanges)
-						r.context.Postprocessors.PostProcessCar(c.Changes())
+					if created {
+						log.WithField("car", e.Id).
+							Info("new car found, resending state")
+						r.context.Implement.ResendCarState(c)
+					} else {
+						carChanges := c.Changes()
+						if len(carChanges.Changes) > 0 {
+							r.context.Implement.SendCarState(carChanges)
+							r.context.Postprocessors.PostProcessCar(c.Changes())
+						}
 					}
 					c.ResetStateChangeStatus()
 				}
@@ -86,7 +95,8 @@ func (r *Runner) processCommands() {
 		case command := <-r.context.Postprocessors.CommandChannel:
 			log.Infof("Received command: %T, %+v", command, command)
 			if cc, ok := command.(state.CarCommand); ok {
-				if c, ok := r.context.Cars.Get(cc.CarId); ok {
+				if r.context.Cars.Exists(cc.CarId) {
+					c, _, _ := r.context.Cars.Get(cc.CarId)
 					c.Set(cc.Name, cc.Value)
 				}
 			} else if cc, ok := command.(state.CourseCommand); ok {

@@ -159,6 +159,38 @@
         </table>
     </div>
     <div class="row">
+        <form v-on:submit.prevent="formSetCarState">
+            <div class="three columns">
+                <label for="car-id">Car</label>
+                <input name="car-id" id="car-id" v-model="setStateCarId">
+            </div>
+            <div class="three columns">
+                <label for="car-state">State</label>
+                <input name="car-state" id="car-state" v-model="setStateCarState">
+            </div>
+            <div class="three columns">
+                <label for="car-value">Car</label>
+                <input name="car-value" id="car-value" v-model="setStateCarValue">
+            </div>
+            <div class="one column">
+                <input type="submit">
+            </div>
+        </form>
+    </div>
+    <div class="row">
+
+        <form @submit="formSetCourseState">
+            <div class="three columns">
+                <label for="car-state">State</label>
+                <input name="car-state" id="course-state" v-model="setCourseState">
+            </div>
+            <div class="three columns">
+                <label for="car-value">Car</label>
+                <input name="car-value" id="course-value" v-model="setCourseValue">
+            </div>
+        </form>
+    </div>
+    <div class="row">
         <div class="six columns">
             <pre>{{ JSON.stringify($store.state.cars, null, 2) }}</pre>
         </div>

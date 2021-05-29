@@ -8,7 +8,7 @@ websocket:
 
 
 implement:
-  plugin: generator
+  plugin: oxigen
   oxigen:
     port: /dev/ttyACM0
 
@@ -17,15 +17,22 @@ implement:
     interval: 1000
 
 course:
-  max-speed: 255
+  max-speed: 100
   length: 19
   pitlane:
     lap-counting:
       enabled: true
-      entry: true
+      on-entry: false
 
 car:
   plugin: config
+  defaults:
+    max-speed: 255
+    fuel: 75
+    pit:
+      max-speed: 75
+    limb-mode:
+      max-speed: 75
   cars:
     - id: 1
       max-speed: 255
@@ -38,7 +45,7 @@ car:
 
 rules:
   - plugin: race
-    enabled: true
+    enabled: false
     stages:
       - type: training
         duration: 1m

@@ -51,7 +51,7 @@ func TestSomething(t *testing.T) {
 	ctx.Course = state.CreateCourse(&state.CourseConfig{}, ctx.Rules)
 	ctx.Course.Set(state.RaceStatus, state.RaceStatusRunning)
 
-	c := state.CreateCar(1, nil, ctx.Rules)
+	c := state.CreateCar(1, nil, nil, ctx.Rules)
 	c.Set(state.CarInPit, true)
 	c.Set("testv", uint8(0))
 	log.Info("1 --------------------------------------------")

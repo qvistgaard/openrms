@@ -74,11 +74,27 @@ const openrms = {
   data: function(){
     return {
       car: "",
+      setStateCarId: "null",
+      setStateCarState: "null",
+      setStateCarValue: "null",
+      setCourseState: "null",
+      setCourseValue: "null"
     }
   },
   methods: {
     connect: function (params = {}){
       this.websocket = websocketConnection(params)
+    },
+
+    formSetCarState: function(){
+      this.carCommand(this.setStateCarId, this.setStateCarState, this.setStateCarValue)
+      console.log("test")
+      return false
+    },
+    formSetCourseState: function(){
+      this.raceCommand(this.setCourseState, this.setCourseValue)
+      console.log("test")
+      return false
     },
 
     carState: function(car, state, d){

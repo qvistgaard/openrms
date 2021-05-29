@@ -67,26 +67,66 @@ func newEmptyCommand(race state.CourseState, currentState byte, settings *Settin
 			},
 		},
 	}
+
+	lapChanges := false
+	lapCounting := settings.pitLane.lapCounting != 0x20
+	lapTrigger := settings.pitLane.lapTrigger != 0x00
 	for _, v := range race.Changes {
 		switch v.Name {
 		case state.RaceStatus:
-			bv := v.Value.(uint8)
-			switch bv {
-			case state.RaceStatusStopped:
-				c.stop()
-			case state.RaceStatusPaused:
-				c.pause()
-			case state.RaceStatusRunning:
-				c.start()
-			case state.RaceStatusFlaggedLCDisabled:
-				c.flag(false)
-			case state.RaceStatusFlaggedLCEnabled:
-				c.flag(true)
+			if bv, ok := v.Value.(uint8); ok {
+				switch bv {
+				case state.RaceStatusStopped:
+					c.stop()
+				case state.RaceStatusPaused:
+					c.pause()
+				case state.RaceStatusRunning:
+					c.start()
+				case state.RaceStatusFlaggedLCDisabled:
+					c.flag(false)
+				case state.RaceStatusFlaggedLCEnabled:
+					c.flag(true)
+				}
+				log.WithField(state.RaceStatus, v).
+					Debug("oxigen: requested new race-status")
+			} else {
+				log.WithField(state.RaceStatus, v).
+					Warn("oxigen: discarded race-status, invalid value")
 			}
 		case state.CourseMaxSpeed:
-			bv := v.Value.(state.Speed)
-			c.maxSpeed(bv)
+			if bv, ok := v.Value.(state.Speed); ok {
+				c.maxSpeed(bv)
+				log.WithField(state.CourseMaxSpeed, v).
+					Debug("oxigen: requested new course-max-speed")
+			} else {
+				log.WithField(state.CourseMaxSpeed, v).
+					Warn("oxigen: discarded course-max-speed, invalid value")
+			}
+		case state.PitlaneLapCounting:
+			if bv, ok := v.Value.(bool); ok {
+				lapCounting = bv
+				lapChanges = true
+				log.WithField(state.PitlaneLapCounting, v).
+					Debug("oxigen: requested new pitlane lap counting settings")
+			} else {
+				log.WithField(state.PitlaneLapCounting, v).
+					Warn("oxigen: discarded pitlane lap counting, invalid value")
+			}
+		case state.PitlaneLapCountingOnEntry:
+			if bv, ok := v.Value.(bool); ok {
+				lapTrigger = bv
+				lapChanges = true
+				log.WithField(state.PitlaneLapCountingOnEntry, v).
+					Debug("oxigen: requested new pitlane lap counting on entry settings")
+			} else {
+				log.WithField(state.PitlaneLapCountingOnEntry, v).
+					Warn("oxigen: discarded pitlane lap counting on entry, invalid value")
+			}
+
 		}
+	}
+	if lapChanges {
+		c.pitLaneLapCount(lapCounting, lapTrigger)
 	}
 	return c
 }
@@ -109,6 +149,10 @@ func (c *Command) carCommand(id uint8, s string, v interface{}) bool {
 			log.WithField("car", id).
 				WithField("max-speed", v).
 				Debugf("oxigen: new car max speed requested")
+		} else {
+			log.WithField("car", id).
+				WithField("max-speed", v).
+				Warn("oxigen: discarded car max speed command")
 		}
 	case state.CarMaxBreaking:
 		if uintv, ok := v.(uint8); ok {
@@ -116,6 +160,11 @@ func (c *Command) carCommand(id uint8, s string, v interface{}) bool {
 			log.WithField("car", id).
 				WithField("max-breaking", v).
 				Debugf("oxigen: new car max breaking requested")
+		} else {
+			log.WithField("car", id).
+				WithField("max-breaking", v).
+				Warn("oxigen: discarded car max breaking command")
+
 		}
 	case state.CarMinSpeed:
 		if uintv, ok := v.(uint8); ok {
@@ -124,14 +173,23 @@ func (c *Command) carCommand(id uint8, s string, v interface{}) bool {
 				WithField("min-speed", v).
 				WithField("force-lc", CarForceLaneChangeNone).
 				Debugf("oxigen: new car min speed requested")
+		} else {
+			log.WithField("car", id).
+				WithField("min-speed", v).
+				WithField("force-lc", CarForceLaneChangeNone).
+				Warn("oxigen: discarded min speed command")
 		}
 	case state.CarPitLaneSpeed:
 		if speed, ok := v.(state.Speed); ok {
-			log.Infof("Got car max speed pit command: %+v, %+v, %+v", id, s, v)
 			c.car = newPitLaneSpeed(id, speed)
 			log.WithField("car", id).
 				WithField("max-pit-speed", v).
 				Debugf("oxigen: new car max pit speed requested")
+		} else {
+			log.WithField("car", id).
+				WithField("max-pit-speed", v).
+				Warn("oxigen: discarded car max pit speed command")
+
 		}
 	}
 	if c.car != nil {

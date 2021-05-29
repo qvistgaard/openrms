@@ -8,6 +8,7 @@ type Settings struct {
 }
 
 type Repository interface {
-	Get(id state.CarId) (*state.Car, bool)
+	Get(id state.CarId) (*state.Car, bool, bool)
+	Exists(id state.CarId) bool
 	All() []*state.Car
 }

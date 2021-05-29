@@ -7,7 +7,7 @@ import (
 const (
 	RaceStatus                  = "race-status"
 	RaceTime                    = "race-time"
-	CourseMaxSpeed              = "course-length-max-speed"
+	CourseMaxSpeed              = "course-max-speed"
 	CourseLength                = "course-length"
 	RMSStatus                   = "rms-status"
 	Initialized                 = "initialized"
@@ -22,13 +22,13 @@ const (
 
 type CourseConfig struct {
 	Course struct {
-		MaxSpeed uint8 `yaml:"max-speed"`
+		MaxSpeed uint8 `mapstructure:"max-speed"`
 		Length   int
 		PitLane  struct {
 			LapCounting struct {
-				Enabled bool
-				Entry   bool
-			} `yaml:"lap-counting"`
+				Enabled bool `mapstructure:"enabled"`
+				OnEntry bool `mapstructure:"on-entry"`
+			} `mapstructure:"lap-counting"`
 		}
 	}
 }
@@ -38,9 +38,9 @@ func CreateCourse(config *CourseConfig, rules Rules) *Course {
 	course.state = CreateInMemoryRepository(course)
 
 	course.state.Create(PitlaneLapCounting, config.Course.PitLane.LapCounting.Enabled)
-	course.state.Create(PitlaneLapCountingOnEntry, config.Course.PitLane.LapCounting.Entry)
+	course.state.Create(PitlaneLapCountingOnEntry, config.Course.PitLane.LapCounting.OnEntry)
 	course.state.Create(CourseLength, config.Course.Length)
-	course.state.Create(CourseMaxSpeed, config.Course.MaxSpeed)
+	course.state.Create(CourseMaxSpeed, Speed(config.Course.MaxSpeed))
 	course.state.Create(RaceStatus, RaceStatusStopped)
 
 	course.state.SetDefaults()

@@ -1,6 +1,7 @@
 package oxigen
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"github.com/hashicorp/go-version"
@@ -12,6 +13,8 @@ import (
 	"time"
 )
 
+// TODO: RW FROM DIFFERENT ROUTINES
+
 type Oxigen struct {
 	state      byte
 	serial     io.ReadWriteCloser
@@ -21,13 +24,37 @@ type Oxigen struct {
 	commands   chan *Command
 	events     chan implement.Event
 	bufferSize int
+	timer      []byte
+	buffer     *bufio.Reader
 }
 
 func CreateUSBConnection(device string) (*serial.Port, error) {
+	/*	mode := &serial.Mode{
+			BaudRate: 9600,
+			Parity: serial.NoParity,
+			DataBits: 8,
+			StopBits: serial.OneStopBit,
+
+		}
+		return serial.Open(device, mode)
+	*/
+
+	/*	options := serial.RawOptions
+		options.StopBits = 1
+		options.Parity = serial.PARITY_NONE
+		options.BitRate = 9600
+		options.DataBits = 8
+
+		return options.Open(device)*/
+
 	c := &serial.Config{
-		Name:        device,
-		Baud:        19200,
-		ReadTimeout: time.Millisecond * 100,
+		Name:   device,
+		Baud:   9600,
+		Parity: serial.ParityNone,
+		// ReadTimeout: time.Millisecond * 500,
+		/*		Size:        8,
+
+				StopBits:    serial.Stop1,*/
 	}
 	return serial.OpenPort(c)
 }
@@ -36,7 +63,7 @@ func CreateImplement(serial io.ReadWriteCloser) (*Oxigen, error) {
 	var err error
 	o := new(Oxigen)
 	o.serial = serial
-	o.running = true
+	o.buffer = bufio.NewReaderSize(o.serial, 1024)
 	o.bufferSize = 1024
 	o.commands = make(chan *Command, 1024)
 	o.events = make(chan implement.Event, 1024)
@@ -49,11 +76,14 @@ func CreateImplement(serial io.ReadWriteCloser) (*Oxigen, error) {
 		return nil, err
 	}
 
-	versionResponse := make([]byte, 13)
-	time.Sleep(10 * time.Millisecond)
-	_, err = o.serial.Read(versionResponse)
+	versionResponse := make([]byte, 2)
+	_, err = io.ReadFull(o.buffer, versionResponse)
 	v, _ := version.NewVersion(fmt.Sprintf("%d.%d", versionResponse[0], versionResponse[1]))
 	constraint, _ := version.NewConstraint(">= 3.10")
+
+	log.WithField("message", fmt.Sprintf("%x", versionResponse)).
+		WithField("bytes", len(versionResponse)).
+		Trace("received message from oxygen dongle")
 
 	if !constraint.Check(v) {
 		return nil, errors.New(fmt.Sprintf("Unsupported dongle version: %s", v))
@@ -65,61 +95,82 @@ func CreateImplement(serial io.ReadWriteCloser) (*Oxigen, error) {
 }
 
 func (o *Oxigen) EventLoop() error {
-	defer o.serial.Close()
-	var err error
-	timer := []byte{0x00, 0x00, 0x00}
-
-	go func() {
-		select {
-		case <-time.After(100 * time.Millisecond):
-			o.commands <- newEmptyCommand(state.CourseState{}, o.state, o.settings)
-		}
+	defer func() {
+		o.serial.Close()
+		panic("oxigen: keep-alive routine failed.")
 	}()
 
-	for {
-		var command *Command
-		select {
-		case cmd := <-o.commands:
-			command = cmd
-		case <-time.After(1000 * time.Millisecond):
-			command = newEmptyCommand(state.CourseState{}, o.state, o.settings)
-		}
-		if float32(len(o.commands)) > (float32(o.bufferSize) * 0.9) {
-			log.WithFields(map[string]interface{}{
-				"bufferSize": o.bufferSize,
-				"size":       len(o.commands),
-			}).Warn("too many commands on command buffer")
-		}
-		b := o.command(command, timer)
-		_, err = o.serial.Write(b)
-		if err != nil {
-			log.WithField("error", err).Errorf("failed to send message to oxygen dongle")
-			break
-		}
-		log.WithFields(map[string]interface{}{
-			"message": fmt.Sprintf("%x", b),
-		}).Trace("send message to oxygen dongle")
+	o.timer = []byte{0x00, 0x00, 0x00}
 
-		for {
-			time.Sleep(5 * time.Millisecond)
-			buffer := make([]byte, 13)
-			len, err := o.serial.Read(buffer)
-			log.WithFields(map[string]interface{}{
-				"message": fmt.Sprintf("%x", buffer),
-			}).Trace("received message from oxygen dongle")
-			timer = buffer[7:10]
-			o.events <- o.event(buffer)
-			if err != nil || len == 0 {
-				err = nil
-				break
+	// For some reason unkown, the dongle sends more data back when requesting
+	// the version number, therefore we discard what ever is buffered before
+	// we start the real work
+	o.buffer.Discard(o.buffer.Buffered())
+
+	// Keep-alive routine, to keep oxigen dongle sending data back
+	go o.keepAlive()
+	go o.sendCommand()
+
+	for {
+		buffer := make([]byte, 13)
+		read, err := io.ReadFull(o.buffer, buffer)
+
+		log.WithField("message", fmt.Sprintf("%x", buffer)).
+			WithField("bytes", read).
+			Trace("received message from oxygen dongle")
+		if err == nil {
+			if read == 13 {
+				o.timer = buffer[7:10]
+				o.events <- o.event(buffer)
 			}
-		}
-		if !o.running {
-			break
+		} else {
+			log.Error(err)
 		}
 	}
-	log.Errorf("error: %s", err)
-	return err
+}
+
+func (o *Oxigen) sendCommand() {
+	defer func() {
+		panic("oxigen: keep-alive routine failed.")
+	}()
+	for {
+		select {
+		case cmd := <-o.commands:
+			if float32(len(o.commands)) > (float32(o.bufferSize) * 0.9) {
+				log.WithFields(map[string]interface{}{
+					"bufferSize": o.bufferSize,
+					"size":       len(o.commands),
+				}).Warn("too many commands on command buffer")
+			}
+
+			b := o.command(cmd, o.timer)
+			o.settings = &cmd.settings
+			o.state = cmd.state
+			l, err := o.serial.Write(b)
+			if err != nil {
+				panic(err)
+			}
+			log.WithFields(map[string]interface{}{
+				"message": fmt.Sprintf("%x", b),
+				"size":    fmt.Sprintf("%d", l),
+			}).Trace("send message to oxygen dongle")
+		}
+	}
+}
+
+func (o *Oxigen) keepAlive() {
+	defer func() {
+		panic("oxigen: keep-alive routine failed.")
+	}()
+	for {
+		select {
+		case <-time.After(100 * time.Millisecond):
+			if len(o.commands) == 0 {
+				o.commands <- newEmptyCommand(state.CourseState{}, o.state, o.settings)
+				log.Trace("oxigen: sent keep-alive")
+			}
+		}
+	}
 }
 
 func (o *Oxigen) EventChannel() <-chan implement.Event {

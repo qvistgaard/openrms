@@ -67,7 +67,7 @@ func TestTestSendSingleCommandOnNoCarStateChanges(t *testing.T) {
 	o.commands = make(chan *Command, 10)
 	race := state.CreateCourse(&state.CourseConfig{}, &state.RuleList{})
 	race.Set(state.RaceStatus, state.RaceStatusStopped)
-	car := state.CreateCar(1, map[string]interface{}{}, &state.RuleList{})
+	car := state.CreateCar(1, map[string]interface{}{}, nil, &state.RuleList{})
 
 	o.SendCarState(car.Changes())
 
@@ -84,7 +84,7 @@ func TestTestSendSingleCommandOnCarStateChanges(t *testing.T) {
 	o.settings = newSettings()
 	o.commands = make(chan *Command, 10)
 	// race := state.CreateCourse(&state.CourseConfig{}, &state.RuleList{})
-	car := state.CreateCar(state.CarId(1), map[string]interface{}{}, &state.RuleList{})
+	car := state.CreateCar(state.CarId(1), map[string]interface{}{}, nil, &state.RuleList{})
 	car.Set(state.CarMaxSpeed, state.Speed(100))
 
 	o.SendCarState(car.Changes())

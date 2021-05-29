@@ -19,7 +19,7 @@ func TestRule_Notify(t *testing.T) {
 	ctx.Course = state.CreateCourse(&state.CourseConfig{}, ctx.Rules)
 	ctx.Course.Set(state.RMSStatus, state.Initialized)
 
-	c := state.CreateCar(1, nil, ctx.Rules)
+	c := state.CreateCar(1, nil, nil, ctx.Rules)
 
 	ctx.Course.Set(State, Started)
 

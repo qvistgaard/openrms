@@ -128,7 +128,8 @@ func (c *Client) read() {
 					s.Cars = make(map[state.CarId]map[string]interface{})
 					for _, car := range o.Get.Car.CarId {
 						s.Cars[car] = make(map[string]interface{})
-						if cs, ok := c.context.Cars.Get(car); ok {
+						if c.context.Cars.Exists(car) {
+							cs, _, _ := c.context.Cars.Get(car)
 							for _, n := range o.Get.Car.Name {
 								s.Cars[car][n] = cs.Get(n)
 							}

@@ -51,9 +51,21 @@ func CreateCar(id CarId, settings map[string]interface{}, rules Rules) *Car {
 		s.initialize()
 	}
 	// TODO: make these values configurable
-	c.Create(CarConfigMaxSpeed, Speed(255))
-	c.Create(CarMaxSpeed, Speed(255))
-	c.Create(CarPitLaneSpeed, Speed(75))
+	maxSpeed := Speed(255)
+	if v, ok := settings["max-speed"].(int); ok {
+		maxSpeed = Speed(v)
+	}
+	c.Create(CarConfigMaxSpeed, maxSpeed)
+	c.Create(CarMaxSpeed, maxSpeed)
+
+	pitMaxSpeed := Speed(255)
+	if p, ok := settings["pit"].(map[interface{}]interface{}); ok {
+		if v, ok := p["max-speed"].(int); ok {
+			pitMaxSpeed = Speed(v)
+		}
+	}
+	c.Create(CarPitLaneSpeed, pitMaxSpeed)
+
 	return c
 }
 
