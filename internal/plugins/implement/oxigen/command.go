@@ -28,7 +28,7 @@ func newPitLaneSpeed(id uint8, speed state.Speed) *Car {
 	return &Car{
 		id:      id,
 		command: 0x81,
-		value:   uint8(speed),
+		value:   state.PercentToUint8(float64(speed)),
 	}
 }
 
@@ -36,23 +36,23 @@ func newMaxSpeed(id uint8, speed state.Speed) *Car {
 	return &Car{
 		id:      id,
 		command: 0x82,
-		value:   uint8(speed),
+		value:   state.PercentToUint8(float64(speed)),
 	}
 }
 
-func newMinSpeed(id uint8, speed uint8, forceLC byte) *Car {
+func newMinSpeed(id uint8, speed state.Speed, forceLC byte) *Car {
 	return &Car{
 		id:      id,
 		command: 0x03,
-		value:   (speed / 4) | forceLC,
+		value:   (state.PercentToUint8(float64(speed)) / 4) | forceLC,
 	}
 }
 
-func newMaxBreaking(id uint8, maxBreaking uint8) *Car {
+func newMaxBreaking(id uint8, maxBreaking state.Breaking) *Car {
 	return &Car{
 		id:      id,
 		command: 0x05,
-		value:   maxBreaking,
+		value:   state.PercentToUint8(float64(maxBreaking)),
 	}
 }
 
@@ -155,7 +155,7 @@ func (c *Command) carCommand(id uint8, s string, v interface{}) bool {
 				Warn("oxigen: discarded car max speed command")
 		}
 	case state.CarMaxBreaking:
-		if uintv, ok := v.(uint8); ok {
+		if uintv, ok := v.(state.Breaking); ok {
 			c.car = newMaxBreaking(id, uintv)
 			log.WithField("car", id).
 				WithField("max-breaking", v).
@@ -167,7 +167,7 @@ func (c *Command) carCommand(id uint8, s string, v interface{}) bool {
 
 		}
 	case state.CarMinSpeed:
-		if uintv, ok := v.(uint8); ok {
+		if uintv, ok := v.(state.Speed); ok {
 			c.car = newMinSpeed(id, uintv, CarForceLaneChangeNone)
 			log.WithField("car", id).
 				WithField("min-speed", v).
@@ -201,7 +201,7 @@ func (c *Command) carCommand(id uint8, s string, v interface{}) bool {
 }
 
 func (c *Command) maxSpeed(speed state.Speed) {
-	c.settings.maxSpeed = uint8(speed)
+	c.settings.maxSpeed = state.PercentToUint8(float64(speed))
 }
 
 func (c *Command) start() {

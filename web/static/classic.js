@@ -34,7 +34,7 @@ const app = Vue.createApp({
         },
         fuel: function (car) {
             let v = this.carState(car, "car-fuel", 0.00)
-            return Number((v)).toFixed(1)
+            return Number((v))
         },
         lap: function (car) {
             return this.carState(car, "car-lap", {})["lap-number"]

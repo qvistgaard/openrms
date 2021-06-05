@@ -1,8 +1,10 @@
 package state
 
 import (
+	"fmt"
 	"github.com/mitchellh/mapstructure"
 	"github.com/qvistgaard/openrms/internal/telemetry"
+	log "github.com/sirupsen/logrus"
 	"time"
 )
 
@@ -11,6 +13,7 @@ const (
 	CarMinSpeed              = "car-min-speed"
 	CarMaxSpeed              = "car-max-speed"
 	CarConfigMaxSpeed        = "car-config-max-speed"
+	CarConfigMinSpeed        = "car-config-min-speed"
 	CarMaxBreaking           = "car-max-breaking"
 	CarOnTrack               = "car-ontrack"
 	CarControllerLink        = "car-controller-link"
@@ -25,12 +28,6 @@ const (
 	ControllerBatteryWarning = "controller-battery-warning"
 )
 
-type CarId uint8
-type Speed uint8
-type TriggerValue uint8
-type LapNumber uint
-type RaceTimer time.Duration
-type LapTime time.Duration
 type Lap struct {
 	LapNumber LapNumber `json:"lap-number"`
 	RaceTimer RaceTimer `json:"race-timer"`
@@ -51,18 +48,33 @@ func CreateCar(id CarId, settings map[string]interface{}, rules Rules) *Car {
 		s.initialize()
 	}
 	// TODO: make these values configurable
-	maxSpeed := Speed(255)
+	maxSpeed := Speed(100)
 	if v, ok := settings["max-speed"].(int); ok {
 		maxSpeed = Speed(v)
+	} else {
+		log.WithField("value", settings["max-speed"]).
+			WithField("type", fmt.Sprintf("%T", settings["max-speed"])).
+			Warn("failed to set max-speed, incorrect type; must be integer")
 	}
 	c.Create(CarConfigMaxSpeed, maxSpeed)
 	c.Create(CarMaxSpeed, maxSpeed)
 
-	pitMaxSpeed := Speed(255)
+	minSpeed := Speed(0)
+	if v, ok := settings["min-speed"].(int); ok {
+		minSpeed = Speed(v)
+	} else {
+		log.Warn("failed to set min-speed, incorrect type; must be integer")
+	}
+	c.Create(CarConfigMinSpeed, minSpeed)
+	c.Create(CarMinSpeed, minSpeed)
+
+	pitMaxSpeed := Speed(100)
 	if p, ok := settings["pit"].(map[interface{}]interface{}); ok {
 		if v, ok := p["max-speed"].(int); ok {
 			pitMaxSpeed = Speed(v)
 		}
+	} else {
+		log.Warn("failed to set max-pit-speed, incorrect type; must be integer")
 	}
 	c.Create(CarPitLaneSpeed, pitMaxSpeed)
 

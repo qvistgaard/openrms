@@ -5,6 +5,7 @@ go 1.15
 require (
 	github.com/divideandconquer/go-merge v0.0.0-20160829212531-bc6b3a394b4e
 	github.com/enriquebris/goconcurrentqueue v0.6.0
+	github.com/faiface/beep v1.0.2
 	github.com/gorilla/websocket v1.4.2
 	github.com/hashicorp/go-version v1.3.0
 	github.com/influxdata/influxdb-client-go/v2 v2.2.3

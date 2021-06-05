@@ -144,21 +144,22 @@
                 <td>{{ position(v) }}</td>
                 <td>-</td>
                 <td v-bind:class="{
-                    ok: isRunning() && fuel(v) > 50,
-                    warning: isRunning() && fuel(v) <= 50 && fuel() >= 20,
-                    critical: isRunning() && fuel(v) < 20
+                    ok: fuel(v) > 50,
+                    warning: fuel(v) <= 50 && fuel(v) >= 20,
+                    critical: fuel(v) < 20
                 }">
-                    {{ fuel(v) }} L
+                    {{ fuel(v).toFixed(1) }} L
                 </td>
                 <td>-</td>
                 <td>-</td>
                 <td>{{ lap(v) }}</td>
-                <td>{{ time(v) }}<small>s</small></td>
+                <td v-if="inPit(v)">IN PIT</td>
+                <td v-else>{{ time(v) }}<small>s</small></td>
             </tr>
             </tbody>
         </table>
     </div>
-    <div class="row">
+<!--    <div class="row">
         <form v-on:submit.prevent="formSetCarState">
             <div class="three columns">
                 <label for="car-id">Car</label>
@@ -189,7 +190,7 @@
                 <input name="car-value" id="course-value" v-model="setCourseValue">
             </div>
         </form>
-    </div>
+    </div>-->
     <div class="row">
         <div class="six columns">
             <pre>{{ JSON.stringify($store.state.cars, null, 2) }}</pre>
