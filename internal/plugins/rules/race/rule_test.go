@@ -14,12 +14,12 @@ func TestRule_Notify(t *testing.T) {
 		Rules: state.CreateRuleList(),
 	}
 	ctx.Rules.Append(&Rule{
-		ready: make(map[state.CarId]bool),
+		ready: make(map[state.CarId]*state.Car),
 	})
 	ctx.Course = state.CreateCourse(&state.CourseConfig{}, ctx.Rules)
 	ctx.Course.Set(state.RMSStatus, state.Initialized)
 
-	c := state.CreateCar(1, nil, nil, ctx.Rules)
+	c := state.CreateCar(1, nil, ctx.Rules)
 
 	ctx.Course.Set(State, Started)
 

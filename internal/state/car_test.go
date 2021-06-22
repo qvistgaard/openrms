@@ -8,7 +8,7 @@ import (
 func TestCarCanBeCreatedAndChangedByReference(t *testing.T) {
 	c := CreateCar(1, map[string]interface{}{
 		"fuel": 100,
-	}, nil, &RuleList{})
+	}, &RuleList{})
 	c.Set("fuel", 80)
 
 	ch := c.Changes()
@@ -17,7 +17,7 @@ func TestCarCanBeCreatedAndChangedByReference(t *testing.T) {
 }
 
 func TestCarStateWillBeCreatedIfMissing(t *testing.T) {
-	c := CreateCar(1, map[string]interface{}{}, nil, &RuleList{})
+	c := CreateCar(1, map[string]interface{}{}, &RuleList{})
 	c.Set("fuel", 80)
 
 	ch := c.Changes()
@@ -37,7 +37,7 @@ func (s *SimpleRule) InitializeCourseState(race *Course) {
 }
 
 func TestCarWillInitializeRules(t *testing.T) {
-	c := CreateCar(1, map[string]interface{}{}, nil, &RuleList{
+	c := CreateCar(1, map[string]interface{}{}, &RuleList{
 		rules:    []Rule{new(SimpleRule)},
 		pitRules: nil,
 	})

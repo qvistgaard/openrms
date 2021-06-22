@@ -12,5 +12,5 @@ func TestRaceStateCreation(t *testing.T) {
 	})
 	s := race.Get(RaceStatus)
 
-	assert.Equal(t, nil, s)
+	assert.Equal(t, uint8(0), s)
 }

@@ -8,29 +8,29 @@ import (
 )
 
 func TestNewPitLaneSpeed(t *testing.T) {
-	c := newPitLaneSpeed(1, 200)
+	c := newPitLaneSpeed(1, 100)
 	assert.Equal(t, uint8(1), c.id)
-	assert.Equal(t, uint8(200), c.value)
+	assert.Equal(t, uint8(255), c.value)
 }
 
 func TestNewMaxBreaking(t *testing.T) {
-	c := newMaxBreaking(1, 200)
+	c := newMaxBreaking(1, 100)
 	assert.Equal(t, uint8(1), c.id)
-	assert.Equal(t, uint8(200), c.value)
+	assert.Equal(t, uint8(255), c.value)
 }
 
 func TestNewMaxSpeed(t *testing.T) {
-	c := newMaxSpeed(1, 200)
+	c := newMaxSpeed(1, 100)
 	assert.Equal(t, uint8(1), c.id)
-	assert.Equal(t, uint8(200), c.value)
+	assert.Equal(t, uint8(255), c.value)
 }
 
 func TestNewMinSpeedLaneChangeAny(t *testing.T) {
-	c := newMinSpeed(1, 200, CarForceLangeChangeAny)
+	c := newMinSpeed(1, 100, CarForceLangeChangeAny)
 
 	// Confirm speed divided by 4 when removing
 	// lane change bits
-	assert.Equal(t, uint8(50), c.value&0x3F)
+	assert.Equal(t, uint8(63), c.value&0x3F)
 
 	// Confirm both lane change bits are set
 	assert.Equal(t, uint8(0xC0), c.value&0xC0)
@@ -39,7 +39,7 @@ func TestNewMinSpeedLaneChangeAny(t *testing.T) {
 }
 
 func TestNewMinSpeedLaneChangeNone(t *testing.T) {
-	c := newMinSpeed(1, 200, CarForceLaneChangeNone)
+	c := newMinSpeed(1, 100, CarForceLaneChangeNone)
 
 	// Confirm no lane change bits are set
 	assert.Equal(t, uint8(0x00), c.value&0xC0)
@@ -106,7 +106,7 @@ func TestRaceCommandSetFlaggedWithLaneChangeDisabled(t *testing.T) {
 func TestRaceCommandSetMaxSpeed(t *testing.T) {
 	state := state.CourseState{}
 	c := newEmptyCommand(state, 0x00, newSettings())
-	c.maxSpeed(255)
+	c.maxSpeed(100)
 	assert.Equal(t, uint8(0x00), c.state)
 	assert.Equal(t, uint8(0xFF), c.settings.maxSpeed)
 }
@@ -161,7 +161,7 @@ func TestCarCommandSetMaxSpeed(t *testing.T) {
 	b, c := createTestValue(state.CarMaxSpeed, state.Speed(25))
 
 	assert.True(t, b)
-	assert.Equal(t, uint8(25), c.car.value)
+	assert.Equal(t, uint8(63), c.car.value)
 }
 
 func TestCarCommandSetMaxBreaking(t *testing.T) {
@@ -172,14 +172,14 @@ func TestCarCommandSetMaxBreaking(t *testing.T) {
 }
 
 func TestCarCommandSetMinSpeed(t *testing.T) {
-	b, c := createTestValue(state.CarMinSpeed, uint8(255))
+	b, c := createTestValue(state.CarMinSpeed, state.Speed(100))
 
 	assert.True(t, b)
 	assert.Equal(t, uint8(63), c.car.value)
 }
 
 func TestCarCommandSetPitLaneSpeed(t *testing.T) {
-	b, c := createTestValue(state.CarPitLaneSpeed, state.Speed(255))
+	b, c := createTestValue(state.CarPitLaneSpeed, state.Speed(100))
 
 	assert.True(t, b)
 	assert.Equal(t, uint8(255), c.car.value)
