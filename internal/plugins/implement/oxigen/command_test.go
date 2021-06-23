@@ -182,7 +182,8 @@ func TestCarCommandSetPitLaneSpeed(t *testing.T) {
 	b, c := createTestValue(state.CarPitLaneSpeed, state.Speed(100))
 
 	assert.True(t, b)
-	assert.Equal(t, uint8(255), c.car.value)
+	assert.Equal(t, uint8(0xFF), c.car.value)
+	assert.Equal(t, uint8(0x81), c.car.command)
 }
 
 func TestRaceStatusChangeFromRaceStateStop(t *testing.T) {

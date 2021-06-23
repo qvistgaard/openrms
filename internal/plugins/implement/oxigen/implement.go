@@ -13,8 +13,6 @@ import (
 	"time"
 )
 
-// TODO: RW FROM DIFFERENT ROUTINES
-
 type Oxigen struct {
 	state      byte
 	serial     io.ReadWriteCloser
@@ -29,32 +27,10 @@ type Oxigen struct {
 }
 
 func CreateUSBConnection(device string) (*serial.Port, error) {
-	/*	mode := &serial.Mode{
-			BaudRate: 9600,
-			Parity: serial.NoParity,
-			DataBits: 8,
-			StopBits: serial.OneStopBit,
-
-		}
-		return serial.Open(device, mode)
-	*/
-
-	/*	options := serial.RawOptions
-		options.StopBits = 1
-		options.Parity = serial.PARITY_NONE
-		options.BitRate = 9600
-		options.DataBits = 8
-
-		return options.Open(device)*/
-
 	c := &serial.Config{
 		Name:   device,
-		Baud:   9600,
+		Baud:   115200,
 		Parity: serial.ParityNone,
-		// ReadTimeout: time.Millisecond * 500,
-		/*		Size:        8,
-
-				StopBits:    serial.Stop1,*/
 	}
 	return serial.OpenPort(c)
 }
