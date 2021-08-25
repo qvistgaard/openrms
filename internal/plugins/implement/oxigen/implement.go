@@ -2,6 +2,7 @@ package oxigen
 
 import (
 	"bufio"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"github.com/hashicorp/go-version"
@@ -126,10 +127,19 @@ func (o *Oxigen) sendCommand() {
 			if err != nil {
 				panic(err)
 			}
-			log.WithFields(map[string]interface{}{
-				"message": fmt.Sprintf("%x", b),
-				"size":    fmt.Sprintf("%d", l),
-			}).Trace("send message to oxygen dongle")
+			if cmd.car != nil {
+				log.WithFields(map[string]interface{}{
+					"message": fmt.Sprintf("%x", b),
+					"size":    fmt.Sprintf("%d", l),
+					"decode":  hex.Dump(b),
+				}).Debug("send message to oxygen dongle")
+			} else {
+				log.WithFields(map[string]interface{}{
+					"message": fmt.Sprintf("%x", b),
+					"size":    fmt.Sprintf("%d", l),
+				}).Trace("send message to oxygen dongle")
+
+			}
 		}
 	}
 }

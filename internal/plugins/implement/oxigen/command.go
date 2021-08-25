@@ -27,7 +27,7 @@ type Car struct {
 func newPitLaneSpeed(id uint8, speed state.Speed) *Car {
 	return &Car{
 		id:      id,
-		command: 0x81,
+		command: 0x81, // 0x81
 		value:   state.PercentToUint8(float64(speed)),
 	}
 }

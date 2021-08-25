@@ -6,14 +6,13 @@ websocket:
   enabled: true
   port: 8080
 
-
 implement:
   plugin: oxigen
   oxigen:
     port: /dev/ttyACM0
 
   generator:
-    cars: 2
+    cars: 1
     interval: 1000
 
 course:
@@ -27,28 +26,29 @@ course:
 car:
   plugin: config
   defaults:
-    max-speed: 255
+    max-speed: 100
+    min-speed: 0
     fuel: 75
     pit:
-      max-speed: 75
+      max-speed: 20
     limb-mode:
       max-speed: 75
   cars:
-    - id: 1
-      max-speed: 255
-      fuel: 100
-      limb-mode:
-        max-speed: 100
-    - id: 2
-      max-speed: 255
+  #  - id: 1
+  #    max-speed: 100
+  #    fuel: 100
+  #    limb-mode:
+  #      max-speed: 100
+  #  - id: 2
+  #    max-speed: 100
 
 
 rules:
   - plugin: race
-    enabled: false
+    enabled: true
     stages:
       - type: training
-        duration: 1m
+        duration: 10m
       - type: qualification
         laps: 10
       - type: competition
@@ -81,11 +81,11 @@ rules:
 
 
 postprocessors:
-  influxdb:
-    url: "http://localhost:8086"
-    batch-size: 100
-    auth-token: "445DAYLEv4M17iT6nzeSbJ3TRVJQ7fJnNF7v1u8ItuaiE3Ou5nBcG9u0XRedw77tizKnT2rbGxm7KtFHDqYeqQ=="
-    organization: openrms
-    bucket: openrms
+#   influxdb:
+#    url: "http://localhost:8086"
+#    batch-size: 100
+#  auth-token: "445DAYLEv4M17iT6nzeSbJ3TRVJQ7fJnNF7v1u8ItuaiE3Ou5nBcG9u0XRedw77tizKnT2rbGxm7KtFHDqYeqQ=="
+#    organization: openrms
+#    bucket: openrms
   websocket:
     listen: ":8080"

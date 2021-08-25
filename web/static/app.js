@@ -135,7 +135,7 @@ function websocketConnection(params) {
 
   console.log("Starting connection to WebSocket Server", params)
 
-  this.websocket = new WebSocket("ws://localhost:8080/ws?"+query)
+  this.websocket = new WebSocket("ws://10.46.6.31:8080/ws?"+query)
   this.websocket.onmessage = function(event) {
     store.commit('updateStateFromWebsocket', JSON.parse(event.data))
   }
