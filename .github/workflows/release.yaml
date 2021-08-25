@@ -14,6 +14,8 @@ jobs:
         exclude:
           - goarch: "386"
             goos: darwin
+          - goarch: arm
+            goos: darwin
           - goarch: arm64
             goos: windows
           - goarch: arm
