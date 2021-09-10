@@ -27,6 +27,38 @@ extend openrms with support for other systems then Oxigen please let me
 know.
 
 ## Getting Started
+### Running OpenRMS
+To get it running start by downloading the version that matches your platform.
+Windows, Linux amd64 & arm (RapberryPi) is supported.
+
+#### Windows
+See detailed guide for windows [here](docs/getting-started/windows.md)
+
+#### Linux
+Linux does not require any dependencies, all you need to do is identify your Oxigen
+dongle device name. to find the oxigen device simply plugin the dongle and execute
+`dmesg` in a terminal, note: on some systems this requires elevated privileges, if
+that is the case run `sudo dmesg` instead.
+look for the following 4 log lines:
+
+```
+[   80.311293] usb 1-1: new full-speed USB device number 7 using xhci_hcd
+[   80.461950] usb 1-1: New USB device found, idVendor=1fee, idProduct=0002, bcdDevice=10.00
+[   80.461955] usb 1-1: New USB device strings: Mfr=0, Product=0, SerialNumber=0
+[   80.463802] cdc_acm 1-1:1.0: ttyACM0: USB ACM device
+```
+the last line in the output example shows the device name `ttyACM0`. write the name down and 
+edit the `config.yaml` file, find the `implement` section and change the `port` to 
+`/dev/<devicename>`.
+
+```
+implement:
+  plugin: oxigen
+  oxigen:
+    port: /dev/ttyACM0
+```
+now go to [running OpenRMS](#running-openrms).
+
 ### Building
 To build run `make openrms`
 
