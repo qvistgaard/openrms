@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"github.com/pkg/browser"
 	"github.com/qvistgaard/openrms/internal/config"
 	"github.com/qvistgaard/openrms/internal/config/context"
 	"github.com/qvistgaard/openrms/internal/rms"
@@ -15,6 +16,7 @@ func main() {
 
 	flagConfig := flag.String("config", "config.yaml", "OpenRMS Config file")
 	flagLogfile := flag.String("log-file", "openrms.log", "OpenRMS log file")
+	flagBrowser := flag.Bool("open-browser", true, "Open browser on launch")
 
 	// TODO: Make configurable
 	log.SetLevel(log.DebugLevel)
@@ -49,6 +51,10 @@ func main() {
 	err = config.CreateCourse(c)
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	if *flagBrowser {
+		browser.OpenURL("http://localhost:8080")
 	}
 
 	rms.Create(c).Run()
