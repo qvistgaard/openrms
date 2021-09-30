@@ -9,7 +9,7 @@ websocket:
 implement:
   plugin: oxigen
   oxigen:
-    port: /dev/ttyACM0
+    port: COM5
 
   generator:
     cars: 1
@@ -87,5 +87,5 @@ postprocessors:
 #  auth-token: "445DAYLEv4M17iT6nzeSbJ3TRVJQ7fJnNF7v1u8ItuaiE3Ou5nBcG9u0XRedw77tizKnT2rbGxm7KtFHDqYeqQ=="
 #    organization: openrms
 #    bucket: openrms
-  websocket:
+  webserver:
     listen: ":8080"

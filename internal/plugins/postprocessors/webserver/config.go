@@ -1,4 +1,4 @@
-package websocket
+package webserver
 
 import (
 	"github.com/mitchellh/mapstructure"
@@ -8,27 +8,27 @@ import (
 
 type Config struct {
 	Postprocessors struct {
-		WebSocket struct {
+		Webserver struct {
 			Listen string
 		}
 	}
 }
 
-func CreateFromConfig(ctx *context.Context) (*WebSocket, error) {
+func CreateFromConfig(ctx *context.Context) (*Server, error) {
 	c := &Config{}
 	err := mapstructure.Decode(ctx.Config, c)
 	if err != nil {
 		return nil, err
 	}
 
-	ws := &WebSocket{
+	ws := &Server{
 		clients:    make(map[*Client]bool),
 		register:   make(chan *Client),
 		unregister: make(chan *Client),
 		race:       make(chan state.CourseState, 1024),
 		car:        make(chan state.CarState, 1024),
 		context:    ctx,
-		listen:     c.Postprocessors.WebSocket.Listen,
+		listen:     c.Postprocessors.Webserver.Listen,
 	}
 	return ws, nil
 }

@@ -17,7 +17,7 @@ func CreateFromConfig(config map[string]interface{}) *LimbMode {
 		log.Error(err)
 	}
 	if c.MaxSpeed == nil {
-		speed := state.Speed(50)
+		speed := state.Speed(40)
 		return &LimbMode{
 			MaxSpeed: &speed,
 		}

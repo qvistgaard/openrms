@@ -135,13 +135,13 @@ function websocketConnection(params) {
 
   console.log("Starting connection to WebSocket Server", params)
 
-  this.websocket = new WebSocket("ws://10.46.6.31:8080/ws?"+query)
+  this.websocket = new WebSocket("ws://"+location.host+"/ws?"+query)
   this.websocket.onmessage = function(event) {
     store.commit('updateStateFromWebsocket', JSON.parse(event.data))
   }
 
   this.websocket.onopen = function(event) {
-    console.log("Successfully connected to the echo websocket server...")
+    console.log("Successfully connected to the echo webserver server...")
     store.commit('connectionState', "connected")
   }
   this.websocket.onerror = function(event) {

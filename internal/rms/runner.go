@@ -59,6 +59,7 @@ func (r *Runner) processEvents() {
 				if c, ok, created := r.context.Cars.Get(e.Id); ok {
 					e.SetCarState(c)
 					e.SetCourseState(r.context.Course)
+
 					if created {
 						log.WithField("car", e.Id).
 							Info("new car found, resending state")
@@ -66,6 +67,7 @@ func (r *Runner) processEvents() {
 					} else {
 						carChanges := c.Changes()
 						if len(carChanges.Changes) > 0 {
+							// log.Debugf("recieved hardware event: %+v", e)
 							r.context.Implement.SendCarState(carChanges)
 							r.context.Postprocessors.PostProcessCar(c.Changes())
 						}

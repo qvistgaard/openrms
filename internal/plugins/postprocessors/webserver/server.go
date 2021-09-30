@@ -1,13 +1,14 @@
-package websocket
+package webserver
 
 import (
 	"github.com/qvistgaard/openrms/internal/config/context"
 	"github.com/qvistgaard/openrms/internal/state"
+	"github.com/qvistgaard/openrms/web"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 )
 
-type WebSocket struct {
+type Server struct {
 	clients    map[*Client]bool
 	register   chan *Client
 	unregister chan *Client
@@ -23,71 +24,72 @@ type StateMessage struct {
 	Course []state.CourseState `json:"race"`
 }
 
-func (b *WebSocket) CarChannel() chan<- state.CarState {
-	return b.car
+func (s *Server) CarChannel() chan<- state.CarState {
+	return s.car
 }
 
-func (b *WebSocket) RaceChannel() chan<- state.CourseState {
-	return b.race
+func (s *Server) RaceChannel() chan<- state.CourseState {
+	return s.race
 }
 
-func (b *WebSocket) CommandChannel(c chan<- interface{}) {
-	b.command = c
+func (s *Server) CommandChannel(c chan<- interface{}) {
+	s.command = c
 }
 
-func (b *WebSocket) Process() {
+func (s *Server) Process() {
 	defer func() {
 		log.Fatal("Websocket process died")
 	}()
 
-	log.Infof("started websocket post processor, listening on %s", b.listen)
-
-	go b.processWebsocket()
+	go s.processWebsocket()
 
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
-		serveWebSocket(b, w, r)
+		serveWebSocket(s, w, r)
 	})
+	http.HandleFunc("/static/", web.StaticContentHandler)
+	http.Handle("/", http.RedirectHandler("/static/index.html", 301))
 
-	err := http.ListenAndServe(b.listen, nil)
+	log.Infof("started webserver post processor, listening on %s", s.listen)
+	err := http.ListenAndServe(s.listen, nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
-	log.Warn("websocket post processor stopped")
+	log.Warn("webserver post processor stopped")
 }
 
-func (b *WebSocket) processWebsocket() {
+func (s *Server) processWebsocket() {
 	for {
 		select {
-		case client := <-b.register:
-			b.clients[client] = true
-		case client := <-b.unregister:
-			if _, ok := b.clients[client]; ok {
-				delete(b.clients, client)
+		case client := <-s.register:
+			s.clients[client] = true
+		case client := <-s.unregister:
+			if _, ok := s.clients[client]; ok {
+				delete(s.clients, client)
 				close(client.send)
 			}
-		case message := <-b.car:
-			for client := range b.clients {
+		case message := <-s.car:
+			for client := range s.clients {
 				select {
 				case client.send <- message:
 				default:
 					close(client.send)
-					delete(b.clients, client)
+					delete(s.clients, client)
 				}
 			}
-		case message := <-b.race:
-			for client := range b.clients {
+		case message := <-s.race:
+			for client := range s.clients {
 				select {
 				case client.send <- message:
 				default:
 					close(client.send)
-					delete(b.clients, client)
+					delete(s.clients, client)
 				}
 			}
 		}
 	}
 }
 
-func serveWebSocket(ws *WebSocket, w http.ResponseWriter, r *http.Request) {
+func serveWebSocket(ws *Server, w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println(err)

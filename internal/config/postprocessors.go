@@ -4,7 +4,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/qvistgaard/openrms/internal/config/context"
 	"github.com/qvistgaard/openrms/internal/plugins/postprocessors/influxdb"
-	"github.com/qvistgaard/openrms/internal/plugins/postprocessors/websocket"
+	"github.com/qvistgaard/openrms/internal/plugins/postprocessors/webserver"
 	"github.com/qvistgaard/openrms/internal/postprocess"
 )
 
@@ -30,8 +30,8 @@ func CreatePostProcessors(context *context.Context) error {
 			}
 			postprocessors = append(postprocessors, p)
 			go p.Process()
-		case "websocket":
-			ws, err := websocket.CreateFromConfig(context)
+		case "webserver":
+			ws, err := webserver.CreateFromConfig(context)
 			if err != nil {
 				return err
 			}

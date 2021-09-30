@@ -1,4 +1,4 @@
-package websocket
+package webserver
 
 import (
 	"encoding/json"
@@ -65,11 +65,11 @@ type State struct {
 	Cars map[state.CarId]map[string]interface{} `json:"cars"`
 }
 
-// Client is a middleman between the websocket connection and the broadcast.
+// Client is a middleman between the webserver connection and the broadcast.
 type Client struct {
-	broadcast *WebSocket
+	broadcast *Server
 
-	// The websocket connection.
+	// The webserver connection.
 	conn *websocket.Conn
 
 	// Buffered channel of outbound messages.
@@ -79,7 +79,7 @@ type Client struct {
 	context *context.Context
 }
 
-// read pumps messages from the websocket connection to the broadcast.
+// read pumps messages from the webserver connection to the broadcast.
 //
 // The application runs read in a per-connection goroutine. The application
 // ensures that there is at most one reader on a connection by executing all
@@ -155,7 +155,7 @@ func (c *Client) read() {
 	}
 }
 
-// writePump pumps messages from the broadcast to the websocket connection.
+// writePump pumps messages from the broadcast to the webserver connection.
 //
 // A goroutine running writePump is started for each connection. The
 // application ensures that there is at most one writer to a connection by
