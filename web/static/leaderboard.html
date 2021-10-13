@@ -20,7 +20,9 @@
 
   <!-- FONT
   –––––––––––––––––––––––––––––––––––––––––––––––––– -->
-  <link href="//fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:ital,wght@0,400;0,700;1,700&display=swap" rel="stylesheet">
 
   <!-- CSS
   –––––––––––––––––––––––––––––––––––––––––––––––––– -->
@@ -32,25 +34,107 @@
   <link rel="icon" type="image/png" href="skeleton/images/favicon.png">
 
   <style>
-    table.leaderboard tr td,
-    table.leaderboard tr th {
-      text-align: right;
+    body {
+      font-family: 'Roboto Condensed';
+      background-color: #0E0E0E;
+      color: #FDFDFD;
     }
 
+    div.container {
+      max-width: max-content;
+    }
+
+    table.leaderboard {
+      border-spacing: 0px;
+    }
+    table.leaderboard th {
+      padding: 5px 25px;
+
+    }
+    table.leaderboard td {
+      font-size: 18pt;
+      padding: 5px 20px;
+    }
+
+    table.leaderboard thead tr {
+      background-color: #202020;
+      border-bottom: 3px solid #202020;
+      border-right: 3px solid #202020;
+    }
+
+
+    table.leaderboard td,
+    table.leaderboard th {
+      text-align: center;
+    }
+
+    table tbody tr:nth-child(even),
+    table tbody tr:nth-child(even) td {
+      background-color: #202020;
+      border-bottom: 2px solid #202020;
+      border-right: 2px solid #202020;
+    }
+    table tbody tr:nth-child(odd),
+    table tbody tr:nth-child(odd) td {
+      background-color: #1D1D1D;
+      border-bottom: 2px solid #1D1D1D;
+      border-right: 2px solid #1D1D1D;
+    }
+
+    table.leaderboard td {
+      font-weight: bold;
+    }
+
+    /* Position column */
     table.leaderboard tr th:first-child {
-      width: 10%;
+      padding: 0px;
     }
+    table.leaderboard tr td:first-child {
+      background-color: #FF0000;
+      color: #ffffff;
+    }
+
+    /* Name Column */
     table.leaderboard tr th:nth-child(2) {
-      width: 10%;
+      width: 100%;
     }
-    table.leaderboard tr th:nth-child(3) {
+    table.leaderboard tr td:nth-child(2) {
       text-align: left;
     }
-    table.leaderboard tr th:nth-child(4) {
-      width: 10%;
+
+    /* Pit column */
+    table.leaderboard tr th:nth-child(3) {
+      padding: 0px;
+      margin: 0px;
     }
+    table.leaderboard tr td:nth-child(3) {
+      font-size: small;
+      padding: 2px;
+      margin: 0px;
+    }
+    table.leaderboard tr td:nth-child(3).active {
+      background-color: #ffffff;
+      color: #000000;
+    }
+
+    /* Car number column */
+    table.leaderboard tr th:nth-child(4) {
+      /*width: 30px;*/
+    }
+    table.leaderboard tr td:nth-child(4) {
+      background-color: #ffffff;
+      color: #000000;
+    }
+
+    /* Lap Column */
     table.leaderboard tr th:nth-child(5) {
-      width: 10%;
+    }
+
+    .slow {
+      color: #C40404;
+    }
+    .fast {
+      color: #75DB60;
     }
   </style>
 </head>
@@ -59,7 +143,7 @@
   <!-- Primary Page Layout
   –––––––––––––––––––––––––––––––––––––––––––––––––– -->
   <div class="container" id="app">
-    <div class="row" style="margin-top: 50px;  border-bottom: #CDCDCD 1px solid">
+    <div class="row" style="margin-top: 50px;">
       <div class="five columns">
         <h1 style="font-style: italic; margin-bottom: 5px">
           OpenRMS
@@ -76,26 +160,55 @@
         <table class="u-full-width leaderboard">
           <thead>
           <tr>
-            <th>Position</th>
-            <th>Car</th>
-            <th>Driver</th>
+            <th>P</th>
+            <th>Name</th>
+            <th></th>
+            <th>#</th>
             <th>Lap</th>
-            <th>Lap time</th>
+            <th>Delta</th>
+            <th>Best</th>
+            <th>Laps</th>
           </tr>
           </thead>
           <tbody>
-          <tr v-if="!$store.state.race['race-leaderboard']">
-            <td  style="text-align: center" colspan="5">
-              No data</td>
+
+          <tr>
+            <td>1</td>
+            <td>F. Folman</td>
+            <td class="active">P</td>
+            <td>10</td>
+            <td>00:57.605</td>
+            <td>+0.295</td>
+            <td>00:57.605</td>
+            <td>1</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>F. Folman</td>
+            <td>P</td>
+            <td>10</td>
+            <td>00:57.605</td>
+            <td>+0.295</td>
+            <td></td>
+            <td></td>
           </tr>
 
+          <tr v-if="!$store.state.race['race-leaderboard']" class="nodata">
+            <td  style="text-align: center" colspan="8">
+              No data</td>
+          </tr>
           <tr v-else v-for="(k, v) in leaderboard" >
-            <td>#{{v+1}}</td>
+            <td>{{v+1}}</td>
             <td>{{k["car"]}}</td>
             <td></td>
-            <td>{{k["lap"]["lap-number"]}}</td>
+            <td>{{k["car"]}}</td>
             <td>{{k["lap"]["lap-time"] }}<small>s</small></td>
+            <td v-bind:class="{ fast: k['isFast'], slow: k['isSlow'] }">{{k["delta"]}} {{ k["isFast"] }}</td>
+            <td>{{k["best"]["lap-time"] }}<small>s</small></td>
+            <td>{{k["lap"]["lap-number"]}}</td>
           </tr>
+
+
           </tbody>
         </table>
     </div>
