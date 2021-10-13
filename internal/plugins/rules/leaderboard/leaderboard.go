@@ -4,6 +4,7 @@ import (
 	"github.com/qvistgaard/openrms/internal/state"
 	"github.com/qvistgaard/openrms/internal/telemetry"
 	"sort"
+	"time"
 )
 
 const (
@@ -36,6 +37,10 @@ func (l *Default) updateCar(id state.CarId, lap state.Lap) (Leaderboard, Positio
 	for k, v := range r.Entries {
 		if v.Car == id {
 			r.Entries[k].Lap = lap
+			r.Entries[k].Delta = time.Duration(time.Duration(lap.LapTime).Nanoseconds() - time.Duration(r.Entries[k].Best.LapTime).Nanoseconds())
+			if r.Entries[k].Best.LapTime == 0 || lap.LapTime < r.Entries[k].Best.LapTime {
+				r.Entries[k].Best = lap
+			}
 			found = true
 			break
 		}
@@ -68,8 +73,10 @@ func (l *Default) updateCar(id state.CarId, lap state.Lap) (Leaderboard, Positio
 }
 
 type BoardEntry struct {
-	Car state.CarId `json:"car"`
-	Lap state.Lap   `json:"lap"`
+	Car   state.CarId   `json:"car"`
+	Lap   state.Lap     `json:"lap"`
+	Delta time.Duration `json:"delta"`
+	Best  state.Lap     `json:"best"`
 }
 
 type LastLaps interface {
@@ -120,11 +127,11 @@ func (b *Rule) InitializeCourseState(c *state.Course) {
 func (b *Rule) Notify(v *state.Value) {
 	if c, ok := v.Owner().(*state.Car); ok {
 		if rs, ok := b.Course.Get(state.RaceStatus).(uint8); !ok || rs != state.RaceStatusStopped {
-			if l, ok := v.Get().(state.Lap); ok && v.Name() == state.CarLap {
+			if l, ok := v.Get().(*state.Lap); ok && v.Name() == state.CarLap {
 				last := c.Get(CarLastLaps).(LastLaps)
-				c.Set(CarLastLaps, last.update(l))
+				c.Set(CarLastLaps, last.update(*l))
 
-				leaderboard, i := b.Course.Get(RaceLeaderboard).(Leaderboard).updateCar(c.Id(), l)
+				leaderboard, i := b.Course.Get(RaceLeaderboard).(Leaderboard).updateCar(c.Id(), *l)
 				b.Course.Set(RaceLeaderboard, leaderboard)
 				c.Set(CarPosition, i)
 			}
