@@ -17,6 +17,7 @@ func main() {
 	flagConfig := flag.String("config", "config.yaml", "OpenRMS Config file")
 	flagLogfile := flag.String("log-file", "openrms.log", "OpenRMS log file")
 	flagBrowser := flag.Bool("open-browser", true, "Open browser on launch")
+	flag.Parse()
 
 	// TODO: Make configurable
 	log.SetLevel(log.DebugLevel)
