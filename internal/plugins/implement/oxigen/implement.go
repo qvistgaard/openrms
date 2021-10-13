@@ -193,8 +193,6 @@ func (o *Oxigen) ResendCarState(c *state.Car) {
 }
 
 func (o *Oxigen) event(b []byte) implement.Event {
-	rt := (uint(b[9]) * 16777216) + (uint(b[10]) * 65536) + (uint(b[11]) * 256) + uint(b[12]) - uint(b[4])
-	rtd := time.Duration(rt*10) * time.Millisecond
 	e := implement.Event{
 		Id: state.CarId(b[1]),
 		Controller: implement.Controller{
@@ -210,8 +208,8 @@ func (o *Oxigen) event(b []byte) implement.Event {
 		},
 		Lap: state.Lap{
 			LapNumber: state.LapNumber((uint16(b[6]) * 256) + uint16(b[5])),
-			RaceTimer: state.RaceTimer(rtd),
-			LapTime:   state.LapTime(time.Duration((float64((uint16(b[2])*256)+uint16(b[3])) / 99.25) * float64(time.Second))),
+			RaceTimer: state.RaceTimer(unpackRaceTime([4]byte{b[9], b[10], b[11], b[12]}, b[4])),
+			LapTime:   state.LapTime(unpackLapTime(b[2], b[3])),
 		},
 		TriggerValue: state.TriggerValue(0x7F & b[7]),
 		Ontrack:      0x80&b[7] == 0x80,
@@ -243,4 +241,15 @@ func (o *Oxigen) command(c *Command, timer []byte) []byte {
 		timer[1], // Race timer
 		timer[2], // Race timer
 	}
+}
+
+func unpackLapTime(high byte, low byte) time.Duration {
+	lt := float64((uint(high)*256)+uint(low)) / 99.25
+	ltd := time.Duration(lt * float64(time.Second))
+	return ltd
+}
+
+func unpackRaceTime(b [4]byte, lag byte) time.Duration {
+	rt := (uint(b[0]) * 16777216) + (uint(b[1]) * 65536) + (uint(b[2]) * 256) + uint(b[3]) - uint(lag)
+	return time.Duration(rt*10) * time.Millisecond
 }

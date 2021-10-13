@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"io"
 	"testing"
+	"time"
 )
 
 type MockHandshakeConnection struct {
@@ -127,4 +128,15 @@ func TestEventLoopCanReadMessages(t *testing.T) {
 	}
 	o.commands <- c
 	o.EventLoop()
+}
+
+func TestLapTimeUnpack(t *testing.T) {
+	lapTime := unpackLapTime(0, 1)
+	assert.Equal(t, int64(10), lapTime.Milliseconds())
+}
+
+func TestUnpackRaceTime(t *testing.T) {
+	raceTime := unpackRaceTime([4]byte{0, 0, 0, 100}, 0)
+	// log.Infof("%s, %f", raceTime.String(), raceTime.Seconds())
+	assert.Equal(t, time.Second, raceTime)
 }
