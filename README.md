@@ -28,7 +28,7 @@ know.
 
 ## Getting Started
 ### Running OpenRMS
-To get it running start by [downloading](releases) the version that matches your platform.
+To get it running start by [downloading](https://github.com/qvistgaard/openrms/releases) the version that matches your platform.
 Windows, Linux amd64 & arm (RapberryPi) is supported.
 
 #### Windows
