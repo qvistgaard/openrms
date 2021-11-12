@@ -1,5 +1,6 @@
 package state
 
+/*
 import (
 	"math"
 	"time"
@@ -22,3 +23,4 @@ type Breaking Percent
 type LapNumber uint
 type RaceTimer time.Duration
 type LapTime time.Duration
+*/

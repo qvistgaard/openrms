@@ -102,13 +102,26 @@ to a database like InfluxDB
 
 # Roadmap
 - [ ] Web interface
-- [ ] GRPC or REST API with streaming data
-- [ ] Fuel simulation
-- [ ] Damage Simulation
+  - [ ] Driver specific view *in progress*
+  - [ ] Race Marshall view *in progress*
+  - [ ] Leaderboard view *in progress*
+- [X] Websocket Stream
+- [X] Time keeping
+- [X] Lap counting
+- [X] Individual car settings
+  - [X] Max speed
+  - [X] Min speed
+  - [X] Pit speed
+- [X] Limb mode plugin
+- [ ] Pit handling, refuelling, repairs, etc *in progress*
+- [ ] Fuel simulation *in progress*
+- [ ] Damage simulation
+- [ ] Tire wear simulation
 - [ ] Race planning
 - [ ] Better logging with configurable log levels
-- [ ] Race management plugin support
-- [ ] CLI
+- [X] Race management plugin support
+- [X] External metric storage
+  - [X] InfluxDB
 
 # Contributing
 When contributing to this repository, please first discuss the change you wish to make via issue,

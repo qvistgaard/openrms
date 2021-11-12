@@ -1,5 +1,6 @@
 package state
 
+/*
 import (
 	"fmt"
 	"github.com/mitchellh/mapstructure"
@@ -34,16 +35,17 @@ type Lap struct {
 	LapTime   LapTime   `json:"lap-time"`
 }
 
-func CreateCar(id CarId, settings map[string]interface{}, rules Rules) *Car {
+func CreateCar(id CarId, settings map[string]interface{}) *Car {
+	// TODO: Move to new implementation
 	c := new(Car)
 	c.id = id
 	c.settings = settings
 	c.state = CreateInMemoryRepository(c)
+
+
 	c.Create(CarEventSequence, uint(0))
 	c.Create(CarOnTrack, false)
-	for _, r := range rules.All() {
-		r.InitializeCarState(c)
-	}
+
 	for _, s := range c.state.All() {
 		s.initialize()
 	}
@@ -78,19 +80,20 @@ func CreateCar(id CarId, settings map[string]interface{}, rules Rules) *Car {
 	}
 	c.Create(CarPitLaneSpeed, pitMaxSpeed)
 
+
 	return c
 }
 
 type Car struct {
 	id       CarId
 	settings map[string]interface{}
-	state    Repository
+	state Repository
 }
 
 type CarState struct {
 	Car     CarId     `json:"id"`
 	Changes []Change  `json:"changes"`
-	Time    time.Time `json:"time"`
+	time    time.time `json:"time"`
 }
 
 func (c *Car) Settings(v interface{}) error {
@@ -137,7 +140,7 @@ func (c *Car) mapState(state map[string]StateInterface) CarState {
 	changes := CarState{
 		Car:     c.id,
 		Changes: make([]Change, 0),
-		Time:    time.Now(),
+		time:    time.Now(),
 	}
 	for k, v := range state {
 		changes.Changes = append(changes.Changes, Change{
@@ -148,6 +151,10 @@ func (c *Car) mapState(state map[string]StateInterface) CarState {
 	return changes
 }
 
+func (c *Car) GetSettings(name string) interface{} {
+	return c.settings[name]
+}
+
 func (l *Lap) Metrics() []telemetry.Metric {
 	return []telemetry.Metric{
 		{Name: "car-lap-time", Value: l.LapTime},
@@ -155,3 +162,4 @@ func (l *Lap) Metrics() []telemetry.Metric {
 		{Name: "car-lap-number", Value: l.LapNumber},
 	}
 }
+*/

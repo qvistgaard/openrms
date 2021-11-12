@@ -4,7 +4,7 @@ import (
 	"flag"
 	"github.com/pkg/browser"
 	"github.com/qvistgaard/openrms/internal/config"
-	"github.com/qvistgaard/openrms/internal/config/context"
+	"github.com/qvistgaard/openrms/internal/config/application"
 	"github.com/qvistgaard/openrms/internal/rms"
 	log "github.com/sirupsen/logrus"
 	"io"
@@ -28,7 +28,7 @@ func main() {
 	mw := io.MultiWriter(os.Stdout, logFile)
 	log.SetOutput(mw)
 
-	c := &context.Context{}
+	c := &application.Context{}
 	err = config.FromFile(c, flagConfig)
 	if err != nil {
 		log.Fatal(err)
@@ -37,7 +37,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = config.CreateRules(c)
+	err = config.CreateWebserver(c)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -45,11 +45,15 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	err = config.CreateRules(c)
+	if err != nil {
+		log.Fatal(err)
+	}
 	err = config.CreateCarRepository(c)
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = config.CreateCourse(c)
+	err = config.ConfigureTrack(c)
 	if err != nil {
 		log.Fatal(err)
 	}

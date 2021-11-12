@@ -3,8 +3,7 @@ package config
 import (
 	"errors"
 	"github.com/mitchellh/mapstructure"
-	"github.com/qvistgaard/openrms/internal/config/context"
-	"github.com/qvistgaard/openrms/internal/plugins/implement/generator"
+	"github.com/qvistgaard/openrms/internal/config/application"
 	"github.com/qvistgaard/openrms/internal/plugins/implement/oxigen"
 )
 
@@ -14,7 +13,7 @@ type ImplementConfig struct {
 	}
 }
 
-func CreateImplement(context *context.Context) error {
+func CreateImplement(context *application.Context) error {
 	c := &ImplementConfig{}
 	err := mapstructure.Decode(context.Config, c)
 	if err != nil {
@@ -25,9 +24,11 @@ func CreateImplement(context *context.Context) error {
 	case "oxigen":
 		context.Implement, err = oxigen.CreateFromConfig(context)
 	case "generator":
-		context.Implement, err = generator.CreateFromConfig(context)
+		// TODO: recreate generating implement
+		// application.Implement, err = generator.CreateFromConfig(application)
 	default:
 		return errors.New("Unknown implementer: " + c.Implement.Plugin)
 	}
+
 	return err
 }

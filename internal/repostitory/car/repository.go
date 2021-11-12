@@ -1,6 +1,10 @@
 package car
 
-import "github.com/qvistgaard/openrms/internal/state"
+import (
+	"context"
+	"github.com/qvistgaard/openrms/internal/state/rx/car"
+	"github.com/qvistgaard/openrms/internal/types"
+)
 
 type Settings struct {
 	Id       uint8
@@ -8,7 +12,7 @@ type Settings struct {
 }
 
 type Repository interface {
-	Get(id state.CarId) (*state.Car, bool, bool)
-	Exists(id state.CarId) bool
-	All() []*state.Car
+	Get(id types.Id, ctx context.Context) (*car.Car, bool, bool)
+	Exists(id types.Id) bool
+	All() []*car.Car
 }

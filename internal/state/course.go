@@ -1,5 +1,6 @@
 package state
 
+/*
 import (
 	"time"
 )
@@ -33,7 +34,7 @@ type CourseConfig struct {
 	}
 }
 
-func CreateCourse(config *CourseConfig, rules Rules) *Course {
+func CreateCourse(config *CourseConfig) *Course {
 	course := new(Course)
 	course.state = CreateInMemoryRepository(course)
 
@@ -55,7 +56,7 @@ func CreateCourse(config *CourseConfig, rules Rules) *Course {
 
 type CourseState struct {
 	Changes []Change  `json:"changes"`
-	Time    time.Time `json:"time"`
+	time    time.time `json:"time"`
 }
 
 type Course struct {
@@ -94,7 +95,7 @@ func (c *Course) State() CourseState {
 func (c *Course) mapState(state map[string]StateInterface) CourseState {
 	changes := CourseState{
 		Changes: []Change{},
-		Time:    time.Now(),
+		time:    time.Now(),
 	}
 	for k, v := range state {
 		changes.Changes = append(changes.Changes, Change{
@@ -107,3 +108,4 @@ func (c *Course) mapState(state map[string]StateInterface) CourseState {
 
 type Settings struct {
 }
+*/

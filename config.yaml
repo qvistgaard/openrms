@@ -9,19 +9,19 @@ websocket:
 implement:
   plugin: oxigen
   oxigen:
-    port: COM5
+    port: COM6
 
   generator:
     cars: 1
     interval: 1000
 
-course:
+track:
   max-speed: 100
   length: 19
-  pitlane:
+  pit-lane:
     lap-counting:
       enabled: true
-      on-entry: false
+      on-entry: true
 
 car:
   plugin: config
@@ -34,6 +34,10 @@ car:
     limb-mode:
       max-speed: 75
   cars:
+    - id: 3
+      max-speed: 75
+      driver:
+        name: Hans Hansen
   #  - id: 1
   #    max-speed: 100
   #    fuel: 100
@@ -45,7 +49,7 @@ car:
 
 rules:
   - plugin: race
-    enabled: true
+    enabled: false
     stages:
       - type: training
         duration: 10m
@@ -63,7 +67,7 @@ rules:
     # flow-rate: 11.3
 
   - plugin: limb-mode
-    enabled: true
+    enabled: false
     # Default car limb mode speed (0-255)
     max-speed: 60
 
@@ -77,15 +81,16 @@ rules:
 #    enabled: true
 
   - plugin: leaderboard
-    enabled: true
+    enabled: false
 
+webserver:
+  listen: ":8080"
 
 postprocessors:
-#   influxdb:
-#    url: "http://localhost:8086"
-#    batch-size: 100
-#  auth-token: "445DAYLEv4M17iT6nzeSbJ3TRVJQ7fJnNF7v1u8ItuaiE3Ou5nBcG9u0XRedw77tizKnT2rbGxm7KtFHDqYeqQ=="
-#    organization: openrms
-#    bucket: openrms
-  webserver:
-    listen: ":8080"
+  influxdb:
+    url: "http://192.168.37.171:8086"
+    batch-size: 100
+    auth-token: "445DAYLEv4M17iT6nzeSbJ3TRVJQ7fJnNF7v1u8ItuaiE3Ou5nBcG9u0XRedw77tizKnT2rbGxm7KtFHDqYeqQ=="
+    organization: openrms
+    bucket: openrms
+  leaderboard: {}

@@ -1,4 +1,6 @@
 // Create a new store instance.
+/*
+
 const store = Vuex.createStore({
   state () {
     return {
@@ -38,6 +40,8 @@ const store = Vuex.createStore({
 
   mutations: {
     updateStateFromWebsocket(state, v) {
+      console.log(v)
+
       let s = state
       for(const item of v.cars) {
         const id = item.id;
@@ -68,10 +72,11 @@ const store = Vuex.createStore({
     }
   }
 })
+*/
 
 
 const openrms = {
-  data: function(){
+/*  data: function(){
     return {
       car: "",
       setStateCarId: "null",
@@ -80,10 +85,10 @@ const openrms = {
       setCourseState: "null",
       setCourseValue: "null"
     }
-  },
+  },*/
   methods: {
-    connect: function (params = {}){
-      this.websocket = websocketConnection(params)
+    connect: function (onMessage, params = {}){
+      this.websocket = websocketConnection(onMessage, params)
     },
 
     formSetCarState: function(){
@@ -128,7 +133,7 @@ const openrms = {
 
 
 
-function websocketConnection(params) {
+function websocketConnection(onMessage, params) {
   var query = Object.keys(params)
       .map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k]))
       .join('&');
@@ -137,7 +142,8 @@ function websocketConnection(params) {
 
   this.websocket = new WebSocket("ws://"+location.host+"/ws?"+query)
   this.websocket.onmessage = function(event) {
-    store.commit('updateStateFromWebsocket', JSON.parse(event.data))
+    onMessage(JSON.parse(event.data))
+    // store.commit('updateStateFromWebsocket', JSON.parse(event.data))
   }
 
   this.websocket.onopen = function(event) {
@@ -152,57 +158,9 @@ function websocketConnection(params) {
     console.log("Closed Connection")
     store.commit('connectionState', "closed")
     setTimeout(function() {
-      websocketConnection(params);
+      websocketConnection(onMessage, params);
     }, 1000);
   }
-  this.websocket.sendRaceCommand = function (name, value){
-    console.log(this)
-    this.send(JSON.stringify({
-      race: {
-        name: name,
-        value: value
-      }
-    }))
-  }
-  this.websocket.sendCarCommand = function (id, name, value){
-    console.log(this)
-    this.send(JSON.stringify({
-      car: {
-        carId: parseInt(id, 10),
-        name: name,
-        value: value
-      }
-    }))
-  }
-  this.websocket.sendRaceCommand = function (name, value){
-    console.log(this)
-    this.send(JSON.stringify({
-      race: {
-        name: name,
-        value: value
-      }
-    }))
-  }
-  this.websocket.requestRaceState = function (name,){
-    this.send(JSON.stringify({
-      get: {
-        race: {
-          name: name
-        }
-      }
-    }))
-  }
-  this.websocket.requestCarState = function (car, name){
-    this.send(JSON.stringify({
-      get: {
-        car: {
-          carId: car,
-          name: name
-        }
-      }
-    }))
-  }
-
   return this.websocket
 }
 

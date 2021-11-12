@@ -1,18 +1,46 @@
+const store = Vuex.createStore({
+    state: {
+        leaderboard: [],
+        connection: "disconnected"
+    },
+    getters: {
+        getLeaderboard: state => () => {
+            return state.leaderboard
+        },
+        connection: state => () => {
+            return state.connection
+        }
+    },
+    mutations: {
+        updateLeaderBoard(state, v){
+            console.log(v)
+            state.leaderboard = v.content
+            console.log(state.leaderboard)
+        },
+        connectionState(state, v){
+            console.log(v)
+            state.connection = v
+        }
+    }
+})
+
 const app = Vue.createApp({
     name: 'App',
     mixins: [openrms],
+
+    store,
 
     computed: {
         leaderboard: function(){
             console.log("RELOAD")
 
-            return this.$store.getters.getRaceState("race-leaderboard", { entries: [] }).entries
+            return this.$store.getters.getLeaderboard()
               .map(x =>  {
-                  let v = moment.duration(x["lap"]["lap-time"] / 1000 / 1000).asSeconds()
-                  x["lap"]["lap-time"] = Number((v)).toFixed(3)
+                  let v = moment.duration(x["last"] / 1000 / 1000).asSeconds()
+                  x["last"] = Number((v)).toFixed(3)
 
-                  let b = moment.duration(x["best"]["lap-time"] / 1000 / 1000).asSeconds()
-                  x["best"]["lap-time"] = Number((b)).toFixed(3)
+                  let b = moment.duration(x["best"] / 1000 / 1000).asSeconds()
+                  x["best"] = Number((b)).toFixed(3)
 
                   let d = moment.duration(x["delta"] / 1000 / 1000).asSeconds()
 
@@ -29,14 +57,17 @@ const app = Vue.createApp({
                       prefix = ""
                   }
                   x["delta"] = prefix+Number((d)).toFixed(3)
+                  x["fuel"] = Number((x["fuel"])).toFixed(1)
+
                   return x
               })
         },
     },
-    store,
 
     mounted: function (){
-        this.connect()
+        this.connect(function(event){
+            store.commit('updateLeaderBoard', event)
+        }, {})
     },
 })
 

@@ -101,6 +101,9 @@
     table.leaderboard tr td:nth-child(2) {
       text-align: left;
     }
+    table.leaderboard tr td:nth-child(2).deslotted {
+      background-color: #B10808;
+    }
 
     /* Pit column */
     table.leaderboard tr th:nth-child(3) {
@@ -116,6 +119,8 @@
       background-color: #ffffff;
       color: #000000;
     }
+
+
 
     /* Car number column */
     table.leaderboard tr th:nth-child(4) {
@@ -164,6 +169,7 @@
             <th>Name</th>
             <th></th>
             <th>#</th>
+            <th>Fuel</th>
             <th>Lap</th>
             <th>Delta</th>
             <th>Best</th>
@@ -172,11 +178,13 @@
           </thead>
           <tbody>
 
-          <tr>
+<!--
+         <tr>
             <td>1</td>
             <td>F. Folman</td>
             <td class="active">P</td>
             <td>10</td>
+            <td></td>
             <td>00:57.605</td>
             <td>+0.295</td>
             <td>00:57.605</td>
@@ -185,27 +193,30 @@
           <tr>
             <td>2</td>
             <td>F. Folman</td>
-            <td>P</td>
+            <td></td>
             <td>10</td>
+            <td>75<small> l</small></td>
             <td>00:57.605</td>
             <td>+0.295</td>
             <td></td>
             <td></td>
           </tr>
+-->
 
-          <tr v-if="!$store.state.race['race-leaderboard']" class="nodata">
-            <td  style="text-align: center" colspan="8">
+          <tr v-if="leaderboard.length == 0" class="nodata">
+            <td  style="text-align: center" colspan="9">
               No data</td>
           </tr>
           <tr v-else v-for="(k, v) in leaderboard" >
             <td>{{v+1}}</td>
+            <td v-bind:class="{ deslotted: k['deslotted'] }">{{k["car"]}}</td>
+            <td v-bind:class="{ active: k['in-pit'] }"><span v-if="k['in-pit']">P</span></td>
             <td>{{k["car"]}}</td>
-            <td></td>
-            <td>{{k["car"]}}</td>
-            <td>{{k["lap"]["lap-time"] }}<small>s</small></td>
-            <td v-bind:class="{ fast: k['isFast'], slow: k['isSlow'] }">{{k["delta"]}} {{ k["isFast"] }}</td>
-            <td>{{k["best"]["lap-time"] }}<small>s</small></td>
-            <td>{{k["lap"]["lap-number"]}}</td>
+            <td>{{k["fuel"]}}<small>l</small></td>
+            <td>{{k["last"] }}<small>s</small></td>
+            <td v-bind:class="{ fast: k['isFast'], slow: k['isSlow'] }">{{k["delta"]}}</td>
+            <td>{{k["best"] }}<small>s</small></td>
+            <td>{{k["lap"]}}</td>
           </tr>
 
 

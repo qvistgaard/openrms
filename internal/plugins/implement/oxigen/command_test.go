@@ -149,7 +149,7 @@ func TestCarCommandReturnsFalseIfUnknown(t *testing.T) {
 	assert.False(t, b)
 }
 
-func createTestValue(n string, v interface{}) (bool, *Command) {
+func createTestValue(n string, v interface{}) (bool, *TX) {
 	s := state.CourseState{}
 	c := newEmptyCommand(s, 0x00, newSettings())
 	b := c.carCommand(1, n, v)
@@ -258,14 +258,14 @@ func TestRaceStateSetToStart(t *testing.T) {
 	state := make(map[string]state.StateInterface)
 	c := newEmptyCommand(state, 0x00, nil)
 	o.Start()
-	m := o.command(*ipc.NewEmptyCommand())
+	m := o.code(*ipc.NewEmptyCommand())
 	assert.Equal(t, "03000000000000000000", hex.EncodeToString(m))
 }
 
 func TestRaceStateSetToPause(t *testing.T) {
 	o := new(Oxigen)
 	o.Pause()
-	m := o.command(*ipc.NewEmptyCommand())
+	m := o.code(*ipc.NewEmptyCommand())
 	assert.Equal(t, "04000000000000000000", hex.EncodeToString(m))
 }
 
@@ -273,7 +273,7 @@ func TestRaceStateSetToStopAndMaxSpeedFull(t *testing.T) {
 	o := new(Oxigen)
 	o.Stop()
 	o.Speed(255)
-	m := o.command(*ipc.NewEmptyCommand())
+	m := o.code(*ipc.NewEmptyCommand())
 	assert.Equal(t, "01ff0000000000000000", hex.EncodeToString(m))
 }
 
@@ -282,7 +282,7 @@ func TestRaceStateSetToStopPitLaneLapCountExitEnabledAndMaxSpeedFull(t *testing.
 	o.Stop()
 	o.Speed(255)
 	o.PitLaneLapCount(true, false)
-	m := o.command(*ipc.NewEmptyCommand())
+	m := o.code(*ipc.NewEmptyCommand())
 
 	assert.Equal(t, "41ff0000000000000000", hex.EncodeToString(m))
 }
@@ -292,7 +292,7 @@ func TestRaceStateSetToStopPitLaneLapCountOnEntryEnabledAndMaxSpeedFull(t *testi
 	o.stop()
 	o.maxSpeed(255)
 	o.pitLaneLapCount(true, true)
-	m := o.command(*ipc.NewEmptyCommand())
+	m := o.code(*ipc.NewEmptyCommand())
 
 	assert.Equal(t, "01ff0000000000000000", hex.EncodeToString(m))
 }

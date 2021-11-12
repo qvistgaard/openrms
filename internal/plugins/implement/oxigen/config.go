@@ -3,7 +3,7 @@ package oxigen
 import (
 	"errors"
 	"github.com/mitchellh/mapstructure"
-	"github.com/qvistgaard/openrms/internal/config/context"
+	"github.com/qvistgaard/openrms/internal/config/application"
 )
 
 type Config struct {
@@ -14,7 +14,7 @@ type Config struct {
 	}
 }
 
-func CreateFromConfig(context *context.Context) (*Oxigen, error) {
+func CreateFromConfig(context *application.Context) (*Oxigen, error) {
 	c := &Config{}
 	err := mapstructure.Decode(context.Config, c)
 	if err != nil {

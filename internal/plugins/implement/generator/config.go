@@ -2,7 +2,7 @@ package generator
 
 import (
 	"github.com/mitchellh/mapstructure"
-	"github.com/qvistgaard/openrms/internal/config/context"
+	"github.com/qvistgaard/openrms/internal/config/application"
 	"github.com/qvistgaard/openrms/internal/implement"
 )
 
@@ -15,7 +15,7 @@ type Config struct {
 	}
 }
 
-func CreateFromConfig(ctx *context.Context) (*Generator, error) {
+func CreateFromConfig(ctx *application.Context) (*Generator, error) {
 	c := &Config{}
 	err := mapstructure.Decode(ctx.Config, c)
 	if err != nil {

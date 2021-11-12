@@ -1,23 +1,52 @@
 package influxdb
 
 import (
+	"context"
 	"fmt"
 	"github.com/influxdata/influxdb-client-go/v2"
 	api2 "github.com/influxdata/influxdb-client-go/v2/api"
 	"github.com/influxdata/influxdb-client-go/v2/api/write"
-	"github.com/qvistgaard/openrms/internal/state"
 	"github.com/qvistgaard/openrms/internal/telemetry"
+	"github.com/qvistgaard/openrms/internal/types"
+	"github.com/qvistgaard/openrms/internal/types/annotations"
+	"github.com/qvistgaard/openrms/internal/types/reactive"
+	"github.com/reactivex/rxgo/v2"
 	log "github.com/sirupsen/logrus"
 	"reflect"
 	"runtime"
-	"strconv"
+	"time"
 )
 
 type InfluxDB struct {
 	client influxdb2.Client
 	api    api2.WriteAPI
-	race   chan state.CourseState
-	car    chan state.CarState
+	/*	race   chan state.CourseState
+		car    chan state.CarState*/
+}
+
+func (i *InfluxDB) Configure(observable rxgo.Observable) {
+	observable.DistinctUntilChanged(func(ctx context.Context, i interface{}) (interface{}, error) {
+		return i.(reactive.ValueChange).Value, nil
+	}).DoOnNext(func(value interface{}) {
+		i.processValueChange(value.(reactive.ValueChange))
+	})
+}
+
+func (i *InfluxDB) processValueChange(change reactive.ValueChange) {
+	if id, ok := change.Annotations[annotations.CarId]; ok {
+		idInt := id.(types.Id)
+		if field, ok := change.Annotations[annotations.CarValueFieldName]; ok {
+			p := influxdb2.NewPointWithMeasurement("car")
+			p.AddTag("id", idInt.String())
+			p.SetTime(change.Timestamp)
+			i.writePoint(p, field.(string), change.Value)
+		}
+	}
+}
+
+func (i *InfluxDB) writePoint(p *write.Point, s string, value interface{}) {
+	i.processStateValue(p, s, value)
+	i.api.WritePoint(p)
 }
 
 func (i InfluxDB) Process() {
@@ -27,35 +56,19 @@ func (i InfluxDB) Process() {
 	log.Info("started influxdb post processor.")
 	for {
 		select {
-		case car := <-i.car:
-			p := influxdb2.NewPointWithMeasurement("car")
-			for _, v := range car.Changes {
-				i.processStateValue(p, v.Name, v.Value)
-			}
-			p.AddTag("id", strconv.Itoa(int(car.Car)))
-			p.SetTime(car.Time)
-			i.api.WritePoint(p)
-		case race := <-i.race:
-			p := influxdb2.NewPointWithMeasurement("race")
-			for _, v := range race.Changes {
-				i.processStateValue(p, v.Name, v.Value)
-			}
-			p.SetTime(race.Time)
-			i.api.WritePoint(p)
+		case <-time.After(1 * time.Second):
+			var m runtime.MemStats
+			runtime.ReadMemStats(&m)
+			i.api.WritePoint(
+				influxdb2.NewPointWithMeasurement("memory").
+					AddField("alloc", m.Alloc).
+					AddField("total", m.TotalAlloc).
+					AddField("sys", m.Alloc))
+
+			i.api.WritePoint(
+				influxdb2.NewPointWithMeasurement("gc").
+					AddField("count", m.NumGC))
 		}
-
-		var m runtime.MemStats
-		runtime.ReadMemStats(&m)
-		i.api.WritePoint(
-			influxdb2.NewPointWithMeasurement("memory").
-				AddField("alloc", m.Alloc).
-				AddField("total", m.TotalAlloc).
-				AddField("sys", m.Alloc))
-
-		i.api.WritePoint(
-			influxdb2.NewPointWithMeasurement("gc").
-				AddField("count", m.NumGC))
-
 	}
 	log.Warn("influxdb processors stopped")
 }
@@ -105,6 +118,7 @@ func (i *InfluxDB) processStateValue(p *write.Point, n string, v interface{}) {
 
 }
 
+/*
 func (i *InfluxDB) CarChannel() chan<- state.CarState {
 	return i.car
 }
@@ -112,3 +126,4 @@ func (i *InfluxDB) CarChannel() chan<- state.CarState {
 func (i *InfluxDB) RaceChannel() chan<- state.CourseState {
 	return i.race
 }
+*/

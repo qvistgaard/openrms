@@ -3,8 +3,7 @@ package influxdb
 import (
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/mitchellh/mapstructure"
-	"github.com/qvistgaard/openrms/internal/config/context"
-	"github.com/qvistgaard/openrms/internal/state"
+	"github.com/qvistgaard/openrms/internal/config/application"
 )
 
 type Config struct {
@@ -19,7 +18,7 @@ type Config struct {
 	} `mapstructure:"postprocessors"`
 }
 
-func CreateFromConfig(ctx *context.Context) (*InfluxDB, error) {
+func CreateFromConfig(ctx *application.Context) (*InfluxDB, error) {
 	c := &Config{}
 	mapstructure.Decode(ctx.Config, c)
 	i := new(InfluxDB)
@@ -29,7 +28,7 @@ func CreateFromConfig(ctx *context.Context) (*InfluxDB, error) {
 	}
 	i.client = influxdb2.NewClientWithOptions(db.Url, db.AuthToken, influxdb2.DefaultOptions().SetBatchSize(db.BatchSize))
 	i.api = i.client.WriteAPI(db.Organization, db.Bucket)
-	i.race = make(chan state.CourseState, 1024)
-	i.car = make(chan state.CarState, 1024)
+	/*	i.race = make(chan state.CourseState, 1024)
+		i.car = make(chan state.CarState, 1024)*/
 	return i, nil
 }
