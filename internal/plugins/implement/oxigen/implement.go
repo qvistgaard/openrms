@@ -2,12 +2,13 @@ package oxigen
 
 import (
 	"bufio"
-	"encoding/hex"
+	"context"
 	"errors"
 	"fmt"
 	"github.com/hashicorp/go-version"
 	"github.com/qvistgaard/openrms/internal/implement"
-	"github.com/qvistgaard/openrms/internal/state"
+	"github.com/qvistgaard/openrms/internal/types"
+	"github.com/qvistgaard/openrms/internal/types/reactive"
 	log "github.com/sirupsen/logrus"
 	"github.com/tarm/serial"
 	"io"
@@ -15,16 +16,18 @@ import (
 )
 
 type Oxigen struct {
-	state      byte
 	serial     io.ReadWriteCloser
-	settings   *Settings
 	version    string
-	running    bool
-	commands   chan *Command
+	commands   chan Command
 	events     chan implement.Event
 	bufferSize int
 	timer      []byte
 	buffer     *bufio.Reader
+
+	// New and confirmed working structures
+	cars  map[types.Id]Car
+	track *Track
+	race  *Race
 }
 
 func CreateUSBConnection(device string) (*serial.Port, error) {
@@ -38,13 +41,16 @@ func CreateUSBConnection(device string) (*serial.Port, error) {
 
 func CreateImplement(serial io.ReadWriteCloser) (*Oxigen, error) {
 	var err error
-	o := new(Oxigen)
-	o.serial = serial
-	o.buffer = bufio.NewReaderSize(o.serial, 1024)
-	o.bufferSize = 1024
-	o.commands = make(chan *Command, 1024)
-	o.events = make(chan implement.Event, 1024)
-	o.settings = newSettings()
+	o := &Oxigen{
+		serial:     serial,
+		commands:   make(chan Command, 1024),
+		events:     make(chan implement.Event, 1024),
+		buffer:     bufio.NewReaderSize(serial, 1024),
+		bufferSize: 1024,
+		cars:       make(map[types.Id]Car),
+		track:      NewTrack(),
+		race:       NewRace(),
+	}
 
 	versionRequest := []byte{0x06, 0x06, 0x06, 0x06, 0x00, 0x00, 0x00} // Get dongle version bytecode
 	_, err = o.serial.Write(versionRequest)
@@ -53,7 +59,7 @@ func CreateImplement(serial io.ReadWriteCloser) (*Oxigen, error) {
 		return nil, err
 	}
 
-	versionResponse := make([]byte, 2)
+	versionResponse := make([]byte, 5)
 	_, err = io.ReadFull(o.buffer, versionResponse)
 	v, _ := version.NewVersion(fmt.Sprintf("%d.%d", versionResponse[0], versionResponse[1]))
 	constraint, _ := version.NewConstraint(">= 3.10")
@@ -71,6 +77,23 @@ func CreateImplement(serial io.ReadWriteCloser) (*Oxigen, error) {
 	return o, nil
 }
 
+func (o *Oxigen) Car(car types.Id) implement.CarImplementer {
+	return NewCar(o, uint8(car))
+}
+
+func (o *Oxigen) Track() implement.TrackImplementer {
+	return o.track
+}
+
+func (o *Oxigen) Race() implement.RaceImplementer {
+	return NewRace()
+}
+
+func (o *Oxigen) Init(ctx context.Context, processor reactive.ValuePostProcessor) {
+	//	o.track.Init(ctx, processor)
+	//	o.race.Init(ctx, processor)
+}
+
 func (o *Oxigen) EventLoop() error {
 	defer func() {
 		o.serial.Close()
@@ -78,11 +101,6 @@ func (o *Oxigen) EventLoop() error {
 	}()
 
 	o.timer = []byte{0x00, 0x00, 0x00}
-
-	// For some reason unkown, the dongle sends more data back when requesting
-	// the version number, therefore we discard what ever is buffered before
-	// we start the real work
-	o.buffer.Discard(o.buffer.Buffered())
 
 	// Keep-alive routine, to keep oxigen dongle sending data back
 	go o.keepAlive()
@@ -106,6 +124,10 @@ func (o *Oxigen) EventLoop() error {
 	}
 }
 
+func (o *Oxigen) sendCarCommand(car *uint8, code byte, value uint8) {
+	o.commands <- newCommand(car, code, value)
+}
+
 func (o *Oxigen) sendCommand() {
 	defer func() {
 		panic("oxigen: keep-alive routine failed.")
@@ -117,29 +139,18 @@ func (o *Oxigen) sendCommand() {
 				log.WithFields(map[string]interface{}{
 					"bufferSize": o.bufferSize,
 					"size":       len(o.commands),
-				}).Warn("too many commands on command buffer")
+				}).Warn("too many commands on code buffer")
 			}
 
 			b := o.command(cmd, o.timer)
-			o.settings = &cmd.settings
-			o.state = cmd.state
 			l, err := o.serial.Write(b)
 			if err != nil {
 				panic(err)
 			}
-			if cmd.car != nil {
-				log.WithFields(map[string]interface{}{
-					"message": fmt.Sprintf("%x", b),
-					"size":    fmt.Sprintf("%d", l),
-					"decode":  hex.Dump(b),
-				}).Debug("send message to oxygen dongle")
-			} else {
-				log.WithFields(map[string]interface{}{
-					"message": fmt.Sprintf("%x", b),
-					"size":    fmt.Sprintf("%d", l),
-				}).Trace("send message to oxygen dongle")
-
-			}
+			log.WithFields(map[string]interface{}{
+				"message": fmt.Sprintf("%x", b),
+				"size":    fmt.Sprintf("%d", l),
+			}).Trace("send message to oxygen dongle")
 		}
 	}
 }
@@ -152,7 +163,7 @@ func (o *Oxigen) keepAlive() {
 		select {
 		case <-time.After(100 * time.Millisecond):
 			if len(o.commands) == 0 {
-				o.commands <- newEmptyCommand(state.CourseState{}, o.state, o.settings)
+				o.commands <- newEmptyCommand()
 				log.Trace("oxigen: sent keep-alive")
 			}
 		}
@@ -163,75 +174,47 @@ func (o *Oxigen) EventChannel() <-chan implement.Event {
 	return o.events
 }
 
-func (o *Oxigen) SendRaceState(r state.CourseState) error {
-	o.commands <- newEmptyCommand(r, o.state, o.settings)
-	return nil
-}
-
-func (o *Oxigen) SendCarState(c state.CarState) error {
-	if len(c.Changes) > 0 {
-		for _, v := range c.Changes {
-			ec := newEmptyCommand(state.CourseState{}, o.state, o.settings)
-			if ec.carCommand(uint8(c.Car), v.Name, v.Value) {
-				o.commands <- ec
-			}
-		}
-	}
-	return nil
-}
-
-func (o *Oxigen) ResendCarState(c *state.Car) {
-	resendStates := []string{
-		state.CarMaxSpeed, state.CarMaxBreaking, state.CarMinSpeed, state.CarPitLaneSpeed,
-	}
-	for _, n := range resendStates {
-		ec := newEmptyCommand(state.CourseState{}, o.state, o.settings)
-		if ec.carCommand(uint8(c.Id()), n, c.Get(n)) {
-			o.commands <- ec
-		}
-	}
-}
-
 func (o *Oxigen) event(b []byte) implement.Event {
 	e := implement.Event{
-		Id: state.CarId(b[1]),
-		Controller: implement.Controller{
-			BatteryWarning: 0x04&b[0] == 0x04,
-			Link:           0x02&b[0] == 0x02,
-			TrackCall:      0x08&b[0] == 0x08,
-			ArrowUp:        0x20&b[0] == 0x20,
-			ArrowDown:      0x40&b[0] == 0x40,
-		},
+		RaceTimer: unpackRaceTime([4]byte{b[9], b[10], b[11], b[12]}, b[4]),
 		Car: implement.Car{
-			Reset: 0x01&b[0] == 0x01,
-			InPit: 0x40&b[8] == 0x40,
+			Id:        types.IdFromUint(b[1]),
+			Reset:     0x01&b[0] == 0x01,
+			InPit:     0x40&b[8] == 0x40,
+			Deslotted: !(0x80&b[7] == 0x80),
+			Controller: implement.Controller{
+				BatteryWarning: 0x04&b[0] == 0x04,
+				Link:           0x02&b[0] == 0x02,
+				TrackCall:      0x08&b[0] == 0x08,
+				ArrowUp:        0x20&b[0] == 0x20,
+				ArrowDown:      0x40&b[0] == 0x40,
+				TriggerValue:   float64(0x7F & b[7]),
+			},
+			Lap: implement.Lap{
+				Number:  (uint16(b[6]) * 256) + uint16(b[5]),
+				LapTime: unpackLapTime(b[2], b[3]),
+			},
 		},
-		Lap: state.Lap{
-			LapNumber: state.LapNumber((uint16(b[6]) * 256) + uint16(b[5])),
-			RaceTimer: state.RaceTimer(unpackRaceTime([4]byte{b[9], b[10], b[11], b[12]}, b[4])),
-			LapTime:   state.LapTime(unpackLapTime(b[2], b[3])),
-		},
-		TriggerValue: state.TriggerValue(0x7F & b[7]),
-		Ontrack:      0x80&b[7] == 0x80,
 	}
 	return e
 }
 
-func (o *Oxigen) command(c *Command, timer []byte) []byte {
+func (o *Oxigen) command(c Command, timer []byte) []byte {
 	var cmd byte = 0x00
 	var parameter byte = 0x00
 	var controller byte = 0x00
 
-	if c.car != nil {
-		cmd = c.car.command
-		parameter = c.car.value
-		controller = c.car.id
+	cmd = c.code
+	parameter = c.value
+	if c.id != nil {
+		controller = *c.id
+	} else {
+		controller = 0x00
 	}
-	o.state = c.state
 
 	return []byte{
-		o.state | o.settings.pitLane.lapTrigger | o.settings.pitLane.lapCounting,
-		o.settings.maxSpeed,
+		o.race.status | o.track.pitLane.lapCounting | o.track.pitLane.lapCountingOption,
+		o.track.maxSpeed,
 		controller,
 		cmd,
 		parameter,

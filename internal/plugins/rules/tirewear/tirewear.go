@@ -3,6 +3,7 @@ package tirewear
 import (
 	"github.com/qvistgaard/openrms/internal/plugins/rules/limbmode"
 	"github.com/qvistgaard/openrms/internal/state"
+	"github.com/qvistgaard/openrms/internal/state/rx/car"
 	"math"
 )
 
@@ -45,8 +46,8 @@ func (t *Rule) InitializeCourseState(race *state.Course) {
 
 }
 
-func (t *Rule) HandlePitStop(car *state.Car, cancel <-chan bool) bool {
-	car.Set(CarTireWear, TireWear(0))
+func (t *Rule) HandlePitStop(car *car.Car, cancel <-chan bool) bool {
+	/*car.Set(CarTireWear, TireWear(0))*/
 	return true
 }
 

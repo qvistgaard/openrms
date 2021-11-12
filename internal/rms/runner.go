@@ -1,21 +1,24 @@
 package rms
 
 import (
-	"github.com/qvistgaard/openrms/internal/config/context"
-	"github.com/qvistgaard/openrms/internal/state"
+	"context"
+	"github.com/qvistgaard/openrms/internal/config/application"
 	log "github.com/sirupsen/logrus"
 	"sync"
 	"time"
 )
 
 type Runner struct {
-	context *context.Context
+	context *application.Context
 	wg      sync.WaitGroup
 }
 
 func (r *Runner) Run() {
 	r.wg.Add(1)
-	go r.eventloop()
+	go r.context.Webserver.RunServer()
+
+	r.wg.Add(1)
+	go r.eventLoop()
 
 	r.wg.Add(1)
 	go r.processEvents()
@@ -23,12 +26,11 @@ func (r *Runner) Run() {
 	r.wg.Wait()
 }
 
-func Create(c *context.Context) *Runner {
-	c.Course.Set(state.RMSStatus, state.Initialized)
+func Create(c *application.Context) *Runner {
 	return &Runner{context: c}
 }
 
-func (r *Runner) eventloop() error {
+func (r *Runner) eventLoop() error {
 	defer func() {
 		log.Fatal("rms: Eventloop died")
 	}()
@@ -47,63 +49,20 @@ func (r *Runner) processEvents() {
 
 	log.Info("rms: started event processor.")
 
-	go r.processCommands()
-
-	r.context.Implement.SendRaceState(r.context.Course.State())
-
+	background := context.Background()
+	r.context.Postprocessors.Init(background)
+	r.context.Implement.Init(background, r.context.Postprocessors.ValuePostProcessor())
+	channel := r.context.Implement.EventChannel()
 	for {
 		select {
-		case e := <-r.context.Implement.EventChannel():
+		case e := <-channel:
 			start := time.Now()
-			if e.Id > 0 {
-				if c, ok, created := r.context.Cars.Get(e.Id); ok {
-					e.SetCarState(c)
-					e.SetCourseState(r.context.Course)
-
-					if created {
-						log.WithField("car", e.Id).
-							Info("new car found, resending state")
-						r.context.Implement.ResendCarState(c)
-					} else {
-						carChanges := c.Changes()
-						if len(carChanges.Changes) > 0 {
-							// log.Debugf("recieved hardware event: %+v", e)
-							r.context.Implement.SendCarState(carChanges)
-							r.context.Postprocessors.PostProcessCar(c.Changes())
-						}
-					}
-					c.ResetStateChangeStatus()
+			if e.Car.Id > 0 {
+				if c, ok, _ := r.context.Cars.Get(e.Car.Id, background); ok {
+					c.UpdateFromEvent(e)
 				}
 			}
-			raceChanges := r.context.Course.Changes()
-			if len(raceChanges.Changes) > 0 {
-				if r.context.Course.IsChanged(state.RaceStatus) {
-					for _, c := range r.context.Cars.All() {
-						r.context.Implement.ResendCarState(c)
-					}
-				}
-				r.context.Implement.SendRaceState(raceChanges)
-				r.context.Postprocessors.PostProcessRace(raceChanges)
-			}
-			r.context.Course.ResetStateChangeStatus()
 			log.Tracef("processing time: %s", time.Now().Sub(start))
-		}
-	}
-}
-
-func (r *Runner) processCommands() {
-	for {
-		select {
-		case command := <-r.context.Postprocessors.CommandChannel:
-			log.Infof("Received command: %T, %+v", command, command)
-			if cc, ok := command.(state.CarCommand); ok {
-				if r.context.Cars.Exists(cc.CarId) {
-					c, _, _ := r.context.Cars.Get(cc.CarId)
-					c.Set(cc.Name, cc.Value)
-				}
-			} else if cc, ok := command.(state.CourseCommand); ok {
-				r.context.Course.Set(cc.Name, cc.Value)
-			}
 		}
 	}
 }

@@ -1,14 +1,30 @@
 package fuel
 
 import (
-	"github.com/qvistgaard/openrms/internal/plugins/rules/limbmode"
-	"github.com/qvistgaard/openrms/internal/state"
+	"context"
+	"github.com/qmuntal/stateless"
+	"github.com/qvistgaard/openrms/internal/postprocess"
+	"github.com/qvistgaard/openrms/internal/state/rx/car"
+	"github.com/qvistgaard/openrms/internal/types"
+	"github.com/qvistgaard/openrms/internal/types/annotations"
+	"github.com/qvistgaard/openrms/internal/types/fields"
+	"github.com/qvistgaard/openrms/internal/types/reactive"
+	"github.com/reactivex/rxgo/v2"
 	log "github.com/sirupsen/logrus"
+	"reflect"
 	"time"
 )
 
-type Liter float32
-type LiterPerSecond float32
+const (
+	stateCarOnTrack = "carOnTrack"
+	stateCarOfTrack = "carOfTrack"
+)
+
+const (
+	triggerCarOnTrack      = "carOnTrack"
+	triggerCarDeslotted    = "carDeslotted"
+	triggerUpdateFuelLevel = "updateFuelLevels"
+)
 
 const (
 	// Using Lemans fuel rules for normal petrol cars burn rate it 110kg/h
@@ -16,11 +32,12 @@ const (
 	// that means the burn it is about 0.023 l/per second scaling that by the random number
 	// Gotten from a internet forum about scale models and wind tunnel testing (5.65) we get the
 	// burn rate.
-	defaultBurnRate = LiterPerSecond(0.023 / 2) // / 5.65)
+	defaultBurnRate = types.LiterPerSecond(0.223) // / 5.65)
+	// defaultBurnRate = types.LiterPerSecond(0.023) // / 5.65)
 
 	// LMP1 fuel tank size is 75 Liters
-	defaultFuel     = Liter(75)
-	defaultFlowRate = LiterPerSecond(2 * 5.65)
+	defaultFuel     = types.Liter(75)
+	defaultFlowRate = types.LiterPerSecond(2 * 5.65)
 
 	CarFuel           = "car-fuel"
 	CarConfigFlowRate = "car-config-flow-rate"
@@ -29,87 +46,22 @@ const (
 )
 
 type Consumption struct {
-	course *state.Course
-	config *Config
+	fuel          map[types.Id]*reactive.Liter
+	consumed      map[types.Id]*reactive.LiterSubtractModifier
+	state         map[types.Id]*stateless.StateMachine
+	config        *Config
+	postprocessor *postprocess.PostProcess
 }
 
-func (c *Consumption) Notify(v *state.Value) {
-	if c.course.Get(state.RaceStatus) != state.RaceStatusStopped {
-		if car, ok := v.Owner().(*state.Car); ok {
-			if v.Name() == state.CarEventSequence && car.Get(state.CarOnTrack).(bool) {
-				if rs, ok := c.course.Get(state.RaceStatus).(uint8); !ok || rs != state.RaceStatusPaused {
-					fs := car.Get(CarFuel).(Liter)
-					bs := car.Get(CarConfigBurnRate).(LiterPerSecond)
-					tv := car.Get(state.ControllerTriggerValue).(state.TriggerValue)
-					cf := calculateFuelState(bs, fs, tv)
-
-					if cf <= 0 && !car.Get(limbmode.CarLimbMode).(bool) {
-						log.WithField("car", car.Id()).Info("car has run out of fuel.")
-						car.Set(limbmode.CarLimbMode, true)
-						car.Set(CarFuel, Liter(0))
-					} else {
-						car.Set(CarFuel, cf)
-					}
-				}
-			}
-		}
-	}
+func (c *Consumption) Priority() int {
+	return 1
 }
 
-func (c *Consumption) InitializeCourseState(course *state.Course) {
-	c.course = course
-}
+func (c *Consumption) HandlePitStop(car *car.Car, cancel <-chan bool) bool {
+	log.WithField("car", car.Id()).
+		WithField("fuel", c.fuel[car.Id()]).
+		Infof("fuel: refuelling started")
 
-func (c *Consumption) InitializeCarState(car *state.Car) {
-	cc := &Config{}
-	err := car.Settings(cc)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	var fuel Liter
-	if cc.Fuel != nil {
-		fuel = *cc.Fuel
-	} else if c.config.Fuel != nil {
-		fuel = *c.config.Fuel
-	} else {
-		fuel = defaultFuel
-	}
-	car.Set(CarConfigFuel, fuel)
-
-	var startingFuel Liter
-	if cc.StartingFuel != nil {
-		startingFuel = *cc.StartingFuel
-	} else if c.config.StartingFuel != nil {
-		startingFuel = *c.config.StartingFuel
-	} else {
-		startingFuel = fuel
-	}
-	car.Set(CarFuel, startingFuel)
-
-	var burnRate LiterPerSecond
-	if cc.BurnRate != nil {
-		burnRate = *cc.BurnRate
-	} else if c.config.BurnRate != nil {
-		burnRate = *c.config.BurnRate
-	} else {
-		burnRate = defaultBurnRate
-	}
-	car.Set(CarConfigBurnRate, burnRate)
-
-	var flowRate LiterPerSecond
-	if c.config.FlowRate != nil {
-		flowRate = *c.config.FlowRate
-	} else {
-		flowRate = defaultFlowRate
-	}
-	car.Set(CarConfigFlowRate, flowRate)
-
-	car.Subscribe(state.CarEventSequence, c)
-}
-
-func (c *Consumption) HandlePitStop(car *state.Car, cancel <-chan bool) bool {
-	log.WithField("car", car.Id()).Infof("fuel: refuelling started")
 	for {
 		select {
 		case v := <-cancel:
@@ -119,34 +71,78 @@ func (c *Consumption) HandlePitStop(car *state.Car, cancel <-chan bool) bool {
 				Infof("fuel: refuelling cancelled")
 			return false
 		case <-time.After(250 * time.Millisecond):
-			f := car.Get(CarFuel).(Liter)
-			v := f + Liter(car.Get(CarConfigFlowRate).(LiterPerSecond)/4)
-			m := car.Get(CarConfigFuel).(Liter)
-			d := false
-			if v >= m {
-				v = m
-				d = true
-			}
-			car.Set(CarFuel, v)
-			if d {
-				log.WithField("car", car.Id()).Infof("fuel: refuelling complete")
+			used, full := calculateRefuellingValue(c.consumed[car.Id()].Subtract, defaultFlowRate/4)
+
+			c.consumed[car.Id()].Subtract = used
+			c.fuel[car.Id()].Update()
+
+			if full {
+				log.WithField("car", car.Id()).
+					WithField("fuel-used", used).
+					Infof("fuel: refuelling complete")
 				return true
 			}
 		}
 	}
 }
 
-func (c *Consumption) Priority() uint8 {
-	return 1
+func calculateRefuellingValue(used types.Liter, flowRate types.LiterPerSecond) (types.Liter, bool) {
+	liter := used - types.Liter(flowRate)
+	if liter <= 0 {
+		return 0, true
+	} else {
+		return liter, false
+	}
 }
 
-func calculateFuelState(burnRate LiterPerSecond, fuel Liter, triggerValue state.TriggerValue) Liter {
-	used := float32(triggerValue) * float32(burnRate)
-	remaining := float32(fuel) - used
-
-	if remaining > 0 {
-		return Liter(remaining)
-	} else {
-		return Liter(0)
+func (c *Consumption) InitializeCarState(car *car.Car) {
+	a := reactive.Annotations{
+		annotations.CarId: car.Id(),
 	}
+	c.consumed[car.Id()] = &reactive.LiterSubtractModifier{Subtract: 0}
+	c.fuel[car.Id()] = reactive.NewLiter(50, a, reactive.Annotations{annotations.CarValueFieldName: fields.Fuel})
+	c.fuel[car.Id()].Modifier(c.consumed[car.Id()])
+
+	c.fuel[car.Id()].Init(context.Background(), c.postprocessor.ValuePostProcessor())
+
+	machine := stateless.NewStateMachineWithMode(stateCarOnTrack, stateless.FiringImmediate)
+	machine.SetTriggerParameters(triggerUpdateFuelLevel, reflect.TypeOf(types.Percent(0)))
+	machine.Configure(stateCarOnTrack).
+		InternalTransition(triggerUpdateFuelLevel, func(ctx context.Context, args ...interface{}) error {
+			percent := args[0].(types.Percent)
+			if percent > 0 {
+				c.consumed[car.Id()].Subtract = calculateFuelState(defaultBurnRate, c.consumed[car.Id()].Subtract, percent)
+				c.fuel[car.Id()].Update()
+				log.WithField("car", car.Id()).
+					WithField("fuel", c.fuel[car.Id()].Get()).
+					Trace("report car fuel level")
+			}
+			return nil
+		}).
+		Permit(triggerCarDeslotted, stateCarOfTrack)
+
+	machine.Configure(stateCarOfTrack).
+		Permit(triggerCarOnTrack, stateCarOnTrack)
+
+	c.state[car.Id()] = machine
+
+	car.Deslotted().RegisterObserver(func(observable rxgo.Observable) {
+		observable.DoOnNext(func(i interface{}) {
+			if i.(bool) {
+				machine.Fire(triggerCarDeslotted)
+			} else {
+				machine.Fire(triggerCarOnTrack)
+			}
+		})
+	})
+	car.Controller().TriggerValue().RegisterObserver(func(observable rxgo.Observable) {
+		observable.DoOnNext(func(i interface{}) {
+			machine.Fire(triggerUpdateFuelLevel, i.(types.Percent))
+		})
+	})
+}
+
+func calculateFuelState(burnRate types.LiterPerSecond, fuel types.Liter, triggerValue types.Percent) types.Liter {
+	used := (float64(triggerValue) / 100) * float64(burnRate)
+	return types.Liter(used) + fuel
 }

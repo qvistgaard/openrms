@@ -1,5 +1,6 @@
 package state
 
+/*
 func CreateState(owner Owner, name string, v interface{}) *Value {
 	s := new(Value)
 	s.value = v
@@ -101,3 +102,4 @@ func (v *Value) Name() string {
 func (v *Value) Subscribe(s Subscriber) {
 	v.subscribers = append(v.subscribers, s)
 }
+*/

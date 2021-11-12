@@ -1,5 +1,6 @@
 package state
 
+/*
 import (
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -43,3 +44,4 @@ func TestValue_StateInitialIsNotChanged(t *testing.T) {
 
 	assert.Equal(t, 100, s.Initial())
 }
+*/

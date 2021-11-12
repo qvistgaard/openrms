@@ -1,0 +1,40 @@
+@startuml
+!theme toy
+
+participant Implement
+collections Event
+collections Command
+entity State
+control Rules
+actor Websocket
+database Telemetry
+
+autonumber
+group Map event to internal data structure
+    Implement -> Event: Generic event is mapped
+    Event -> State: Implement event updates state
+end
+
+loop
+    autonumber
+    State -> Rules: Each state change is evaluated
+    Rules -> State: Rules apply state changes
+    note left
+        Changing state can in some
+        cases lead to an endless loop
+    end note
+end
+
+autonumber 3
+group Send all state changes back to implement
+    State -> Command: State changed mapped to command
+    Command -> Implement: Generic command is sent back to implement
+end
+
+group if state is changed
+    State -> Websocket: State changes are sent to websocket
+    opt If telemetry is enabled
+    State --> Telemetry: State changes are sent to telemetry
+    end
+end
+@enduml

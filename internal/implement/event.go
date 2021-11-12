@@ -1,33 +1,13 @@
 package implement
 
 import (
-	"github.com/qvistgaard/openrms/internal/state"
+	"github.com/qvistgaard/openrms/internal/types"
+	"time"
 )
 
-type Command interface {
-	Exectute()
-}
-
-type CommandObject struct {
-	Id      uint8
-	Changes changes
-}
-
-type changes struct {
-	Race map[string]state.StateInterface
-	Car  map[string]state.StateInterface
-}
-
-type EventInterface interface {
-}
-
 type Event struct {
-	Id           state.CarId
-	Controller   Controller
-	Car          Car
-	Lap          state.Lap
-	TriggerValue state.TriggerValue
-	Ontrack      bool
+	RaceTimer time.Duration
+	Car       Car
 }
 
 type Controller struct {
@@ -36,29 +16,19 @@ type Controller struct {
 	TrackCall      bool
 	ArrowUp        bool
 	ArrowDown      bool
+	TriggerValue   float64
 }
 
 type Car struct {
-	Reset bool
-	InPit bool
+	Id         types.Id
+	Reset      bool
+	InPit      bool
+	Deslotted  bool
+	Controller Controller
+	Lap        Lap
 }
 
-func (e *Event) SetCarState(c *state.Car) {
-	if e.Id == c.Id() {
-		c.Set(state.CarEventSequence, c.Get(state.CarEventSequence).(uint)+1)
-		c.Set(state.CarOnTrack, e.Ontrack)
-		c.Set(state.CarControllerLink, e.Controller.Link)
-		c.Set(state.CarLap, &e.Lap)
-		c.Set(state.CarInPit, e.Car.InPit)
-		c.Set(state.CarReset, e.Car.Reset)
-		c.Set(state.ControllerTriggerValue, e.TriggerValue)
-		c.Set(state.ControllerBtnUp, e.Controller.ArrowUp)
-		c.Set(state.ControllerBtnDown, e.Controller.ArrowDown)
-		c.Set(state.ControllerBtnTrackCall, e.Controller.TrackCall)
-		c.Set(state.ControllerBatteryWarning, e.Controller.BatteryWarning)
-	}
-}
-
-func (e *Event) SetCourseState(course *state.Course) {
-	course.Set(state.RaceTime, e.Lap.RaceTimer)
+type Lap struct {
+	Number  uint16
+	LapTime time.Duration
 }

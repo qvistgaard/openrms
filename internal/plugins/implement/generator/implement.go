@@ -36,33 +36,34 @@ func (g *Generator) SendRaceState(r state.CourseState) error {
 	return nil
 }
 
-func (g *Generator) eventGenerator(car uint8, interval uint) implement.Event {
-	laps := state.LapNumber(0)
+func (g *Generator) eventGenerator(carId uint8, interval uint) implement.Event {
+	laps := uint16(0)
 	start := time.Now()
 	for {
 		select {
 		case <-time.After(time.Duration(interval) * time.Millisecond):
 			laps++
 			g.events <- implement.Event{
-				Id: state.CarId(car),
-				Controller: implement.Controller{
-					BatteryWarning: false,
-					Link:           false,
-					TrackCall:      false,
-					ArrowUp:        false,
-					ArrowDown:      false,
-				},
+				RaceTimer: time.Now().Sub(start),
 				Car: implement.Car{
-					Reset: false,
-					InPit: false,
+					Id:        carId,
+					Reset:     false,
+					InPit:     false,
+					Deslotted: true,
+					Controller: implement.Controller{
+						BatteryWarning: false,
+						Link:           false,
+						TrackCall:      false,
+						ArrowUp:        false,
+						ArrowDown:      false,
+						TriggerValue:   rand.Float64(),
+					},
+
+					Lap: implement.Lap{
+						Number:  laps,
+						LapTime: time.Duration(rand.Intn(10000)) * time.Millisecond,
+					},
 				},
-				Lap: state.Lap{
-					LapNumber: laps,
-					RaceTimer: state.RaceTimer(time.Now().Sub(start)),
-					LapTime:   state.LapTime(time.Duration(rand.Intn(10000)) * time.Millisecond),
-				},
-				TriggerValue: state.TriggerValue(uint8(rand.Int31())),
-				Ontrack:      true,
 			}
 
 		}

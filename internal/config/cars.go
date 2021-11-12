@@ -3,7 +3,7 @@ package config
 import (
 	"errors"
 	"github.com/mitchellh/mapstructure"
-	"github.com/qvistgaard/openrms/internal/config/context"
+	"github.com/qvistgaard/openrms/internal/config/application"
 	"github.com/qvistgaard/openrms/internal/plugins/car/config"
 )
 
@@ -13,7 +13,7 @@ type CarsConfig struct {
 	}
 }
 
-func CreateCarRepository(ctx *context.Context) error {
+func CreateCarRepository(ctx *application.Context) error {
 	c := &CarsConfig{}
 	err := mapstructure.Decode(ctx.Config, c)
 	if err != nil {

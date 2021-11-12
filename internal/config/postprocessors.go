@@ -2,9 +2,9 @@ package config
 
 import (
 	"github.com/mitchellh/mapstructure"
-	"github.com/qvistgaard/openrms/internal/config/context"
+	"github.com/qvistgaard/openrms/internal/config/application"
 	"github.com/qvistgaard/openrms/internal/plugins/postprocessors/influxdb"
-	"github.com/qvistgaard/openrms/internal/plugins/postprocessors/webserver"
+	"github.com/qvistgaard/openrms/internal/plugins/postprocessors/leaderboard"
 	"github.com/qvistgaard/openrms/internal/postprocess"
 )
 
@@ -12,7 +12,7 @@ type PostProcessorConfig struct {
 	Postprocessors map[string]interface{}
 }
 
-func CreatePostProcessors(context *context.Context) error {
+func CreatePostProcessors(context *application.Context) error {
 	c := &PostProcessorConfig{}
 	err := mapstructure.Decode(context.Config, c)
 
@@ -30,13 +30,12 @@ func CreatePostProcessors(context *context.Context) error {
 			}
 			postprocessors = append(postprocessors, p)
 			go p.Process()
-		case "webserver":
-			ws, err := webserver.CreateFromConfig(context)
+		case "leaderboard":
+			lb, err := leaderboard.CreateFromConfig(context)
 			if err != nil {
 				return err
 			}
-			postprocessors = append(postprocessors, ws)
-			go ws.Process()
+			postprocessors = append(postprocessors, lb)
 		}
 	}
 	context.Postprocessors = postprocess.CreatePostProcess(postprocessors)

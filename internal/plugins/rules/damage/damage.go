@@ -3,6 +3,7 @@ package damage
 import (
 	"github.com/qvistgaard/openrms/internal/plugins/rules/limbmode"
 	"github.com/qvistgaard/openrms/internal/state"
+	"github.com/qvistgaard/openrms/internal/state/rx/car"
 )
 
 const CarDamage = "damage"
@@ -40,9 +41,9 @@ func (r *Rule) InitializeCarState(car *state.Car) {
 	}
 }
 
-func (r *Rule) HandlePitStop(car *state.Car, cancel <-chan bool) bool {
+func (r *Rule) HandlePitStop(car *car.Car, cancel <-chan bool) bool {
 	// TODO: Handle pit stop correctly locking the car for a certain duration of time
-	car.Set(CarDamage, Damage(0))
+	/*	car.Set(CarDamage, Damage(0))*/
 	return true
 }
 

@@ -1,6 +1,6 @@
 package state
 
-type Repository interface {
+/*type Repository interface {
 	Get(n string) StateInterface
 	Create(n string, v interface{})
 	All() map[string]StateInterface
@@ -62,3 +62,4 @@ func (r *InMemoryRepository) Changes() map[string]StateInterface {
 	}
 	return changes
 }
+*/

@@ -1,5 +1,6 @@
 package state
 
+/*
 import (
 	"github.com/faiface/beep"
 	"github.com/faiface/beep/mp3"
@@ -47,3 +48,4 @@ func Test(t *testing.T) {
 
 	<-done
 }
+*/

@@ -1,6 +1,53 @@
 package postprocess
 
 import (
+	ctx "context"
+	"github.com/qvistgaard/openrms/internal/types/reactive"
+	"github.com/reactivex/rxgo/v2"
+	"sync"
+)
+
+type PostProcessor interface {
+	Configure(observable rxgo.Observable)
+}
+
+type PostProcess struct {
+	postProcessors []PostProcessor
+	waitGroup      sync.WaitGroup
+	channel        chan rxgo.Item
+	observable     rxgo.Observable
+}
+
+func CreatePostProcess(postProcessors []PostProcessor) *PostProcess {
+	channel := make(chan rxgo.Item)
+
+	process := &PostProcess{
+		postProcessors: postProcessors,
+		channel:        channel,
+		waitGroup:      sync.WaitGroup{},
+		observable:     rxgo.FromChannel(channel, rxgo.WithPublishStrategy()),
+	}
+
+	for _, pp := range postProcessors {
+		pp.Configure(process.observable)
+	}
+	return process
+}
+
+func (p *PostProcess) ValuePostProcessor() reactive.ValuePostProcessor {
+	return func(observable rxgo.Observable) {
+		observable.DoOnNext(func(i interface{}) {
+			p.channel <- rxgo.Of(i)
+		})
+	}
+}
+
+func (p *PostProcess) Init(context ctx.Context) {
+	p.observable.Connect(context)
+}
+
+/*
+import (
 	"github.com/qvistgaard/openrms/internal/state"
 	"sync"
 )
@@ -8,7 +55,7 @@ import (
 type PostProcessor interface {
 	CarChannel() chan<- state.CarState
 	RaceChannel() chan<- state.CourseState
-	Process()
+	RunServer()
 }
 
 type CommandEmitter interface {
@@ -50,3 +97,4 @@ func (p *PostProcess) PostProcessRace(changes state.CourseState) {
 		pp.RaceChannel() <- changes
 	}
 }
+*/

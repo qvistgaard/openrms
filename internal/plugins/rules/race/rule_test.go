@@ -1,7 +1,7 @@
 package race
 
 import (
-	"github.com/qvistgaard/openrms/internal/config/context"
+	"github.com/qvistgaard/openrms/internal/config/application"
 	"github.com/qvistgaard/openrms/internal/state"
 	log "github.com/sirupsen/logrus"
 	"testing"
@@ -10,7 +10,7 @@ import (
 
 func TestRule_Notify(t *testing.T) {
 	log.SetLevel(log.DebugLevel)
-	ctx := &context.Context{
+	ctx := &application.Context{
 		Rules: state.CreateRuleList(),
 	}
 	ctx.Rules.Append(&Rule{

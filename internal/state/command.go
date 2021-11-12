@@ -1,5 +1,6 @@
 package state
 
+/*
 type CarCommand struct {
 	CarId CarId
 	Name  string
@@ -10,3 +11,4 @@ type CourseCommand struct {
 	Name  string
 	Value interface{}
 }
+*/
