@@ -3,7 +3,7 @@ package fuel
 import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/qmuntal/stateless"
-	"github.com/qvistgaard/openrms/internal/postprocess"
+	"github.com/qvistgaard/openrms/internal/state/rx/rules"
 	"github.com/qvistgaard/openrms/internal/types"
 	"github.com/qvistgaard/openrms/internal/types/reactive"
 	log "github.com/sirupsen/logrus"
@@ -16,7 +16,7 @@ type Config struct {
 	FlowRate     *types.LiterPerSecond `mapstructure:"flow-rate"`
 }
 
-func Create(config map[string]interface{}, postprocessors *postprocess.PostProcess) *Consumption {
+func Create(config map[string]interface{}, rules rules.Rules) *Consumption {
 	c := &Config{}
 	err := mapstructure.Decode(config, c)
 	if err != nil {
@@ -24,11 +24,11 @@ func Create(config map[string]interface{}, postprocessors *postprocess.PostProce
 	}
 
 	consumption := &Consumption{
-		fuel:          make(map[types.Id]*reactive.Liter),
-		state:         make(map[types.Id]*stateless.StateMachine),
-		consumed:      map[types.Id]*reactive.LiterSubtractModifier{},
-		config:        c,
-		postprocessor: postprocessors,
+		fuel:     make(map[types.Id]*reactive.Liter),
+		state:    make(map[types.Id]*stateless.StateMachine),
+		consumed: map[types.Id]*reactive.LiterSubtractModifier{},
+		config:   c,
+		rules:    rules,
 	}
 	return consumption
 }

@@ -58,6 +58,11 @@ func main() {
 		log.Fatal(err)
 	}
 
+	err = config.ConfigureRace(c)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	if *flagBrowser {
 		browser.OpenURL("http://localhost:8080")
 	}

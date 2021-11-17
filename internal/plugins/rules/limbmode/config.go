@@ -2,28 +2,51 @@ package limbmode
 
 import (
 	"github.com/mitchellh/mapstructure"
-	"github.com/qvistgaard/openrms/internal/state"
+	"github.com/qvistgaard/openrms/internal/config/application"
+	"github.com/qvistgaard/openrms/internal/types"
+	"github.com/qvistgaard/openrms/internal/types/reactive"
 	log "github.com/sirupsen/logrus"
 )
 
-type Config struct {
-	MaxSpeed *state.Speed `mapstructure:"max-speed"`
+type LimbModeConfig struct {
+	MaxSpeed *types.Percent `mapstructure:"max-speed"`
 }
 
-func CreateFromConfig(config map[string]interface{}) *LimbMode {
-	c := &Config{}
-	err := mapstructure.Decode(config, c)
+type CarSettings struct {
+	Id       *types.Id       `mapstructure:"id"`
+	LimbMode *LimbModeConfig `mapstructure:"limb-mode"`
+}
+
+type Config struct {
+	Car struct {
+		Defaults *CarSettings   `mapstructure:"defaults"`
+		Cars     []*CarSettings `mapstructure:"cars"`
+	}
+}
+
+func CreateFromConfig(applicationConfig *application.Config) *LimbMode {
+	config := &Config{}
+
+	err := mapstructure.Decode(applicationConfig, config)
 	if err != nil {
 		log.Error(err)
 	}
-	if c.MaxSpeed == nil {
-		speed := state.Speed(40)
-		return &LimbMode{
-			MaxSpeed: &speed,
+
+	carConfig := map[types.Id]*LimbModeConfig{}
+	for _, v := range config.Car.Cars {
+		if v.LimbMode == nil {
+			v.LimbMode = &LimbModeConfig{}
 		}
-	}
-	return &LimbMode{
-		MaxSpeed: c.MaxSpeed,
+		if v.LimbMode.MaxSpeed == nil {
+			v.LimbMode.MaxSpeed = config.Car.Defaults.LimbMode.MaxSpeed
+		}
+		carConfig[*v.Id] = v.LimbMode
 	}
 
+	return &LimbMode{
+		defaults:      config.Car.Defaults.LimbMode,
+		config:        carConfig,
+		state:         map[types.Id]*reactive.Boolean{},
+		speedModifier: map[types.Id]*reactive.PercentAbsoluteModifier{},
+	}
 }

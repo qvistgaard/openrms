@@ -1,13 +1,21 @@
+# Configure logging level and files
+# TODO: check if this is actually working
 logging:
+  # Details of logging output. Possible values are error, warn, info, debug or trace
   level: trace
+  # Where should openrms write the log file
   file: openrmsd.log
 
+# Most likely deprected
+# TODO: find out if this is referenced anywhere
 websocket:
   enabled: true
   port: 8080
 
+
 implement:
   plugin: oxigen
+
   oxigen:
     port: COM6
 
@@ -15,27 +23,83 @@ implement:
     cars: 1
     interval: 1000
 
+# configure the track, this will define of openrms & oxigen
+# handles lap counting, pitting etc.
 track:
+  # General max speed in percentage
+  # format: percentage
+  # type: integer
+  # allowed range: 0-100
   max-speed: 100
+
+  # Track length is used to calculate average speed of the cars
+  # format: meter
+  # type: float
   length: 19
+
+  # Pit lane behaviour
   pit-lane:
     lap-counting:
+      # Enable lap counting when entering or exiting the pit lane
       enabled: true
+      # Count lap on entry or exit
+      # type: boolean
+      # format: if true count on entry, if false count on exit
       on-entry: true
 
+# Car behaviour
 car:
   plugin: config
+
+  # Default car behavior
+  # All default values can be mapped to individual
+  # cars in the car specific configuration section
+  # TODO: check if default values are used
   defaults:
+
+    # Default maximum speed of cars
+    # format: percentage
+    # type: integer
+    # allowed range: 0-100
     max-speed: 100
+
+    # Default minimum speed of cars
+    # this defines the minimum speed of cars, this can be used to create
+    # ghost cars, for example setting this value to 20 will cause all cars
+    # to constantly drive at 20% power. the car can still be operated with
+    # the controller but the power will never go below 20%
+    #
+    # format: percentage
+    # type: integer
+    # allowed range: 0-100
     min-speed: 0
+
+    # Default fuel tank size
+    # format: liter
+    # type: integer
+    # allowed range: 0 - max int
     fuel: 75
-    pit:
+
+    pit-lane:
+      # Default maximum pit lane speed of cars
+      # format: percentage
+      # type: integer
+      # allowed range: 0-100
       max-speed: 20
+
     limb-mode:
-      max-speed: 75
+      # Default maximum speed of cars when in limb mode
+      # Cars can enter limb mode, when it runs out of fuel get damage etc.
+      # when a car enter limb mode it must enter the pit and complete a pit
+      # stop to disable this state. limb mode can also force the car in to
+      # be marked as "did not finish"
+      # format: percentage
+      # type: integer
+      # allowed range: 0-100
+      max-speed: 20
   cars:
     - id: 3
-      max-speed: 75
+      max-speed: 100
       driver:
         name: Hans Hansen
   #  - id: 1
@@ -62,14 +126,14 @@ rules:
   - plugin: fuel
     enabled: true
     # Default car fuel in liter
-    fuel: 75
-    burn-rate: 0.033
-    # flow-rate: 11.3
+    fuel: 75 # TODO: remove and use default configuration section
+    burn-rate: 0.033  # TODO: remove and use default configuration section
+    # flow-rate: 11.3  # TODO: remove and use default configuration section
 
   - plugin: limb-mode
-    enabled: false
+    enabled: true
     # Default car limb mode speed (0-255)
-    max-speed: 60
+    max-speed: 60 # TODO: remove and use default configuration section
 
   - plugin: pit
     enabled: true
@@ -80,17 +144,18 @@ rules:
 #  - plugin: tirewear
 #    enabled: true
 
-  - plugin: leaderboard
-    enabled: false
-
+# Configure how the webserver works
 webserver:
+  # Port for the webserver to listen on
   listen: ":8080"
+
 
 postprocessors:
   influxdb:
-    url: "http://192.168.37.171:8086"
+    url: "http://localhost:8086"
     batch-size: 100
     auth-token: "445DAYLEv4M17iT6nzeSbJ3TRVJQ7fJnNF7v1u8ItuaiE3Ou5nBcG9u0XRedw77tizKnT2rbGxm7KtFHDqYeqQ=="
     organization: openrms
     bucket: openrms
+
   leaderboard: {}

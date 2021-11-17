@@ -51,7 +51,17 @@ func (r *Runner) processEvents() {
 
 	background := context.Background()
 	r.context.Postprocessors.Init(background)
-	r.context.Implement.Init(background, r.context.Postprocessors.ValuePostProcessor())
+	r.context.Track.Init(background, r.context.Postprocessors.ValuePostProcessor())
+
+	for _, rule := range r.context.Rules.RaceRules() {
+		rule.ConfigureRaceState(r.context.Race)
+	}
+	for _, rule := range r.context.Rules.RaceRules() {
+		rule.InitializeRaceState(r.context.Race, background, r.context.Postprocessors.ValuePostProcessor())
+	}
+
+	r.context.Race.Init(background, r.context.Postprocessors.ValuePostProcessor())
+
 	channel := r.context.Implement.EventChannel()
 	for {
 		select {
@@ -62,6 +72,7 @@ func (r *Runner) processEvents() {
 					c.UpdateFromEvent(e)
 				}
 			}
+			r.context.Race.RaceTimer().Set(e.RaceTimer)
 			log.Tracef("processing time: %s", time.Now().Sub(start))
 		}
 	}

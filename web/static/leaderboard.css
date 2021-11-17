@@ -1,0 +1,161 @@
+body {
+    font-family: 'Roboto Condensed';
+    background-color: #0E0E0E;
+    color: #FDFDFD;
+    margin-left: 20px;
+    margin-right: 20px;
+
+}
+
+header {
+    margin-top: 20px;
+}
+
+div.container {
+    max-width: 100%;
+    width: 100%;
+}
+
+button {
+    color: #FDFDFD;
+    border: 1px solid #FDFDFD;
+}
+
+button.stop {
+    background: #B10808;
+}
+button.start {
+    background: #359425;
+}
+button.pause {
+    background: goldenrod;
+}
+
+
+
+.race-status {
+    font-size: 20pt;
+    text-align: right;
+}
+
+.race-status span.running{
+    background: #359425;
+    margin-left: 5px;
+    margin-right: 5px;
+}
+
+.race-status span.stopped{
+    background: #B10808;
+    margin-left: 5px;
+    margin-right: 5px;
+}
+
+.race-status span.paused{
+    background: orange;
+    margin-left: 5px;
+    margin-right: 5px;
+}
+
+table.leaderboard {
+    border-spacing: 0px;
+}
+table.leaderboard th {
+    padding: 5px 25px;
+
+}
+table.leaderboard td {
+    font-size: 18pt;
+}
+
+table.leaderboard thead tr {
+    background-color: #202020;
+    border-bottom: 3px solid #202020;
+    border-right: 3px solid #202020;
+}
+
+
+table.leaderboard td,
+table.leaderboard th {
+    text-align: center;
+}
+
+table.leaderboard td {
+    font-weight: bold;
+    padding: 5px 20px;
+}
+
+table.leaderboard th {
+    padding: 0px;
+}
+
+table tbody tr:nth-child(even),
+table tbody tr:nth-child(even) td {
+    background-color: #202020;
+    border-bottom: 2px solid #202020;
+    border-right: 2px solid #202020;
+}
+table tbody tr:nth-child(odd),
+table tbody tr:nth-child(odd) td {
+    background-color: #1D1D1D;
+    border-bottom: 2px solid #1D1D1D;
+    border-right: 2px solid #1D1D1D;
+}
+
+
+/* Position column */
+
+table.leaderboard tr td.position {
+    background-color: #FF0000;
+    color: #ffffff;
+}
+
+/* Name Column */
+table.leaderboard tr th.name {
+
+}
+table.leaderboard tr td.name {
+    text-align: left;
+    width: 100%;
+}
+table.leaderboard tr td:nth-child(2).deslotted {
+    background-color: #B10808;
+}
+
+/* Pit column */
+
+table.leaderboard tr td.pit {
+    font-size: small;
+    padding: 2px;
+    margin: 0px;
+}
+
+/* fuel column */
+table.leaderboard tr td.fuel {
+    width: 70px;
+    white-space: nowrap;
+}
+
+table.leaderboard tr td.pit.active {
+    background-color: #ffffff;
+    color: #000000;
+}
+
+/* Car number column */
+table.leaderboard tr th.car-id {
+    /*width: 30px;*/
+}
+table.leaderboard tr td.car-id {
+    background-color: #ffffff;
+    color: #000000;
+}
+
+/* Lap Column */
+table.leaderboard tr th:nth-child(5) {
+}
+
+.slow {
+    color: #C40404;
+}
+.fast {
+    color: #75DB60;
+}

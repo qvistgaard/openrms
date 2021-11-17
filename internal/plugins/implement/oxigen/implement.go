@@ -86,7 +86,7 @@ func (o *Oxigen) Track() implement.TrackImplementer {
 }
 
 func (o *Oxigen) Race() implement.RaceImplementer {
-	return NewRace()
+	return o.race
 }
 
 func (o *Oxigen) Init(ctx context.Context, processor reactive.ValuePostProcessor) {
@@ -125,7 +125,8 @@ func (o *Oxigen) EventLoop() error {
 }
 
 func (o *Oxigen) sendCarCommand(car *uint8, code byte, value uint8) {
-	o.commands <- newCommand(car, code, value)
+	command := newCommand(car, code, value)
+	o.commands <- command
 }
 
 func (o *Oxigen) sendCommand() {
@@ -161,7 +162,7 @@ func (o *Oxigen) keepAlive() {
 	}()
 	for {
 		select {
-		case <-time.After(100 * time.Millisecond):
+		case <-time.After(1000 * time.Millisecond):
 			if len(o.commands) == 0 {
 				o.commands <- newEmptyCommand()
 				log.Trace("oxigen: sent keep-alive")
@@ -208,8 +209,10 @@ func (o *Oxigen) command(c Command, timer []byte) []byte {
 	parameter = c.value
 	if c.id != nil {
 		controller = *c.id
+		cmd = 0x80 | cmd
 	} else {
 		controller = 0x00
+		cmd = 0x00 | cmd
 	}
 
 	return []byte{

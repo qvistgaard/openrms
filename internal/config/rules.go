@@ -5,8 +5,10 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/qvistgaard/openrms/internal/config/application"
 	"github.com/qvistgaard/openrms/internal/plugins/rules/fuel"
+	"github.com/qvistgaard/openrms/internal/plugins/rules/limbmode"
 	"github.com/qvistgaard/openrms/internal/plugins/rules/pit"
 	"github.com/qvistgaard/openrms/internal/state/rx/rules"
+	log "github.com/sirupsen/logrus"
 )
 
 type RuleConfig struct {
@@ -37,14 +39,18 @@ func CreateRules(ctx *application.Context) error {
 		if r.Enabled {
 			switch r.Plugin {
 			case "fuel":
-				ctx.Rules.Append(fuel.Create(rm.Rules[k], ctx.Postprocessors))
-				/*
-					case "limb-mode":
-						ctx.Rules.Append(limbmode.CreateFromConfig(rm.Rules[k]))
-					case "damage":
-						ctx.Rules.Append(&damage.Rule{})*/
+				ctx.Rules.Append(fuel.Create(rm.Rules[k], ctx.Rules))
+				log.Info("fuel plugin loaded")
+
+			case "limb-mode":
+				ctx.Rules.Append(limbmode.CreateFromConfig(ctx.Config))
+				log.Info("limb-mode plugin loaded")
+
+				/*					case "damage":
+									ctx.Rules.Append(&damage.Rule{})*/
 			case "pit":
 				ctx.Rules.Append(pit.CreatePitRule(ctx.Rules))
+				log.Info("pit plugin loaded")
 				/*			case "tirewear":
 								ctx.Rules.Append(&tirewear.Rule{})
 							case "leaderboard":

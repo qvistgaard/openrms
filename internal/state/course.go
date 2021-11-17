@@ -25,7 +25,7 @@ type CourseConfig struct {
 	Course struct {
 		MaxSpeed uint8 `mapstructure:"max-speed"`
 		Length   int
-		PitLane  struct {
+		MaxSpeed  struct {
 			LapCounting struct {
 				Enabled bool `mapstructure:"enabled"`
 				OnEntry bool `mapstructure:"on-entry"`
@@ -38,8 +38,8 @@ func CreateCourse(config *CourseConfig) *Course {
 	course := new(Course)
 	course.state = CreateInMemoryRepository(course)
 
-	course.state.Create(PitlaneLapCounting, config.Course.PitLane.LapCounting.Enabled)
-	course.state.Create(PitlaneLapCountingOnEntry, config.Course.PitLane.LapCounting.OnEntry)
+	course.state.Create(PitlaneLapCounting, config.Course.MaxSpeed.LapCounting.Enabled)
+	course.state.Create(PitlaneLapCountingOnEntry, config.Course.MaxSpeed.LapCounting.OnEntry)
 	course.state.Create(CourseLength, config.Course.Length)
 	course.state.Create(CourseMaxSpeed, Speed(config.Course.MaxSpeed))
 	course.state.Create(RaceStatus, RaceStatusStopped)

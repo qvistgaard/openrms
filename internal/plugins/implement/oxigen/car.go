@@ -3,6 +3,7 @@ package oxigen
 import (
 	"github.com/qvistgaard/openrms/internal/implement"
 	"github.com/qvistgaard/openrms/internal/types"
+	log "github.com/sirupsen/logrus"
 )
 
 // Leaving for later when implementing lane change limitations.
@@ -14,9 +15,9 @@ const (
 )
 
 const (
-	carMaxSpeedCode     = 0x82
-	carPitLaneSpeedCode = 0x81
-	carMinSpeedCode     = 0x03
+	carMaxSpeedCode     = 0x02 // 0x82
+	carPitLaneSpeedCode = 0x01 // 0x81
+	carMinSpeedCode     = 0x03 //
 	carMaxBreakingCode  = 0x05
 )
 
@@ -30,17 +31,34 @@ type Car struct {
 }
 
 func (c *Car) MaxBreaking(percent types.Percent) {
+	log.WithField("implement", "oxigen").
+		WithField("car", *c.id).
+		WithField("max-breaking", percent).
+		Debug("set car max breaking")
 	c.oxigen.sendCarCommand(c.id, carMaxBreakingCode, percent.Uint8())
 }
 
 func (c *Car) MinSpeed(percent types.Percent) {
+	log.WithField("implement", "oxigen").
+		WithField("car", *c.id).
+		WithField("min-speed", percent).
+		Debug("set car min speed")
 	c.oxigen.sendCarCommand(c.id, carMinSpeedCode, percent.Uint8())
 }
 
 func (c *Car) MaxSpeed(percent types.Percent) {
+	log.WithField("implement", "oxigen").
+		WithField("car", *c.id).
+		WithField("max-speed", percent).
+		WithField("max-speed-uint", percent.Uint8()).
+		Debug("set car max speed")
 	c.oxigen.sendCarCommand(c.id, carMaxSpeedCode, percent.Uint8())
 }
 
 func (c *Car) PitLaneMaxSpeed(percent types.Percent) {
+	log.WithField("implement", "oxigen").
+		WithField("car", *c.id).
+		WithField("max-speed", percent).
+		Debug("set car pit lane max speed")
 	c.oxigen.sendCarCommand(c.id, carPitLaneSpeedCode, percent.Uint8())
 }
