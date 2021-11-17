@@ -4,7 +4,9 @@ import (
 	"github.com/qvistgaard/openrms/internal/implement"
 	"github.com/qvistgaard/openrms/internal/postprocess"
 	"github.com/qvistgaard/openrms/internal/repostitory/car"
+	"github.com/qvistgaard/openrms/internal/state/rx/race"
 	"github.com/qvistgaard/openrms/internal/state/rx/rules"
+	"github.com/qvistgaard/openrms/internal/state/rx/track"
 	"github.com/qvistgaard/openrms/internal/webserver"
 )
 
@@ -16,6 +18,8 @@ type Context struct {
 	Rules          rules.Rules
 	Postprocessors *postprocess.PostProcess
 	Webserver      webserver.WebServer
+	Track          *track.Track
+	Race           *race.Race
 
 	/*	Postprocessors postprocess.PostProcess
 		Course         *state.Course*/

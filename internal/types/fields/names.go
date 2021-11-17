@@ -6,4 +6,7 @@ const (
 	InPit     = "in-pit"
 	Fuel      = "fuel"
 	Deslotted = "deslotted"
+
+	RaceStatus = "race-status"
+	RaceTimer  = "race-timer"
 )

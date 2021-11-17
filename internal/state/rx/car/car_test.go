@@ -9,7 +9,7 @@ import (
 
 func TestCarCanBeCreatedAndChangedByReference(t *testing.T) {
 
-	car := NewCar(nil, nil, nil)
+	car := NewCar(nil, nil, nil, nil)
 	car.Pit().RegisterObserver(func(observable rxgo.Observable) {
 		observable.DoOnNext(func(i interface{}) {
 			log.Infof("i: %+v", i)

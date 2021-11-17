@@ -6,12 +6,25 @@ import (
 	"github.com/reactivex/rxgo/v2"
 	log "github.com/sirupsen/logrus"
 	"reflect"
+	"sort"
 	"sync"
 	"time"
 )
 
+type Condition int
+
+const (
+	NoCondition Condition = iota
+	IfLessThen
+	IfGreaterThen
+)
+
 type ValuePostProcessor func(observable rxgo.Observable)
-type ValueModifierFunc func(interface{}) interface{}
+type ValueModifierFunc func(interface{}) (interface{}, bool)
+type ValueModifier struct {
+	Func     ValueModifierFunc
+	Priority int
+}
 
 type Owner struct {
 	Type string
@@ -27,22 +40,34 @@ type Value struct {
 	Annotations Annotations
 	lock        *sync.Mutex
 	locked      bool
-	modifiers   []ValueModifierFunc
+	modifiers   []*ValueModifier
 }
 
 func (r *Value) RegisterObserver(observer func(rxgo.Observable)) {
 	observer(r.observable)
 }
 
-func (r *Value) Modifier(modifier ValueModifierFunc) {
-	// modifier.register(r)
-	r.modifiers = append(r.modifiers, modifier)
+func (r *Value) Modifier(modifier ValueModifierFunc, priority int) {
+	r.modifiers = append(r.modifiers, &ValueModifier{
+		Func:     modifier,
+		Priority: priority,
+	})
+
+	sort.Slice(r.modifiers, func(i, j int) bool {
+		if r.modifiers[i].Priority > r.modifiers[j].Priority {
+			return true
+		} else {
+			return false
+		}
+	})
 }
 
 func (r *Value) Update() error {
 	r.value = r.baseValue
 	for _, modifier := range r.modifiers {
-		r.value = modifier(r.value)
+		if v, enabled := modifier.Func(r.value); enabled {
+			r.value = v
+		}
 	}
 	r.channel <- rxgo.Of(r.value)
 	return nil

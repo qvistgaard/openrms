@@ -1,7 +1,13 @@
 package fuel
 
 import (
+	ctx "context"
+	"github.com/qmuntal/stateless"
+	"github.com/qvistgaard/openrms/internal/postprocess"
+	"github.com/qvistgaard/openrms/internal/state/rx/car"
 	"github.com/qvistgaard/openrms/internal/types"
+	"github.com/qvistgaard/openrms/internal/types/reactive"
+	"github.com/reactivex/rxgo/v2"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -27,5 +33,24 @@ func TestRefuelFuelCalculation(t *testing.T) {
 	f3, full3 := calculateRefuellingValue(5, 10)
 	assert.True(t, full3)
 	assert.Equal(t, types.Liter(0), f3)
+
+}
+
+func TestInternalTransitionNotFailing(t *testing.T) {
+	process := postprocess.CreatePostProcess([]postprocess.PostProcessor{})
+	c := Consumption{
+		fuel:          make(map[types.Id]*reactive.Liter),
+		state:         make(map[types.Id]*stateless.StateMachine),
+		consumed:      map[types.Id]*reactive.LiterSubtractModifier{},
+		config:        nil,
+		postprocessor: process,
+	}
+	car := car.NewCar(nil, nil, nil, nil)
+	car.Init(ctx.Background(), func(observable rxgo.Observable) {
+
+	})
+	c.ConfigureCarState(car, nil)
+	car.Deslotted().Set(true)
+	car.Controller().TriggerValue().Set(10)
 
 }

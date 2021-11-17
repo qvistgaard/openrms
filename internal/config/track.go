@@ -3,38 +3,21 @@ package config
 import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/qvistgaard/openrms/internal/config/application"
-	"github.com/qvistgaard/openrms/internal/implement"
-	"github.com/qvistgaard/openrms/internal/types"
+	"github.com/qvistgaard/openrms/internal/state/rx/race"
 )
 
-type TrackConfig struct {
-	Track struct {
-		MaxSpeed types.Percent `mapstructure:"max-speed"`
-		PitLane  struct {
-			LapCounting struct {
-				Enabled bool
-				OnEntry bool `mapstructure:"on-entry"`
-			} `mapstructure:"lap-counting"`
-		} `mapstructure:"pit-lane"`
-	}
+type RaceConfig struct {
 }
 
-func ConfigureTrack(ctx *application.Context) error {
-	c := &TrackConfig{}
+func ConfigureRace(ctx *application.Context) error {
+	c := &RaceConfig{}
 
 	err := mapstructure.Decode(ctx.Config, c)
 	if err != nil {
 		return nil
 	}
 
-	var o implement.PitLaneLapCounting
-	if c.Track.PitLane.LapCounting.OnEntry {
-		o = implement.LapCountingOnEntry
-	} else {
-		o = implement.LapCountingOnExit
-	}
-	ctx.Implement.Track().PitLane().LapCounting(c.Track.PitLane.LapCounting.Enabled, o)
-	ctx.Implement.Track().MaxSpeed(c.Track.MaxSpeed)
+	ctx.Race = race.NewRace(ctx.Implement)
 
 	return nil
 }

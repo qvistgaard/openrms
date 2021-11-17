@@ -24,7 +24,7 @@ func NewServer(listen string, context *application.Context) *Server {
 		register:   make(chan *Client),
 		unregister: make(chan *Client),
 		listen:     listen,
-		events:     make(chan webserver.Event),
+		events:     make(chan webserver.Event, 100),
 		context:    context,
 	}
 }

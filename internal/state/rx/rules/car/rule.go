@@ -1,7 +1,12 @@
 package car
 
-import "github.com/qvistgaard/openrms/internal/state/rx/car"
+import (
+	"context"
+	"github.com/qvistgaard/openrms/internal/state/rx/car"
+	"github.com/qvistgaard/openrms/internal/types/reactive"
+)
 
 type Rule interface {
-	InitializeCarState(car *car.Car)
+	ConfigureCarState(*car.Car)
+	InitializeCarState(*car.Car, context.Context, reactive.ValuePostProcessor)
 }

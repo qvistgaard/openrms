@@ -1,11 +1,19 @@
 const store = Vuex.createStore({
     state: {
         leaderboard: [],
+        raceStatus: 0,
+        raceTimer: 0,
         connection: "disconnected"
     },
     getters: {
         getLeaderboard: state => () => {
             return state.leaderboard
+        },
+        getRaceTimer: state => () => {
+            return state.raceTimer
+        },
+        getRaceStatus: state => () => {
+            return state.raceStatus
         },
         connection: state => () => {
             return state.connection
@@ -14,11 +22,12 @@ const store = Vuex.createStore({
     mutations: {
         updateLeaderBoard(state, v){
             console.log(v)
-            state.leaderboard = v.content
+            state.leaderboard = v.content.Leaderboard
+            state.raceStatus = v.content.RaceStatus
+            state.raceTimer = v.content.RaceTimer
             console.log(state.leaderboard)
         },
         connectionState(state, v){
-            console.log(v)
             state.connection = v
         }
     }
@@ -31,9 +40,23 @@ const app = Vue.createApp({
     store,
 
     computed: {
+        racetimer: function () {
+            return moment.duration(this.$store.getters.getRaceTimer() / 1000 / 1000).asSeconds()
+        },
+        racestate: function () {
+            let s = this.$store.getters.getRaceStatus()
+            if (s === 0)  {
+                return "Stopped"
+            }
+            if (s === 1)  {
+                return "Paused"
+            }
+            if (s === 2)  {
+                return "Running"
+            }
+            return "Unknown"
+        },
         leaderboard: function(){
-            console.log("RELOAD")
-
             return this.$store.getters.getLeaderboard()
               .map(x =>  {
                   let v = moment.duration(x["last"] / 1000 / 1000).asSeconds()
@@ -62,6 +85,18 @@ const app = Vue.createApp({
                   return x
               })
         },
+    },
+
+    methods: {
+        start: function () {
+            fetch("http://"+location.host+"/v1/race/start", { method: 'POST' })
+        },
+        stop: function () {
+            fetch("http://"+location.host+"/v1/race/stop", { method: 'POST' })
+        },
+        pause: function () {
+            fetch("http://"+location.host+"/v1/race/pause", { method: 'POST' })
+        }
     },
 
     mounted: function (){

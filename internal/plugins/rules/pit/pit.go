@@ -1,12 +1,12 @@
 package pit
 
 import (
-	ctx "context"
-	"fmt"
+	"context"
 	"github.com/qmuntal/stateless"
 	"github.com/qvistgaard/openrms/internal/state/rx/car"
 	"github.com/qvistgaard/openrms/internal/state/rx/rules"
 	"github.com/qvistgaard/openrms/internal/types"
+	"github.com/qvistgaard/openrms/internal/types/reactive"
 	"github.com/reactivex/rxgo/v2"
 	log "github.com/sirupsen/logrus"
 	"time"
@@ -33,7 +33,7 @@ const (
 
 type Rule struct {
 	rules            rules.Rules
-	speed            map[types.Id]types.Percent
+	speed            map[types.Id]*reactive.PercentSubtractModifier
 	stops            map[types.Id]chan bool
 	carState         map[types.Id]*stateless.StateMachine
 	handlerCompleted map[types.Id]bool
@@ -45,20 +45,25 @@ func CreatePitRule(rules rules.Rules) *Rule {
 	p := new(Rule)
 	p.rules = rules
 	p.stops = make(map[types.Id]chan bool)
-	p.speed = make(map[types.Id]types.Percent)
+	p.speed = make(map[types.Id]*reactive.PercentSubtractModifier)
 	p.handlerCompleted = make(map[types.Id]bool)
 	p.carState = make(map[types.Id]*stateless.StateMachine)
 	return p
 }
 
 func (p *Rule) Priority() int {
-	return 0
+	return 9
 }
 
-func (p *Rule) InitializeCarState(c *car.Car) {
+func (p *Rule) Name() string {
+	return "pit"
+}
+
+func (p *Rule) ConfigureCarState(c *car.Car) {
 	stateMachine := p.newState(c)
 	p.carState[c.Id()] = stateMachine
 	p.handlerCompleted[c.Id()] = false
+	p.speed[c.Id()] = &reactive.PercentSubtractModifier{Subtract: 100}
 	p.stops[c.Id()] = make(chan bool, 10)
 
 	c.Pit().RegisterObserver(func(observable rxgo.Observable) {
@@ -100,7 +105,11 @@ func (p *Rule) InitializeCarState(c *car.Car) {
 	})
 }
 
-func alwaysIgnoreTrigger(ctx.Context, ...interface{}) bool {
+func (p *Rule) InitializeCarState(*car.Car, context.Context, reactive.ValuePostProcessor) {
+
+}
+
+func alwaysIgnoreTrigger(context.Context, ...interface{}) bool {
 	return true
 }
 
@@ -109,14 +118,14 @@ func logPitStateChange(car *car.Car, state string, logline string) {
 }
 
 func logPitStateChangeAction(car *car.Car, state string, logline string) stateless.ActionFunc {
-	return func(ctx ctx.Context, args ...interface{}) error {
+	return func(ctx context.Context, args ...interface{}) error {
 		logPitStateChange(car, state, logline)
 		return nil
 	}
 }
 
 func cancelPitStopAutoConfirmation(cancel chan bool) stateless.ActionFunc {
-	return func(ctx ctx.Context, args ...interface{}) error {
+	return func(ctx context.Context, args ...interface{}) error {
 		if len(cancel) == 0 {
 			cancel <- true
 		}
@@ -125,7 +134,7 @@ func cancelPitStopAutoConfirmation(cancel chan bool) stateless.ActionFunc {
 }
 
 func (p *Rule) pitStopActivationHandlerAction(car *car.Car, machine *stateless.StateMachine, cancel chan bool) stateless.ActionFunc {
-	return func(ctx ctx.Context, args ...interface{}) error {
+	return func(ctx context.Context, args ...interface{}) error {
 		if !p.handlerCompleted[car.Id()] {
 			go pitStopActivationHandler(car, machine, cancel)
 		}
@@ -134,7 +143,7 @@ func (p *Rule) pitStopActivationHandlerAction(car *car.Car, machine *stateless.S
 }
 
 func pitStopActivationHandler(car *car.Car, machine *stateless.StateMachine, cancel chan bool) {
-	log.WithField("car", car.Id()).Info("waiting for pit stop confirmation")
+	log.WithField("car", car.Id()).Debug("waiting for pit stop confirmation")
 	select {
 	case <-time.After(5 * time.Second):
 		log.WithField("car", car.Id()).Info("pit stop automatically confirmed")
@@ -150,10 +159,9 @@ func pitStopActivationHandler(car *car.Car, machine *stateless.StateMachine, can
 func (p *Rule) newState(car *car.Car) *stateless.StateMachine {
 	cancelWait := make(chan bool, 1)
 	machine := stateless.NewStateMachineWithMode(stateCarNotInPitLane, stateless.FiringImmediate)
-
 	machine.Configure(stateCarNotInPitLane).
 		OnEntry(logPitStateChangeAction(car, stateCarNotInPitLane, "car exited pit lane")).
-		OnEntry(func(ctx ctx.Context, args ...interface{}) error {
+		OnEntry(func(ctx context.Context, args ...interface{}) error {
 			p.handlerCompleted[car.Id()] = false
 			return nil
 		}).
@@ -183,25 +191,20 @@ func (p *Rule) newState(car *car.Car) *stateless.StateMachine {
 		OnExit(cancelPitStopAutoConfirmation(cancelWait)).
 		Ignore(triggerCarStopped, alwaysIgnoreTrigger).
 		Permit(triggerCarMoving, stateCarMoving).
-		Permit(triggerCarPitStopConfirmed, stateCarPitStopActive, func(ctx ctx.Context, args ...interface{}) bool {
+		Permit(triggerCarPitStopConfirmed, stateCarPitStopActive, func(ctx context.Context, args ...interface{}) bool {
 			return !p.handlerCompleted[car.Id()]
 		}).
 		Permit(triggerCarExitedPitLane, stateCarNotInPitLane).
-		Permit(triggerCarPitStopAutoConfirmed, stateCarPitStopActive, func(ctx ctx.Context, args ...interface{}) bool {
+		Permit(triggerCarPitStopAutoConfirmed, stateCarPitStopActive, func(ctx context.Context, args ...interface{}) bool {
 			return !p.handlerCompleted[car.Id()]
 		})
 
 	machine.Configure(stateCarPitStopActive).
 		OnEntry(logPitStateChangeAction(car, stateCarPitStopActive, "entering active pit state")).
-		OnEntry(func(ctx ctx.Context, args ...interface{}) error {
-			p.speed[car.Id()] = car.MaxSpeed().Get()
-			car.MaxSpeed().Set(0)
+		OnEntry(func(ctx context.Context, args ...interface{}) error {
+			p.speed[car.Id()].Enabled = true
+			car.MaxSpeed().Update()
 			go func() {
-				defer func() {
-					if r := recover(); r != nil {
-						fmt.Println("Recovered in f", r)
-					}
-				}()
 				for _, r := range p.rules.PitRules() {
 					if !r.HandlePitStop(car, make(chan bool)) {
 						break
@@ -215,9 +218,10 @@ func (p *Rule) newState(car *car.Car) *stateless.StateMachine {
 			}()
 			return nil
 		}).
-		OnExit(func(ctx ctx.Context, args ...interface{}) error {
+		OnExit(func(ctx context.Context, args ...interface{}) error {
 			p.handlerCompleted[car.Id()] = true
-			car.MaxSpeed().Set(p.speed[car.Id()])
+			p.speed[car.Id()].Enabled = false
+			car.MaxSpeed().Update()
 			log.Info("re-enable car")
 			return nil
 		}).
