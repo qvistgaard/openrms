@@ -35,11 +35,11 @@ func CreateRules(ctx *application.Context) error {
 	}
 
 	ctx.Rules = rules.NewRuleList()
-	for k, r := range c.Rules {
+	for _, r := range c.Rules {
 		if r.Enabled {
 			switch r.Plugin {
 			case "fuel":
-				ctx.Rules.Append(fuel.Create(rm.Rules[k], ctx.Rules))
+				ctx.Rules.Append(fuel.CreateFromConfig(ctx.Config, ctx.Rules))
 				log.Info("fuel plugin loaded")
 
 			case "limb-mode":
@@ -56,7 +56,7 @@ func CreateRules(ctx *application.Context) error {
 							case "leaderboard":
 								ctx.Rules.Append(&leaderboard.Rule{})
 							case "race":
-								ctx.Rules.Append(race.Create(rm.Rules[k]))*/
+								ctx.Rules.Append(race.CreateFromConfig(rm.Rules[k]))*/
 			default:
 				return errors.New("Unknown rule: " + r.Plugin)
 			}

@@ -2,6 +2,7 @@ package fuel
 
 import (
 	"context"
+	"github.com/divideandconquer/go-merge/merge"
 	"github.com/qmuntal/stateless"
 	"github.com/qvistgaard/openrms/internal/implement"
 	"github.com/qvistgaard/openrms/internal/plugins/rules/limbmode"
@@ -29,30 +30,12 @@ const (
 	triggerUpdateFuelLevel = "updateFuelLevels"
 )
 
-const (
-	// Using Lemans fuel rules for normal petrol cars burn rate it 110kg/h
-	// that leads to 0.03 kg pr second, petrol has a weight around 775 gr / liter
-	// that means the burn it is about 0.023 l/per second scaling that by the random number
-	// Gotten from a internet forum about scale models and wind tunnel testing (5.65) we get the
-	// burn rate.
-	// defaultBurnRate = types.LiterPerSecond(0.223) // / 5.65)
-	defaultBurnRate = types.LiterPerSecond(40) // / 5.65)
-
-	// LMP1 fuel tank size is 75 Liters
-	defaultFuel     = types.Liter(75)
-	defaultFlowRate = types.LiterPerSecond(2 * 5.65)
-
-	CarFuel           = "car-fuel"
-	CarConfigFlowRate = "car-config-flow-rate"
-	CarConfigFuel     = "car-config-fuel"
-	CarConfigBurnRate = "car-config-fuel-burn-rate"
-)
-
 type Consumption struct {
 	fuel       map[types.Id]*reactive.Liter
 	consumed   map[types.Id]*reactive.LiterSubtractModifier
 	state      map[types.Id]*stateless.StateMachine
 	config     *Config
+	fuelConfig map[types.Id]*FuelConfig
 	rules      rules.Rules
 	raceStatus implement.RaceStatus
 }
@@ -78,7 +61,7 @@ func (c *Consumption) HandlePitStop(car *car.Car, cancel <-chan bool) bool {
 				Info("fuel: refuelling cancelled")
 			return false
 		case <-time.After(250 * time.Millisecond):
-			used, full := calculateRefuellingValue(c.consumed[car.Id()].Subtract, defaultFlowRate/4)
+			used, full := calculateRefuellingValue(c.consumed[car.Id()].Subtract, c.fuelConfig[car.Id()].FlowRate/4)
 
 			log.WithField("car", car.Id()).
 				WithField("fuel-used", used).
@@ -101,11 +84,16 @@ func (c *Consumption) HandlePitStop(car *car.Car, cancel <-chan bool) bool {
 }
 
 func (c *Consumption) ConfigureCarState(car *car.Car) {
+	for _, v := range c.config.Car.Cars {
+		if *v.Id == car.Id() {
+			c.fuelConfig[car.Id()] = merge.Merge(c.config.Car.Defaults, v).(*CarSettings).FuelConfig
+		}
+	}
 	a := reactive.Annotations{
 		annotations.CarId: car.Id(),
 	}
-	c.consumed[car.Id()] = &reactive.LiterSubtractModifier{Subtract: 0}
-	c.fuel[car.Id()] = reactive.NewLiter(50, a, reactive.Annotations{annotations.CarValueFieldName: fields.Fuel})
+	c.consumed[car.Id()] = &reactive.LiterSubtractModifier{Subtract: c.fuelConfig[car.Id()].TankSize - c.fuelConfig[car.Id()].StartingFuel}
+	c.fuel[car.Id()] = reactive.NewLiter(c.fuelConfig[car.Id()].TankSize, a, reactive.Annotations{annotations.CarValueFieldName: fields.Fuel})
 	c.fuel[car.Id()].Modifier(c.consumed[car.Id()], 1000)
 
 	machine := stateless.NewStateMachineWithMode(stateCarOnTrack, stateless.FiringImmediate)
@@ -116,7 +104,7 @@ func (c *Consumption) ConfigureCarState(car *car.Car) {
 			if percent > 0 {
 				liter := c.fuel[car.Id()].Get()
 				if liter > 0 {
-					c.consumed[car.Id()].Subtract = calculateFuelState(defaultBurnRate, c.consumed[car.Id()].Subtract, percent)
+					c.consumed[car.Id()].Subtract = calculateFuelState(c.fuelConfig[car.Id()].BurnRate, c.consumed[car.Id()].Subtract, percent)
 					c.fuel[car.Id()].Update()
 					log.WithField("car", car.Id()).
 						WithField("fuel", c.fuel[car.Id()].Get()).
