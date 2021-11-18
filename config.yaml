@@ -74,11 +74,29 @@ car:
     # allowed range: 0-100
     min-speed: 0
 
-    # Default fuel tank size
-    # format: liter
-    # type: integer
-    # allowed range: 0 - max int
-    fuel: 75
+
+    fuel:
+      # Default fuel tank size
+      # format: liter
+      # type: integer
+      # allowed range: 0 - max int
+      tank-size: 75
+
+      # Default starting fuel.
+      # format: liter
+      # type: integer
+      # allowed range: 0 - max int
+      starting-fuel: 60
+
+      # Default fuel burn rate
+      # format: Liter per second at max power
+      # type: float
+      burn-rate: 0.223
+
+      # Default fuel refuelling flow rate
+      # format: Liter per second
+      # type: float
+      flow-rate: 11.3
 
     pit-lane:
       # Default maximum pit lane speed of cars
@@ -132,8 +150,6 @@ rules:
 
   - plugin: limb-mode
     enabled: true
-    # Default car limb mode speed (0-255)
-    max-speed: 60 # TODO: remove and use default configuration section
 
   - plugin: pit
     enabled: true
