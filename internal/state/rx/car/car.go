@@ -2,6 +2,7 @@ package car
 
 import (
 	"context"
+	"github.com/divideandconquer/go-merge/merge"
 	"github.com/qvistgaard/openrms/internal/implement"
 	config "github.com/qvistgaard/openrms/internal/state/rx/config/car"
 	"github.com/qvistgaard/openrms/internal/state/rx/controller"
@@ -16,22 +17,7 @@ func NewCar(implementer implement.Implementer, settings *config.CarSettings, def
 		annotations.CarId: id,
 	}
 
-	if settings.MaxSpeed == nil {
-		settings.MaxSpeed = defaults.MaxSpeed
-	}
-	if settings.MaxBreaking == nil {
-		settings.MaxBreaking = defaults.MaxBreaking
-	}
-	if settings.MinSpeed == nil {
-		settings.MinSpeed = defaults.MinSpeed
-	}
-	if settings.PitLane == nil {
-		settings.PitLane = defaults.PitLane
-	}
-	if settings.PitLane.MaxSpeed == nil {
-		settings.PitLane.MaxSpeed = defaults.PitLane.MaxSpeed
-	}
-
+	settings = merge.Merge(defaults, settings).(*config.CarSettings)
 	car := &Car{
 		implementer:     implementer,
 		id:              id,
