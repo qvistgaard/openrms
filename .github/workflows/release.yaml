@@ -16,6 +16,7 @@ jobs:
             goos: windows
           - goarch: arm
             goos: windows
+      fail-fast: false
     steps:
       - uses: actions/checkout@v2
       - uses: wangyoucao577/go-release-action@v1.20
