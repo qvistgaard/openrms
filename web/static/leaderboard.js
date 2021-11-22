@@ -21,11 +21,9 @@ const store = Vuex.createStore({
     },
     mutations: {
         updateLeaderBoard(state, v){
-            console.log(v)
             state.leaderboard = v.content.Leaderboard
             state.raceStatus = v.content.RaceStatus
             state.raceTimer = v.content.RaceTimer
-            console.log(state.leaderboard)
         },
         connectionState(state, v){
             state.connection = v
@@ -41,7 +39,8 @@ const app = Vue.createApp({
 
     computed: {
         racetimer: function () {
-            return moment.duration(this.$store.getters.getRaceTimer() / 1000 / 1000).asSeconds()
+            let dur = moment.duration(this.$store.getters.getRaceTimer() / 1000 / 1000)
+            return moment.utc(dur.asMilliseconds()).format("HH:mm:ss");
         },
         racestate: function () {
             let s = this.$store.getters.getRaceStatus()
@@ -82,6 +81,22 @@ const app = Vue.createApp({
                   x["delta"] = prefix+Number((d)).toFixed(3)
                   x["fuel"] = Number((x["fuel"])).toFixed(1)
 
+                  let pitState = x["pit-state"]
+                  // Pit State for v-bind
+                  x["in-pit-state"] = pitState !== 0
+                  x["pit-state-class"] = {
+                      'not-in-pit': pitState === 0,
+                      'entered-pit': pitState === 1,
+                      'waiting': pitState === 2,
+                      'active': pitState === 3,
+                      'complete': pitState === 4,
+                  }
+
+                  x["fuel-warning"] = {
+                      'warning': x["fuel"] < 20,
+                      'critical': x["fuel"] < 10
+                  }
+
                   return x
               })
         },
@@ -101,6 +116,7 @@ const app = Vue.createApp({
 
     mounted: function (){
         this.connect(function(event){
+            console.log(event)
             store.commit('updateLeaderBoard', event)
         }, {})
     },

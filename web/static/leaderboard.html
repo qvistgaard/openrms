@@ -2,134 +2,141 @@
 <html lang="en">
 <head>
 
-  <!-- Basic Page Needs
-  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
-  <meta charset="utf-8">
-  <title>Your page title here :)</title>
+    <!-- Basic Page Needs
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <meta charset="utf-8">
+    <title>OpenRMS</title>
 
-  <script src="https://unpkg.com/vue@next"></script>
-  <script src="https://unpkg.com/vuex@next"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://unpkg.com/vue@next"></script>
+    <script src="https://unpkg.com/vuex@next"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
 
-  <meta name="description" content="">
-  <meta name="author" content="">
+    <meta name="description" content="">
+    <meta name="author" content="">
 
-  <!-- Mobile Specific Metas
-  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Mobile Specific Metas
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <!-- FONT
-  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:ital,wght@0,400;0,700;1,700&display=swap" rel="stylesheet">
+    <!-- FONT
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:ital,wght@0,400;0,700;1,700&display=swap"
+          rel="stylesheet">
 
-  <!-- CSS
-  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
-  <link rel="stylesheet" href="skeleton/css/normalize.css">
-  <link rel="stylesheet" href="skeleton/css/skeleton.css">
-  <link rel="stylesheet" href="leaderboard.css">
+    <!-- CSS
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <link rel="stylesheet" href="skeleton/css/normalize.css">
+    <link rel="stylesheet" href="skeleton/css/skeleton.css">
+    <link rel="stylesheet" href="leaderboard.css">
 
-  <!-- Favicon
-  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
-  <link rel="icon" type="image/png" href="skeleton/images/favicon.png">
+    <!-- Favicon
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <link rel="icon" type="image/png" href="skeleton/images/favicon.png">
 
 </head>
 <body>
-  <!-- Primary Page Layout
-  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
-  <div class="container" id="app">
+<!-- Primary Page Layout
+–––––––––––––––––––––––––––––––––––––––––––––––––– -->
+<div class="container" id="app">
     <header>
-    <div class="row">
-      <div class="five columns">
-        <h2 style="font-style: italic; margin-bottom: 5px">
-          OpenRMS
-        </h2>
-      </div>
-      <div class="four columns">
-        <button v-on:click="start" class="start" style="margin-left: 81px">start</button>&#160;
-        <button v-on:click="pause" class="pause">pause</button>&#160;
-        <button v-on:click="stop" class="stop">stop</button>
-      </div>
-        <div class="three columns race-status">
-            <!-- <span class="stopped">&nbsp;&nbsp;</span><span class="paused">&nbsp;&nbsp;</span> -->
-            <span class="race-timer">{{ racetimer }}</span>
-            <span v-if="racestate == 'Running'" class="running">&nbsp;&nbsp;</span>
-            <span v-if="racestate == 'Stopped'" class="stopped">&nbsp;&nbsp;</span>
-            <span v-if="racestate == 'Paused'" class="paused">&nbsp;&nbsp;</span>
-            <span class="running-text">{{ racestate }}</span>
+        <div class="row">
+            <div class="four columns">
+                <h2 style="font-style: italic; margin-bottom: 5px">
+                    OpenRMS🏁
+                </h2>
+            </div>
+            <div class="four columns" style="text-align: center;">
+                <span v-if="racestate == 'Stopped' || racestate == 'Paused'">
+                  <button v-on:click="start" class="start">start</button>
+                </span>
+                <span v-if="racestate == 'Running'">
+                  <button v-on:click="pause" class="pause">pause</button>
+                </span>
+                <span v-if="racestate == 'Running' || racestate == 'Paused'">
+                  <button v-on:click="stop" class="stop">stop</button>
+                </span>
+            </div>
+            <div class="four columns race-status">
+                <span class="race-timer">{{ racetimer }}</span>
+                <span v-if="racestate == 'Running'" class="running">&nbsp;&nbsp;</span>
+                <span v-if="racestate == 'Stopped'" class="stopped">&nbsp;&nbsp;</span>
+                <span v-if="racestate == 'Paused'" class="paused">&nbsp;&nbsp;</span>
+                <span class="running-text">{{ racestate }}</span>
+            </div>
         </div>
-    </div>
     </header>
     <div class="row">
         <table class="u-full-width leaderboard">
-          <thead>
-          <tr>
-            <th class="position">P</th>
-            <th class="name">Name</th>
-            <th class="pit"></th>
-            <th class="car-id">#</th>
-            <th class="fuel">Fuel</th>
-            <th class="last-lap">Lap</th>
-            <th class="delta">Delta</th>
-            <th class="best-lap">Best</th>
-            <th class="lap-number">Laps</th>
-          </tr>
-          </thead>
-          <tbody>
+            <thead>
+            <tr>
+                <th class="position">P</th>
+                <th class="name">Name</th>
+                <th class="pit"></th>
+                <th class="car-id">#</th>
+                <th class="fuel">Fuel</th>
+                <th class="last-lap">Lap</th>
+                <th class="delta">Delta</th>
+                <th class="best-lap">Best</th>
+                <th class="lap-number">Laps</th>
+            </tr>
+            </thead>
+            <tbody>
 
-<!--
+            <!--
 
-         <tr>
-            <td class="position">1</td>
-            <td class="name">F. Folman</td>
-            <td class="pit active">P</td>
-            <td class="car-id">10</td>
-            <td class="fuel"></td>
-            <td class="last-lap">00:57.605</td>
-            <td class="delta">+0.295</td>
-            <td class="best-lap">00:57.605</td>
-            <td class="lap-number">1</td>
-          </tr>
-          <tr>
-            <td class="position">2</td>
-            <td class="name">F. Folman</td>
-            <td class="pit"></td>
-            <td class="car-id">2</td>
-            <td class="fuel">75.00<small> l</small></td>
-            <td class="last-lap">00:57.605</td>
-            <td class="delta">+0.295</td>
-            <td class="best-lap"></td>
-            <td class="lap-number"></td>
-          </tr>
--->
+                     <tr>
+                        <td class="position">1</td>
+                        <td class="name">F. Folman</td>
+                        <td class="pit active">P</td>
+                        <td class="car-id">10</td>
+                        <td class="fuel"></td>
+                        <td class="last-lap">00:57.605</td>
+                        <td class="delta">+0.295</td>
+                        <td class="best-lap">00:57.605</td>
+                        <td class="lap-number">1</td>
+                      </tr>
+                      <tr>
+                        <td class="position">2</td>
+                        <td class="name">F. Folman</td>
+                        <td class="pit"></td>
+                        <td class="car-id">2</td>
+                        <td class="fuel">75.00<small> l</small></td>
+                        <td class="last-lap">00:57.605</td>
+                        <td class="delta">+0.295</td>
+                        <td class="best-lap"></td>
+                        <td class="lap-number"></td>
+                      </tr>
+            -->
 
 
-         <tr v-if="leaderboard.length == 0" class="nodata">
-            <td  style="text-align: center" colspan="9">
-              No data</td>
-          </tr>
-          <tr v-else v-for="(k, v) in leaderboard" >
-            <td class="position">{{v+1}}</td>
-            <td class="name" v-bind:class="{ deslotted: k['deslotted'] }">{{k["car"]}}</td>
-            <td class="pit" v-bind:class="{ active: k['in-pit'] }"><span v-if="k['in-pit']">P</span></td>
-            <td class="car-id">{{k["car"]}}</td>
-            <td class="fuel">{{k["fuel"]}}<small>l</small></td>
-            <td class="last-lap">{{k["last"] }}<small>s</small></td>
-            <td class="delta" v-bind:class="{ fast: k['isFast'], slow: k['isSlow'] }">{{k["delta"]}}</td>
-            <td class="best-lap">{{k["best"] }}<small>s</small></td>
-            <td class="lap-number">{{k["lap"]}}</td>
-          </tr>
-          </tbody>
+            <tr v-if="leaderboard.length == 0" class="nodata">
+                <td style="text-align: center" colspan="9">
+                    No data
+                </td>
+            </tr>
+            <tr v-else v-for="(k, v) in leaderboard">
+                <td class="position">{{v+1}}</td>
+                <td class="name" v-bind:class="{ deslotted: k['deslotted'] }">{{k["name"]}}</td>
+                <td class="pit" v-bind:class="k['pit-state-class']"><span v-if="k['in-pit-state']">P</span></td>
+                <td class="car-id">{{k["car"]}}</td>
+                <td class="fuel" v-bind:class="k['fuel-warning']">{{k["fuel"]}}<small>l</small></td>
+                <td class="last-lap">{{k["last"] }}<small>s</small></td>
+                <td class="delta" v-bind:class="{ fast: k['isFast'], slow: k['isSlow'] }">{{k["delta"]}}</td>
+                <td class="best-lap">{{k["best"] }}<small>s</small></td>
+                <td class="lap-number">{{k["lap"]["LapNumber"]}}</td>
+            </tr>
+            </tbody>
         </table>
     </div>
-  </div>
+</div>
 
 
 <!-- End Document
   –––––––––––––––––––––––––––––––––––––––––––––––––– -->
-  <script src="app.js"></script>
-  <script src="leaderboard.js"></script>
+<script src="app.js"></script>
+<script src="leaderboard.js"></script>
 
 </body>
 </html>

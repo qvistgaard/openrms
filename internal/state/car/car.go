@@ -4,8 +4,8 @@ import (
 	"context"
 	"github.com/divideandconquer/go-merge/merge"
 	"github.com/qvistgaard/openrms/internal/implement"
-	config "github.com/qvistgaard/openrms/internal/state/rx/config/car"
-	"github.com/qvistgaard/openrms/internal/state/rx/controller"
+	config "github.com/qvistgaard/openrms/internal/state/config/car"
+	"github.com/qvistgaard/openrms/internal/state/controller"
 	"github.com/qvistgaard/openrms/internal/types"
 	"github.com/qvistgaard/openrms/internal/types/annotations"
 	"github.com/qvistgaard/openrms/internal/types/fields"
@@ -28,6 +28,7 @@ func NewCar(implementer implement.Implementer, settings *config.CarSettings, def
 		pit:             reactive.NewBoolean(false, a, reactive.Annotations{annotations.CarValueFieldName: fields.InPit}),
 		deslotted:       reactive.NewBoolean(false, a, reactive.Annotations{annotations.CarValueFieldName: fields.Deslotted}),
 		lastLapTime:     reactive.NewDuration(0, a, reactive.Annotations{annotations.CarValueFieldName: fields.LapTime}),
+		lastLap:         reactive.NewLap(a, reactive.Annotations{annotations.CarValueFieldName: fields.LastLap}),
 		laps:            reactive.NewGauge(0, a, reactive.Annotations{annotations.CarValueFieldName: fields.Laps}),
 		controller:      controller.NewController(a),
 	}
@@ -46,6 +47,15 @@ type Car struct {
 	deslotted       *reactive.Boolean
 	lastLapTime     *reactive.Duration
 	laps            *reactive.Gauge
+	lastLap         *reactive.Lap
+}
+
+func (c *Car) PitLaneMaxSpeed() *reactive.Percent {
+	return c.pitLaneMaxSpeed
+}
+
+func (c *Car) LastLap() *reactive.Lap {
+	return c.lastLap
 }
 
 func (c *Car) MaxSpeed() *reactive.Percent {
@@ -81,6 +91,7 @@ func (c *Car) UpdateFromEvent(e implement.Event) {
 	c.Deslotted().Set(e.Car.Deslotted)
 	c.LastLapTime().Set(e.Car.Lap.LapTime)
 	c.Laps().Set(float64(e.Car.Lap.Number))
+	c.LastLap().Set(types.NewLap(e.Car.Lap.Number, e.RaceTimer))
 	c.Controller().ButtonTrackCall().Set(e.Car.Controller.TrackCall)
 	c.Controller().TriggerValue().Set(types.NewPercentFromFloat64(e.Car.Controller.TriggerValue))
 }
@@ -97,6 +108,7 @@ func (c *Car) Init(ctx context.Context, postProcess reactive.ValuePostProcessor)
 	c.deslotted.Init(ctx, postProcess)
 	c.lastLapTime.Init(ctx, postProcess)
 	c.laps.Init(ctx, postProcess)
+	c.lastLap.Init(ctx, postProcess)
 
 	c.minSpeed.RegisterObserver(c.minSpeedChangeObserver)
 	c.minSpeed.Init(ctx, postProcess)

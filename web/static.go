@@ -14,7 +14,7 @@ var content embed.FS
 
 func StaticContentHandler(w http.ResponseWriter, r *http.Request) {
 	ext := filepath.Ext(r.URL.Path)
-	file, err := content.ReadFile(strings.TrimPrefix(r.URL.Path, "/"))
+	file, err := getFileContent(r.URL.Path)
 	if err != nil {
 		log.Errorf("Unable to send file to client: %s", err)
 		w.WriteHeader(404)
@@ -23,4 +23,9 @@ func StaticContentHandler(w http.ResponseWriter, r *http.Request) {
 		w.Write(file)
 	}
 	log.Infof("serving content: %s", r.URL)
+}
+
+func getFileContent(f string) ([]byte, error) {
+	file, err := content.ReadFile(strings.TrimPrefix(f, "/"))
+	return file, err
 }

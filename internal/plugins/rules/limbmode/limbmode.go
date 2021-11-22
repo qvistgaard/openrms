@@ -3,8 +3,8 @@ package limbmode
 import (
 	"context"
 	"github.com/qvistgaard/openrms/internal/implement"
-	"github.com/qvistgaard/openrms/internal/state/rx/car"
-	"github.com/qvistgaard/openrms/internal/state/rx/race"
+	"github.com/qvistgaard/openrms/internal/state/car"
+	"github.com/qvistgaard/openrms/internal/state/race"
 	"github.com/qvistgaard/openrms/internal/types"
 	"github.com/qvistgaard/openrms/internal/types/annotations"
 	"github.com/qvistgaard/openrms/internal/types/reactive"

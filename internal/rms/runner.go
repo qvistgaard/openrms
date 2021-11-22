@@ -72,7 +72,7 @@ func (r *Runner) processEvents() {
 					c.UpdateFromEvent(e)
 				}
 			}
-			r.context.Race.RaceTimer().Set(e.RaceTimer)
+			r.context.Race.UpdateTime()
 			log.Tracef("processing time: %s", time.Now().Sub(start))
 		}
 	}

@@ -43,7 +43,7 @@ func (c *Car) MinSpeed(percent types.Percent) {
 		WithField("car", *c.id).
 		WithField("min-speed", percent).
 		Debug("set car min speed")
-	c.oxigen.sendCarCommand(c.id, carMinSpeedCode, percent.Uint8())
+	c.oxigen.sendCarCommand(c.id, carMinSpeedCode, percent.Uint8()>>1)
 }
 
 func (c *Car) MaxSpeed(percent types.Percent) {

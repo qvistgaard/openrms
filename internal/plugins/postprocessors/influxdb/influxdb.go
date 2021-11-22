@@ -80,6 +80,8 @@ func (i *InfluxDB) processStateValue(p *write.Point, n string, v interface{}) {
 		p.AddField(n, valueOf.Uint())
 	} else if kind == reflect.Int64 {
 		p.AddField(n, valueOf.Int())
+	} else if kind == reflect.Uint16 {
+		p.AddField(n, valueOf.Uint())
 	} else if kind == reflect.String {
 		p.AddField(n, valueOf.String())
 	} else if kind == reflect.Float32 || kind == reflect.Float64 {
