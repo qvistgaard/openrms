@@ -52,7 +52,7 @@ car:
     # format: percentage
     # type: integer
     # allowed range: 0-100
-    max-speed: 30
+    max-speed: 100
 
     # Default minimum speed of cars
     # this defines the minimum speed of cars, this can be used to create
