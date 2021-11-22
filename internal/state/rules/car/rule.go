@@ -2,7 +2,7 @@ package car
 
 import (
 	"context"
-	"github.com/qvistgaard/openrms/internal/state/rx/car"
+	"github.com/qvistgaard/openrms/internal/state/car"
 	"github.com/qvistgaard/openrms/internal/types/reactive"
 )
 

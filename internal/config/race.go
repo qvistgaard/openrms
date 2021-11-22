@@ -4,7 +4,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/qvistgaard/openrms/internal/config/application"
 	"github.com/qvistgaard/openrms/internal/implement"
-	"github.com/qvistgaard/openrms/internal/state/rx/track"
+	"github.com/qvistgaard/openrms/internal/state/track"
 	"github.com/qvistgaard/openrms/internal/types"
 )
 

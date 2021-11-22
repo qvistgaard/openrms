@@ -7,7 +7,7 @@ import (
 	"github.com/qvistgaard/openrms/internal/plugins/rules/fuel"
 	"github.com/qvistgaard/openrms/internal/plugins/rules/limbmode"
 	"github.com/qvistgaard/openrms/internal/plugins/rules/pit"
-	"github.com/qvistgaard/openrms/internal/state/rx/rules"
+	"github.com/qvistgaard/openrms/internal/state/rules"
 	log "github.com/sirupsen/logrus"
 )
 
