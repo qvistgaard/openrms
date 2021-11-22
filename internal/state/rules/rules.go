@@ -1,9 +1,9 @@
 package rules
 
 import (
-	"github.com/qvistgaard/openrms/internal/state/rx/rules/car"
-	"github.com/qvistgaard/openrms/internal/state/rx/rules/pit"
-	"github.com/qvistgaard/openrms/internal/state/rx/rules/race"
+	"github.com/qvistgaard/openrms/internal/state/rules/car"
+	"github.com/qvistgaard/openrms/internal/state/rules/pit"
+	"github.com/qvistgaard/openrms/internal/state/rules/race"
 	"sort"
 )
 
@@ -46,7 +46,6 @@ func (r *RuleList) CarRule(name string) car.Rule {
 		}
 	}
 	return nil
-	// return nil // TODO: Something about this needs fixing
 }
 
 func (r *RuleList) CarRules() []car.Rule {

@@ -3,7 +3,7 @@ package config
 import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/qvistgaard/openrms/internal/config/application"
-	"github.com/qvistgaard/openrms/internal/state/rx/race"
+	"github.com/qvistgaard/openrms/internal/state/race"
 )
 
 type RaceConfig struct {

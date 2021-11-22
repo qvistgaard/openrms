@@ -8,6 +8,7 @@ import (
 	"github.com/qvistgaard/openrms/internal/types/reactive"
 	"github.com/reactivex/rxgo/v2"
 	"net/http"
+	"time"
 )
 
 type RaceState struct {
@@ -23,24 +24,29 @@ func (p *RaceState) Set(value implement.RaceStatus) {
 }
 
 type Race struct {
-	implementer implement.Implementer
-	status      *RaceState
-	raceTimer   *reactive.Duration
+	implementer       implement.Implementer
+	status            *RaceState
+	raceTimer         *reactive.Duration
+	raceStart         time.Time
+	raceStatusCurrent implement.RaceStatus
 }
 
-func (r *Race) RaceTimer() *reactive.Duration {
-	return r.raceTimer
+func (r *Race) UpdateTime() {
+	if r.raceStatusCurrent == implement.RaceRunning {
+		r.raceTimer.Set(time.Now().Sub(r.raceStart))
+	}
 }
 
 func NewRace(implementer implement.Implementer) *Race {
 	return &Race{
 		implementer: implementer,
-		status: NewRaceState(implement.RaceStopped, reactive.Annotations{
+		status: NewRaceState(implement.RaceRunning, reactive.Annotations{
 			annotations.RaceValueFieldName: fields.RaceStatus,
 		}),
 		raceTimer: reactive.NewDuration(0, reactive.Annotations{
 			annotations.RaceValueFieldName: fields.RaceTimer,
 		}),
+		raceStart: time.Now(),
 	}
 }
 
@@ -78,11 +84,16 @@ func (r *Race) Init(ctx context.Context, postProcess reactive.ValuePostProcessor
 	r.status.Init(ctx, postProcess)
 	r.status.Update()
 
-	r.RaceTimer().Init(ctx, postProcess)
+	r.raceTimer.Init(ctx, postProcess)
 }
 
 func (r *Race) raceStatusChangeObserver(observable rxgo.Observable) {
 	observable.DoOnNext(func(i interface{}) {
-		r.implementer.Race().Status(i.(implement.RaceStatus))
+		status := i.(implement.RaceStatus)
+		if status == implement.RaceRunning {
+			r.raceStart = time.Now()
+		}
+		r.raceStatusCurrent = status
+		r.implementer.Race().Status(status)
 	})
 }
