@@ -105,13 +105,17 @@ type ValueChange struct {
 	Timestamp   time.Time
 }
 
+func NewDistinctValueFunc(initial interface{}, distinctFunc func(ctx context.Context, i interface{}) (interface{}, error), annotations ...Annotations) Value {
+	value := NewValue(initial, annotations...)
+	value.observable = value.observable.DistinctUntilChanged(distinctFunc)
+	return value
+}
+
 func NewDistinctValue(initial interface{}, annotations ...Annotations) Value {
 	distinctValueFunc := func(ctx context.Context, i interface{}) (interface{}, error) {
 		return i, nil
 	}
-	value := NewValue(initial, annotations...)
-	value.observable = value.observable.DistinctUntilChanged(distinctValueFunc)
-	return value
+	return NewDistinctValueFunc(initial, distinctValueFunc, annotations...)
 }
 
 func NewValue(initial interface{}, annotations ...Annotations) Value {

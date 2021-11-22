@@ -4,8 +4,8 @@ import (
 	ctx "context"
 	"github.com/mitchellh/mapstructure"
 	"github.com/qvistgaard/openrms/internal/config/application"
-	"github.com/qvistgaard/openrms/internal/state/rx/car"
-	config "github.com/qvistgaard/openrms/internal/state/rx/config/car"
+	"github.com/qvistgaard/openrms/internal/state/car"
+	config "github.com/qvistgaard/openrms/internal/state/config/car"
 	"github.com/qvistgaard/openrms/internal/types"
 )
 

@@ -1,79 +1,4 @@
 // Create a new store instance.
-/*
-
-const store = Vuex.createStore({
-  state () {
-    return {
-      cars: { },
-      race: { },
-      connection: "disconnected"
-    }
-  },
-
-  getters: {
-    getCarState: (state) => (car, n, d = null) => {
-      if (typeof state.cars[car] !== "undefined"){
-        if (typeof state.cars[car][n] !== "undefined"){
-          if (typeof state.cars[car][n].value !== "undefined"){
-            return state.cars[car][n].value
-          }
-        }
-      }
-      return d
-    },
-    getRaceState: (state) => (n, d) => {
-      if (typeof state.race[n] !== "undefined"){
-        if (typeof state.race[n].value !== "undefined") {
-          return state.race[n].value
-        }
-      }
-      return d
-    },
-    getCarCount: state => () => {
-      return Object.keys(state.cars).length
-    },
-
-    connection: state => () => {
-      return state.connection
-    }
-  },
-
-  mutations: {
-    updateStateFromWebsocket(state, v) {
-      console.log(v)
-
-      let s = state
-      for(const item of v.cars) {
-        const id = item.id;
-        if (typeof s.cars[id] === 'undefined') {
-          s.cars[id] = {}
-        }
-        for (const change of item.changes) {
-          s.cars[id][change.name] = { value: change.value }
-        }
-        state.cars = {
-          ...state.cars,
-          [id]: { ...s.cars[id] }
-        }
-
-      }
-      for(const item of v.race){
-        for (const change of item.changes) {
-          s.race[change.name] = { value: change.value }
-        }
-      }
-      state.race = {
-        ...s.race
-      }
-    },
-    connectionState(state, v){
-      console.log(v)
-      state.connection = v
-    }
-  }
-})
-*/
-
 
 const openrms = {
 /*  data: function(){
@@ -89,17 +14,11 @@ const openrms = {
   methods: {
     connect: function (onMessage, params = {}){
       this.websocket = websocketConnection(onMessage, params)
-    },
+      window.setTimeout(function () {
+        console.log("Successfully connected to openrms...", this.websocket.OPEN, this.websocket.readyState)
+      }, 1000)
 
-    formSetCarState: function(){
-      this.carCommand(this.setStateCarId, this.setStateCarState, this.setStateCarValue)
-      console.log("test")
-      return false
-    },
-    formSetCourseState: function(){
-      this.raceCommand(this.setCourseState, this.setCourseValue)
-      console.log("test")
-      return false
+
     },
 
     carState: function(car, state, d){
@@ -142,12 +61,13 @@ function websocketConnection(onMessage, params) {
 
   this.websocket = new WebSocket("ws://"+location.host+"/ws?"+query)
   this.websocket.onmessage = function(event) {
+    console.log(event)
     onMessage(JSON.parse(event.data))
     // store.commit('updateStateFromWebsocket', JSON.parse(event.data))
   }
 
   this.websocket.onopen = function(event) {
-    console.log("Successfully connected to the echo webserver server...")
+    console.log("Successfully connected to openrms...", this.websocket)
     store.commit('connectionState', "connected")
   }
   this.websocket.onerror = function(event) {

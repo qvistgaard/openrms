@@ -4,9 +4,9 @@ import (
 	"github.com/qvistgaard/openrms/internal/implement"
 	"github.com/qvistgaard/openrms/internal/postprocess"
 	"github.com/qvistgaard/openrms/internal/repostitory/car"
-	"github.com/qvistgaard/openrms/internal/state/rx/race"
-	"github.com/qvistgaard/openrms/internal/state/rx/rules"
-	"github.com/qvistgaard/openrms/internal/state/rx/track"
+	"github.com/qvistgaard/openrms/internal/state/race"
+	"github.com/qvistgaard/openrms/internal/state/rules"
+	"github.com/qvistgaard/openrms/internal/state/track"
 	"github.com/qvistgaard/openrms/internal/webserver"
 )
 

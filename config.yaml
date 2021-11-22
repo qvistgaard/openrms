@@ -1,17 +1,9 @@
 # Configure logging level and files
-# TODO: check if this is actually working
 logging:
   # Details of logging output. Possible values are error, warn, info, debug or trace
   level: trace
   # Where should openrms write the log file
   file: openrmsd.log
-
-# Most likely deprected
-# TODO: find out if this is referenced anywhere
-websocket:
-  enabled: true
-  port: 8080
-
 
 implement:
   plugin: oxigen
@@ -30,7 +22,7 @@ track:
   # format: percentage
   # type: integer
   # allowed range: 0-100
-  max-speed: 100
+  max-speed: 75
 
   # Track length is used to calculate average speed of the cars
   # format: meter
@@ -54,14 +46,13 @@ car:
   # Default car behavior
   # All default values can be mapped to individual
   # cars in the car specific configuration section
-  # TODO: check if default values are used
   defaults:
 
     # Default maximum speed of cars
     # format: percentage
     # type: integer
     # allowed range: 0-100
-    max-speed: 100
+    max-speed: 30
 
     # Default minimum speed of cars
     # this defines the minimum speed of cars, this can be used to create
@@ -91,7 +82,7 @@ car:
       # Default fuel burn rate
       # format: Liter per second at max power
       # type: float
-      burn-rate: 0.223
+      burn-rate: 30 # 0.223
 
       # Default fuel refuelling flow rate
       # format: Liter per second
@@ -114,12 +105,14 @@ car:
       # format: percentage
       # type: integer
       # allowed range: 0-100
-      max-speed: 20
+      max-speed: 17
+
+
   cars:
     - id: 3
-      max-speed: 100
-      driver:
-        name: Hans Hansen
+      # max-speed: 100
+      drivers:
+        - name: Hans Hansen
   #  - id: 1
   #    max-speed: 100
   #    fuel: 100
@@ -143,10 +136,6 @@ rules:
 
   - plugin: fuel
     enabled: true
-    # Default car fuel in liter
-    fuel: 75 # TODO: remove and use default configuration section
-    burn-rate: 0.033  # TODO: remove and use default configuration section
-    # flow-rate: 11.3  # TODO: remove and use default configuration section
 
   - plugin: limb-mode
     enabled: true
@@ -154,11 +143,6 @@ rules:
   - plugin: pit
     enabled: true
 
-#  - plugin: damage
-#    enabled: true
-
-#  - plugin: tirewear
-#    enabled: true
 
 # Configure how the webserver works
 webserver:

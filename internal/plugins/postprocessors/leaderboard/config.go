@@ -1,21 +1,25 @@
 package leaderboard
 
 import (
+	"github.com/mitchellh/mapstructure"
 	"github.com/qvistgaard/openrms/internal/config/application"
+	"github.com/qvistgaard/openrms/internal/types"
 )
 
 type Config struct {
-	Postprocessors struct {
-		InfluxDB struct {
-			Url          string `mapstructure:"url"`
-			BatchSize    uint   `mapstructure:"batch-size"`
-			AuthToken    string `mapstructure:"auth-token"`
-			Organization string `mapstructure:"organization"`
-			Bucket       string `mapstructure:"bucket"`
-		} `mapstructure:"influxdb"`
-	} `mapstructure:"postprocessors"`
+	Car struct {
+		Cars []struct {
+			Id      types.Id
+			Drivers []struct {
+				Name string
+			}
+		}
+	}
 }
 
 func CreateFromConfig(ctx *application.Context) (*Leaderboard, error) {
-	return NewLeaderboard(ctx), nil
+	c := &Config{}
+	mapstructure.Decode(ctx.Config, c)
+
+	return NewLeaderboard(ctx, c), nil
 }

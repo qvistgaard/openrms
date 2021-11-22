@@ -3,6 +3,7 @@ package oxigen
 import (
 	"bufio"
 	"context"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"github.com/hashicorp/go-version"
@@ -12,6 +13,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/tarm/serial"
 	"io"
+	"sync"
 	"time"
 )
 
@@ -23,11 +25,10 @@ type Oxigen struct {
 	bufferSize int
 	timer      []byte
 	buffer     *bufio.Reader
-
-	// New and confirmed working structures
-	cars  map[types.Id]Car
-	track *Track
-	race  *Race
+	mutex      sync.Mutex
+	cars       map[types.Id]Car
+	track      *Track
+	race       *Race
 }
 
 func CreateUSBConnection(device string) (*serial.Port, error) {
@@ -134,6 +135,7 @@ func (o *Oxigen) sendCommand() {
 		panic("oxigen: keep-alive routine failed.")
 	}()
 	for {
+		o.mutex.Lock()
 		select {
 		case cmd := <-o.commands:
 			if float32(len(o.commands)) > (float32(o.bufferSize) * 0.9) {
@@ -144,6 +146,15 @@ func (o *Oxigen) sendCommand() {
 			}
 
 			b := o.command(cmd, o.timer)
+			if cmd.id != nil {
+				log.WithFields(map[string]interface{}{
+					"message": fmt.Sprintf("%x", b),
+					"car":     fmt.Sprintf("%x", *cmd.id),
+					"value":   fmt.Sprintf("%x", cmd.value),
+					"cmd":     fmt.Sprintf("%x", cmd.code),
+					"hex":     fmt.Sprintf("%s", hex.Dump(b)),
+				}).Trace("sendind message to oxygen dongle")
+			}
 			l, err := o.serial.Write(b)
 			if err != nil {
 				panic(err)
@@ -152,7 +163,9 @@ func (o *Oxigen) sendCommand() {
 				"message": fmt.Sprintf("%x", b),
 				"size":    fmt.Sprintf("%d", l),
 			}).Trace("send message to oxygen dongle")
+			time.Sleep(10 * time.Millisecond)
 		}
+		o.mutex.Unlock()
 	}
 }
 

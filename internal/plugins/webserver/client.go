@@ -96,6 +96,7 @@ func (c *Client) writePump() {
 				return
 			}
 			_, err = w.Write(message)
+			w.Close()
 			if err != nil {
 				log.Error(err)
 			}

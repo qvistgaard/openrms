@@ -19,6 +19,8 @@ div.container {
 button {
     color: #FDFDFD;
     border: 1px solid #FDFDFD;
+    margin-left: 5px;
+    margin-right: 5px;
 }
 
 button.stop {
@@ -30,8 +32,6 @@ button.start {
 button.pause {
     background: goldenrod;
 }
-
-
 
 .race-status {
     font-size: 20pt;
@@ -101,7 +101,6 @@ table tbody tr:nth-child(odd) td {
     border-right: 2px solid #1D1D1D;
 }
 
-
 /* Position column */
 
 table.leaderboard tr td.position {
@@ -115,18 +114,54 @@ table.leaderboard tr th.name {
 }
 table.leaderboard tr td.name {
     text-align: left;
+    transition: ease-in-out 100ms;
     width: 100%;
 }
-table.leaderboard tr td:nth-child(2).deslotted {
+table.leaderboard tr td.name.deslotted {
     background-color: #B10808;
 }
 
 /* Pit column */
-
 table.leaderboard tr td.pit {
     font-size: small;
-    padding: 2px;
+    padding: 5px 2px 2px 2px;
     margin: 0px;
+}
+table.leaderboard tr td.pit.entered-pit {
+    transition: ease-in-out 100ms;
+    background-color: #ffffff;
+    color: #000000;
+}
+table.leaderboard tr td.pit.waiting {
+    transition: ease-in-out 100ms;
+    animation: flashing-waiting 1s infinite alternate;
+    color: #fdfdfd;
+}
+@keyframes flashing-waiting {
+    from {
+        background-color: orange;
+    }
+    to {
+        background-color: darkorange;
+    }
+}
+
+table.leaderboard tr td.pit.active {
+    transition: ease-in-out 100ms;
+    animation: flashing-active 0.25s infinite alternate;
+    color: #fdfdfd;
+}
+@keyframes flashing-active {
+    from {
+        background-color: #359425;
+    }
+    to {
+        background-color: inherit;
+    }
+}
+table.leaderboard tr td.pit.complete {
+    background-color: #359425;
+    color: #fdfdfd;
 }
 
 /* fuel column */
@@ -134,11 +169,36 @@ table.leaderboard tr td.fuel {
     width: 70px;
     white-space: nowrap;
 }
-
-table.leaderboard tr td.pit.active {
-    background-color: #ffffff;
-    color: #000000;
+table.leaderboard tr td.fuel.warning {
+    transition: ease-in-out;
+    animation: flashing-warning 2s infinite alternate;
 }
+@keyframes flashing-warning {
+    from {
+        background-color: orange;
+    }
+    to {
+        background-color: inherit;
+    }
+}
+
+
+table.leaderboard tr td.fuel.critical {
+    transition: ease-in-out;
+    animation: flashing-critical 0.5s infinite alternate;
+}
+@keyframes flashing-critical {
+    from {
+        background-color: #B10808;
+    }
+    to {
+        background-color: inherit;
+    }
+}
+
+
+
+
 
 /* Car number column */
 table.leaderboard tr th.car-id {

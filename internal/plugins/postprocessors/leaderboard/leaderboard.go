@@ -1,8 +1,10 @@
 package leaderboard
 
 import (
+	"fmt"
 	"github.com/qvistgaard/openrms/internal/config/application"
 	"github.com/qvistgaard/openrms/internal/implement"
+	"github.com/qvistgaard/openrms/internal/plugins/rules/pit"
 	"github.com/qvistgaard/openrms/internal/types"
 	"github.com/qvistgaard/openrms/internal/types/annotations"
 	"github.com/qvistgaard/openrms/internal/types/fields"
@@ -16,11 +18,11 @@ import (
 type Leaderboard struct {
 	entries        map[types.Id]*BoardEntry
 	webserver      webserver.WebServer
-	lapUpdated     map[types.Id]*Lap
 	emitterChannel chan rxgo.Item
 	emmitter       rxgo.Disposed
 	raceTimer      time.Duration
 	raceStatus     implement.RaceStatus
+	config         *Config
 }
 
 type Event struct {
@@ -29,28 +31,27 @@ type Event struct {
 	Leaderboard []BoardEntry
 }
 
-func NewLeaderboard(ctx *application.Context) *Leaderboard {
+func NewLeaderboard(ctx *application.Context, c *Config) *Leaderboard {
 	l := &Leaderboard{
 		webserver:      ctx.Webserver,
 		entries:        map[types.Id]*BoardEntry{},
-		lapUpdated:     map[types.Id]*Lap{},
 		emitterChannel: make(chan rxgo.Item),
+		config:         c,
 	}
 	l.emmitter = rxgo.FromEventSource(l.emitterChannel).
-		WindowWithTime(rxgo.WithDuration(500*time.Millisecond), rxgo.WithBufferedChannel(10)).
+		WindowWithTimeOrCount(rxgo.WithDuration(500*time.Millisecond), 1, rxgo.WithBufferedChannel(10)).
 		DoOnNext(func(i interface{}) {
 			o := i.(rxgo.Observable)
 			last, err := o.Last().Get()
 			if err == nil {
 				sorted := last.V.([]BoardEntry)
 				sort.Slice(sorted, func(i, j int) bool {
-					if sorted[i].Laps > sorted[j].Laps {
+					if sorted[i].Laps.LapNumber > sorted[j].Laps.LapNumber {
 						return true
-					} else if sorted[i].Laps == sorted[j].Laps {
-						// TODO: readd racetimer comparison
-						/* if sorted[i].RaceTimer < sorted[j].RaceTimer {
+					} else if sorted[i].Laps.LapNumber == sorted[j].Laps.LapNumber {
+						if sorted[i].Laps.RaceTimer < sorted[j].Laps.RaceTimer {
 							return true
-						} */
+						}
 						return false
 					} else {
 						return false
@@ -70,21 +71,23 @@ func NewLeaderboard(ctx *application.Context) *Leaderboard {
 	return l
 }
 
-type Lap struct {
-	time   *time.Duration
-	number *float64
-}
+/*type Lap struct {
+	time    *time.Duration
+	number  *float64
+	lastLap types.Lap
+}*/
 
 type BoardEntry struct {
-	Car       types.Id      `json:"car"`
-	Laps      float64       `json:"lap"`
-	Delta     time.Duration `json:"delta"`
-	Best      time.Duration `json:"best"`
-	Last      time.Duration `json:"last"`
-	Deslotted bool          `json:"deslotted"`
-	InPit     bool          `json:"in-pit"`
-	Fuel      float64       `json:"fuel"`
-	Name      string        `json:"name"`
+	Car       types.Id        `json:"car"`
+	Laps      types.Lap       `json:"lap"`
+	Delta     time.Duration   `json:"delta"`
+	Best      time.Duration   `json:"best"`
+	Last      time.Duration   `json:"last"`
+	Deslotted bool            `json:"deslotted"`
+	InPit     bool            `json:"in-pit"`
+	Fuel      float64         `json:"fuel"`
+	Name      string          `json:"name"`
+	PitState  pit.CarPitState `json:"pit-state"`
 }
 
 func (l *Leaderboard) Configure(observable rxgo.Observable) {
@@ -100,13 +103,18 @@ func (l *Leaderboard) processValueChange(change reactive.ValueChange) {
 			var entry *BoardEntry
 			if entry, ok = l.entries[id]; !ok {
 				entry = &BoardEntry{
-					Car: id,
+					Car:  id,
+					Name: getDriverName(id, l.config),
 				}
 				l.entries[id] = entry
-				l.lapUpdated[id] = &Lap{}
 			}
 
 			switch field {
+			case fields.LastLap:
+				lap := change.Value.(types.Lap)
+				entry.Laps = lap
+				l.updateLeaderboard()
+
 			case fields.LapTime:
 				lapTime := change.Value.(time.Duration)
 				entry.Delta = time.Duration(lapTime.Nanoseconds() - entry.Last.Nanoseconds())
@@ -114,13 +122,9 @@ func (l *Leaderboard) processValueChange(change reactive.ValueChange) {
 				if entry.Best == 0 || entry.Last < entry.Best {
 					entry.Best = entry.Last
 				}
-				l.lapUpdated[id].time = &lapTime
-				l.updateLeaderboardIfLapChanged(id)
-			case fields.Laps:
-				entry.Laps = change.Value.(float64)
-				l.lapUpdated[id].number = &entry.Laps
-				l.updateLeaderboardIfLapChanged(id)
-
+				l.updateLeaderboard()
+			case fields.PitState:
+				entry.PitState = change.Value.(pit.CarPitState)
 			case fields.InPit:
 				entry.InPit = change.Value.(bool)
 				l.updateLeaderboard()
@@ -147,11 +151,13 @@ func (l *Leaderboard) processValueChange(change reactive.ValueChange) {
 	}
 }
 
-func (l *Leaderboard) updateLeaderboardIfLapChanged(id types.Id) {
-	if l.lapUpdated[id].number != nil && l.lapUpdated[id].time != nil {
-		l.lapUpdated[id] = &Lap{}
-		l.updateLeaderboard()
+func getDriverName(id types.Id, config *Config) string {
+	for k, v := range config.Car.Cars {
+		if types.Id(k) == id {
+			return v.Drivers[0].Name
+		}
 	}
+	return fmt.Sprintf("%s", getRandomDriver())
 }
 
 func (l *Leaderboard) updateLeaderboard() {

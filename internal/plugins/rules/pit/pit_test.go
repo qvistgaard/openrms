@@ -3,7 +3,7 @@ package pit
 import (
 	"github.com/qvistgaard/openrms/internal/config/application"
 	"github.com/qvistgaard/openrms/internal/state"
-	"github.com/qvistgaard/openrms/internal/state/rx/car"
+	"github.com/qvistgaard/openrms/internal/state/car"
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"testing"
