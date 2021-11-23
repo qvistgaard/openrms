@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentScriptType="application/ecmascript" contentStyleType="text/css" height="616px" preserveAspectRatio="none" style="width:1027px;height:616px;background:#DDDDDD;" version="1.1" viewBox="0 0 1027 616" width="1027px" zoomAndPan="magnify"><defs/><g><rect fill="#DDDDDD" height="79.0547" rx="3.5" ry="3.5" style="stroke:#454645;stroke-width:1.0;" width="618.5" x="10" y="102.6094"/><rect fill="#DDDDDD" height="101.4063" rx="3.5" ry="3.5" style="stroke:#454645;stroke-width:1.0;" width="456" x="390" y="195.6641"/><rect fill="#DDDDDD" height="79.0547" rx="3.5" ry="3.5" style="stroke:#454645;stroke-width:1.0;" width="618.5" x="10" y="311.0703"/><rect fill="#DDDDDD" height="111.4063" rx="3.5" ry="3.5" style="stroke:#454645;stroke-width:1.0;" width="461.5" x="559.5" y="404.125"/><rect fill="#DDDDDD" height="48.7031" rx="3.5" ry="3.5" style="stroke:#454645;stroke-width:1.0;" width="441.5" x="569.5" y="459.8281"/><line style="stroke:#454645;stroke-width:1.0;stroke-dasharray:5.0,5.0;" x1="59" x2="59" y1="85.6094" y2="532.5313"/><line style="stroke:#454645;stroke-width:1.0;stroke-dasharray:5.0,5.0;" x1="237" x2="237" y1="85.6094" y2="532.5313"/><line style="stroke:#454645;stroke-width:1.0;stroke-dasharray:5.0,5.0;" x1="354" x2="354" y1="85.6094" y2="532.5313"/><line style="stroke:#454645;stroke-width:1.0;stroke-dasharray:5.0,5.0;" x1="598.5" x2="598.5" y1="85.6094" y2="532.5313"/><line style="stroke:#454645;stroke-width:1.0;stroke-dasharray:5.0,5.0;" x1="815" x2="815" y1="85.6094" y2="532.5313"/><line style="stroke:#454645;stroke-width:1.0;stroke-dasharray:5.0,5.0;" x1="884" x2="884" y1="85.6094" y2="532.5313"/><line style="stroke:#454645;stroke-width:1.0;stroke-dasharray:5.0,5.0;" x1="966" x2="966" y1="85.6094" y2="532.5313"/><rect fill="#FF6F61" height="31.6094" rx="3.5" ry="3.5" style="stroke:#FF6F61;stroke-width:1.5;" width="78" x="20" y="53"/><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="64" x="27" y="74.5332">Implement</text><rect fill="#FF6F61" height="31.6094" rx="3.5" ry="3.5" style="stroke:#FF6F61;stroke-width:1.5;" width="78" x="20" y="531.5313"/><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="64" x="27" y="553.0645">Implement</text><rect fill="#FF6F61" height="31.6094" rx="3.5" ry="3.5" style="stroke:#454645;stroke-width:1.5;" width="50" x="214" y="49"/><rect fill="#FF6F61" height="31.6094" rx="3.5" ry="3.5" style="stroke:#454645;stroke-width:1.5;" width="50" x="210" y="53"/><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="36" x="217" y="74.5332">Event</text><rect fill="#FF6F61" height="31.6094" rx="3.5" ry="3.5" style="stroke:#454645;stroke-width:1.5;" width="50" x="214" y="531.5313"/><rect fill="#FF6F61" height="31.6094" rx="3.5" ry="3.5" style="stroke:#454645;stroke-width:1.5;" width="50" x="210" y="535.5313"/><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="36" x="217" y="557.0645">Event</text><rect fill="#FF6F61" height="31.6094" rx="3.5" ry="3.5" style="stroke:#454645;stroke-width:1.5;" width="78" x="317" y="49"/><rect fill="#FF6F61" height="31.6094" rx="3.5" ry="3.5" style="stroke:#454645;stroke-width:1.5;" width="78" x="313" y="53"/><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="64" x="320" y="74.5332">Command</text><rect fill="#FF6F61" height="31.6094" rx="3.5" ry="3.5" style="stroke:#454645;stroke-width:1.5;" width="78" x="317" y="531.5313"/><rect fill="#FF6F61" height="31.6094" rx="3.5" ry="3.5" style="stroke:#454645;stroke-width:1.5;" width="78" x="313" y="535.5313"/><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="64" x="320" y="557.0645">Command</text><text fill="#454645" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="33" x="579.5" y="82.5332">State</text><ellipse cx="599" cy="52" fill="#FFDA29" rx="12" ry="12" style="stroke:#454645;stroke-width:2.0;"/><line style="stroke:#454645;stroke-width:2.0;" x1="587" x2="611" y1="66" y2="66"/><text fill="#454645" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="33" x="579.5" y="546.0645">State</text><ellipse cx="599" cy="565.1406" fill="#FFDA29" rx="12" ry="12" style="stroke:#454645;stroke-width:2.0;"/><line style="stroke:#454645;stroke-width:2.0;" x1="587" x2="611" y1="579.1406" y2="579.1406"/><text fill="#454645" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="36" x="794" y="82.5332">Rules</text><ellipse cx="815" cy="52" fill="#FFDA29" rx="12" ry="12" style="stroke:#454645;stroke-width:2.0;"/><polygon fill="#454645" points="811,40,817,35,815,40,817,45,811,40" style="stroke:#454645;stroke-width:1.0;"/><text fill="#454645" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="36" x="794" y="546.0645">Rules</text><ellipse cx="815" cy="565.1406" fill="#FFDA29" rx="12" ry="12" style="stroke:#454645;stroke-width:2.0;"/><polygon fill="#454645" points="811,553.1406,817,548.1406,815,553.1406,817,558.1406,811,553.1406" style="stroke:#454645;stroke-width:1.0;"/><text fill="#454645" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="70" x="846" y="82.5332">Websocket</text><ellipse cx="884" cy="15" fill="#454645" rx="8" ry="8" style="stroke:#454645;stroke-width:2.0;"/><path d="M884,23 L884,50 M871,31 L897,31 M884,50 L871,65 M884,50 L897,65 " fill="none" style="stroke:#454645;stroke-width:2.0;"/><text fill="#454645" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="70" x="846" y="546.0645">Websocket</text><ellipse cx="884" cy="559.1406" fill="#454645" rx="8" ry="8" style="stroke:#454645;stroke-width:2.0;"/><path d="M884,567.1406 L884,594.1406 M871,575.1406 L897,575.1406 M884,594.1406 L871,609.1406 M884,594.1406 L897,609.1406 " fill="none" style="stroke:#454645;stroke-width:2.0;"/><text fill="#454645" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="63" x="932" y="82.5332">Telemetry</text><path d="M948.5,32 C948.5,22 966.5,22 966.5,22 C966.5,22 984.5,22 984.5,32 L984.5,58 C984.5,68 966.5,68 966.5,68 C966.5,68 948.5,68 948.5,58 L948.5,32 " fill="#98DDDE" style="stroke:#454645;stroke-width:1.5;"/><path d="M948.5,32 C948.5,42 966.5,42 966.5,42 C966.5,42 984.5,42 984.5,32 " fill="none" style="stroke:#454645;stroke-width:1.5;"/><text fill="#454645" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="63" x="932" y="546.0645">Telemetry</text><path d="M948.5,559.1406 C948.5,549.1406 966.5,549.1406 966.5,549.1406 C966.5,549.1406 984.5,549.1406 984.5,559.1406 L984.5,585.1406 C984.5,595.1406 966.5,595.1406 966.5,595.1406 C966.5,595.1406 948.5,595.1406 948.5,585.1406 L948.5,559.1406 " fill="#98DDDE" style="stroke:#454645;stroke-width:1.5;"/><path d="M948.5,559.1406 C948.5,569.1406 966.5,569.1406 966.5,569.1406 C966.5,569.1406 984.5,569.1406 984.5,559.1406 " fill="none" style="stroke:#454645;stroke-width:1.5;"/><path d="M13.5,102.6094 L281,102.6094 L281,110.6094 L271,120.6094 L10,120.6094 L10,106.1094 A3.5,3.5 0 0 1 13.5,102.6094 " fill="#EEEEEE" style="stroke:#454645;stroke-width:1.0;"/><rect fill="none" height="79.0547" rx="3.5" ry="3.5" style="stroke:#454645;stroke-width:1.0;" width="618.5" x="10" y="102.6094"/><text fill="#454645" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacing" textLength="226" x="25" y="117.1045">Map event to internal data structure</text><polygon fill="#454645" points="225,139.3125,235,143.3125,225,147.3125,229,143.3125" style="stroke:#454645;stroke-width:1.0;"/><line style="stroke:#454645;stroke-width:1.0;" x1="59" x2="231" y1="143.3125" y2="143.3125"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacing" textLength="7" x="66" y="138.4561">1</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="143" x="77" y="138.4561">Generic event is mapped</text><polygon fill="#454645" points="587,169.6641,597,173.6641,587,177.6641,591,173.6641" style="stroke:#454645;stroke-width:1.0;"/><line style="stroke:#454645;stroke-width:1.0;" x1="237" x2="593" y1="173.6641" y2="173.6641"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacing" textLength="7" x="244" y="168.8076">2</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="177" x="255" y="168.8076">Implement event updates state</text><path d="M393.5,195.6641 L463,195.6641 L463,203.6641 L453,213.6641 L390,213.6641 L390,199.1641 A3.5,3.5 0 0 1 393.5,195.6641 " fill="#EEEEEE" style="stroke:#454645;stroke-width:1.0;"/><rect fill="none" height="101.4063" rx="3.5" ry="3.5" style="stroke:#454645;stroke-width:1.0;" width="456" x="390" y="195.6641"/><text fill="#454645" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacing" textLength="28" x="405" y="210.1592">loop</text><polygon fill="#454645" points="803,232.3672,813,236.3672,803,240.3672,807,236.3672" style="stroke:#454645;stroke-width:1.0;"/><line style="stroke:#454645;stroke-width:1.0;" x1="599" x2="809" y1="236.3672" y2="236.3672"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacing" textLength="7" x="606" y="231.5107">1</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="181" x="617" y="231.5107">Each state change is evaluated</text><polygon fill="#454645" points="610,273.8945,600,277.8945,610,281.8945,606,277.8945" style="stroke:#454645;stroke-width:1.0;"/><line style="stroke:#454645;stroke-width:1.0;" x1="604" x2="814" y1="277.8945" y2="277.8945"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacing" textLength="7" x="616" y="273.0381">2</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="154" x="627" y="273.0381">Rules apply state changes</text><path d="M400,252.8672 L400,287.8672 A3.5,3.5 0 0 0 403.5,291.3672 L590.5,291.3672 A3.5,3.5 0 0 0 594,287.8672 L594,259.3672 L584,249.3672 L403.5,249.3672 A3.5,3.5 0 0 0 400,252.8672 " fill="#90EE90" style="stroke:#90EE90;stroke-width:1.0;"/><path d="M584,249.3672 L584,257.6172 A1.75,1.75 0 0 0 585.75,259.3672 L594,259.3672 L584,249.3672 " fill="#90EE90" style="stroke:#90EE90;stroke-width:1.0;"/><text fill="#454645" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="162" x="406" y="267.8623">Changing state can in some</text><text fill="#454645" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="173" x="406" y="284.2139">cases lead to an endless loop</text><path d="M13.5,311.0703 L321,311.0703 L321,319.0703 L311,329.0703 L10,329.0703 L10,314.5703 A3.5,3.5 0 0 1 13.5,311.0703 " fill="#EEEEEE" style="stroke:#454645;stroke-width:1.0;"/><rect fill="none" height="79.0547" rx="3.5" ry="3.5" style="stroke:#454645;stroke-width:1.0;" width="618.5" x="10" y="311.0703"/><text fill="#454645" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacing" textLength="266" x="25" y="325.5654">Send all state changes back to implement</text><polygon fill="#454645" points="365,347.7734,355,351.7734,365,355.7734,361,351.7734" style="stroke:#454645;stroke-width:1.0;"/><line style="stroke:#454645;stroke-width:1.0;" x1="359" x2="598" y1="351.7734" y2="351.7734"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacing" textLength="7" x="371" y="346.917">3</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="210" x="382" y="346.917">State changed mapped to command</text><polygon fill="#454645" points="70,378.125,60,382.125,70,386.125,66,382.125" style="stroke:#454645;stroke-width:1.0;"/><line style="stroke:#454645;stroke-width:1.0;" x1="64" x2="353" y1="382.125" y2="382.125"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacing" textLength="7" x="76" y="377.2686">4</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="260" x="87" y="377.2686">Generic command is sent back to implement</text><path d="M563,404.125 L719.5,404.125 L719.5,412.125 L709.5,422.125 L559.5,422.125 L559.5,407.625 A3.5,3.5 0 0 1 563,404.125 " fill="#EEEEEE" style="stroke:#454645;stroke-width:1.0;"/><rect fill="none" height="111.4063" rx="3.5" ry="3.5" style="stroke:#454645;stroke-width:1.0;" width="461.5" x="559.5" y="404.125"/><text fill="#454645" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacing" textLength="115" x="574.5" y="418.6201">if state is changed</text><polygon fill="#454645" points="872,440.8281,882,444.8281,872,448.8281,876,444.8281" style="stroke:#454645;stroke-width:1.0;"/><line style="stroke:#454645;stroke-width:1.0;" x1="599" x2="878" y1="444.8281" y2="444.8281"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacing" textLength="7" x="606" y="439.9717">5</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="216" x="617" y="439.9717">State changes are sent to websocket</text><path d="M573,459.8281 L634.5,459.8281 L634.5,467.8281 L624.5,477.8281 L569.5,477.8281 L569.5,463.3281 A3.5,3.5 0 0 1 573,459.8281 " fill="#EEEEEE" style="stroke:#454645;stroke-width:1.0;"/><rect fill="none" height="48.7031" rx="3.5" ry="3.5" style="stroke:#454645;stroke-width:1.0;" width="441.5" x="569.5" y="459.8281"/><text fill="#454645" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacing" textLength="20" x="584.5" y="474.3232">opt</text><text fill="#454645" font-family="sans-serif" font-size="11" font-weight="bold" lengthAdjust="spacing" textLength="132" x="649.5" y="473.2471">[If telemetry is enabled]</text><polygon fill="#454645" points="954.5,496.5313,964.5,500.5313,954.5,504.5313,958.5,500.5313" style="stroke:#454645;stroke-width:1.0;"/><line style="stroke:#454645;stroke-width:1.0;stroke-dasharray:2.0,2.0;" x1="599" x2="960.5" y1="500.5313" y2="500.5313"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacing" textLength="7" x="606" y="495.6748">6</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="208" x="617" y="495.6748">State changes are sent to telemetry</text><!--MD5=[ee0dcddb51bffcfbd5d134c024620c97]
+@startuml
+!theme toy
+
+participant Implement
+collections Event
+collections Command
+entity State
+control Rules
+actor Websocket
+database Telemetry
+
+autonumber
+group Map event to internal data structure
+    Implement -> Event: Generic event is mapped
+    Event -> State: Implement event updates state
+end
+
+loop
+    autonumber
+    State -> Rules: Each state change is evaluated
+    Rules -> State: Rules apply state changes
+    note left
+        Changing state can in some
+        cases lead to an endless loop
+    end note
+end
+
+autonumber 3
+group Send all state changes back to implement
+    State -> Command: State changed mapped to command
+    Command -> Implement: Generic command is sent back to implement
+end
+
+group if state is changed
+    State -> Websocket: State changes are sent to websocket
+    opt If telemetry is enabled
+    State - -> Telemetry: State changes are sent to telemetry
+    end
+end
+@enduml
+
+@startuml
+skinparam BackgroundColor DDDDDD
+skinparam shadowing false
+skinparam RoundCorner 7
+skinparam ArrowColor 454645
+skinparam FontColor 454645
+skinparam SequenceLifeLineBorderColor 454645
+skinparam SequenceGroupHeaderFontColor 454645
+skinparam SequenceGroupFontColor 454645
+skinparam SequenceGroupBorderColor 454645
+skinparam SequenceGroupBorderThickness 1
+
+skinparam sequenceDivider {
+    BorderColor 454645
+    BorderThickness 1
+    FontColor 454645
+}
+
+skinparam participant {
+    BackgroundColor FF6F61
+    BorderColor FF6F61
+    FontColor White
+}
+
+skinparam database {
+    BackgroundColor 98DDDE
+    BorderColor 454645
+    FontColor 454645
+}
+
+skinparam entity {
+    BackgroundColor FFDA29
+    BorderColor 454645
+    FontColor 454645
+}
+
+skinparam note {
+    BackgroundColor LightGreen
+    BorderColor LightGreen
+    FontColor 454645
+}
+
+skinparam actor {
+    BackgroundColor 454645
+    BorderColor 454645
+    FontColor 454645
+}
+
+skinparam boundary {
+    BackgroundColor FFDA29
+    BorderColor 454645
+    FontColor 454645
+}
+
+skinparam control {
+    BackgroundColor FFDA29
+    BorderColor 454645
+    FontColor 454645
+}
+
+skinparam collections {
+    BackgroundColor FF6F61
+    BorderColor 454645
+    FontColor 454645
+}
+
+skinparam queue {
+    BackgroundColor FF6F61
+    BorderColor 454645
+    FontColor FFF
+    BorderThickness 1.5
+}
+
+participant Implement
+collections Event
+collections Command
+entity State
+control Rules
+actor Websocket
+database Telemetry
+
+autonumber
+group Map event to internal data structure
+    Implement -> Event: Generic event is mapped
+    Event -> State: Implement event updates state
+end
+
+loop
+    autonumber
+    State -> Rules: Each state change is evaluated
+    Rules -> State: Rules apply state changes
+    note left
+        Changing state can in some
+        cases lead to an endless loop
+    end note
+end
+
+autonumber 3
+group Send all state changes back to implement
+    State -> Command: State changed mapped to command
+    Command -> Implement: Generic command is sent back to implement
+end
+
+group if state is changed
+    State -> Websocket: State changes are sent to websocket
+    opt If telemetry is enabled
+    State - -> Telemetry: State changes are sent to telemetry
+    end
+end
+@enduml
+
+PlantUML version 1.2021.11(Sat Oct 02 15:26:11 CEST 2021)
+(GPL source distribution)
+Java Runtime: OpenJDK Runtime Environment
+JVM: OpenJDK 64-Bit Server VM
+Default Encoding: Cp1252
+Language: en
+Country: CA
+--></g></svg>

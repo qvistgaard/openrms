@@ -1,0 +1,28 @@
+@startuml
+!theme toy
+
+participant CarEnterPitLane as "Car enters pit lane"
+participant CarStoppedInPitLane as "Car stopped in pit lane"
+control CarWaitingForConfirmation as "Wait for confirmation"
+entity CarWaitingForConfirmed as "Confirmed"
+participant DisableCar as "Disable car"
+control ApplyPitStopActions as "Apply Pit stop actions"
+participant ReenableCar as "Re-enable car"
+participant CarExitsPitLane as "Car exits pit lane"
+
+
+autonumber
+CarEnterPitLane -> CarStoppedInPitLane
+CarStoppedInPitLane -> CarWaitingForConfirmation
+group Wait for confirmation
+    CarWaitingForConfirmation -> CarWaitingForConfirmed: Track call button press
+    opt auto confirmation after 5 seconds
+    CarWaitingForConfirmation -> CarWaitingForConfirmed
+    end
+end
+
+CarWaitingForConfirmed -> DisableCar
+DisableCar -> ApplyPitStopActions
+ApplyPitStopActions -> ReenableCar
+ReenableCar -> CarExitsPitLane
+@enduml

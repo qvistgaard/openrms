@@ -67,6 +67,7 @@ When you have openrms build run `./openrms`. if you have want to set
 a path for the configuration file set the `-config` flag: `./openrms -config <file>`
 
 #### Configuration
+Configuration is done via the config.yaml file. edit the file with the settings that matches your setup.
 
 ## Architecture
 OpenRMS is build in a modular way, it's build around 3 different plugin
@@ -84,7 +85,7 @@ is sent to the implement via a command. A rule can subscribe to individual
 changes, and make changes to the state.
 
 The full sequence diagram can be seen below:  
-[![](https://mermaid.ink/img/eyJjb2RlIjoic2VxdWVuY2VEaWFncmFtXG4gICAgcGFydGljaXBhbnQgSW1wbGVtZW50XG4gICAgcGFydGljaXBhbnQgRXZlbnRcbiAgICBwYXJ0aWNpcGFudCBDb21tYW5kXG4gICAgcGFydGljaXBhbnQgU3RhdGVcbiAgICBwYXJ0aWNpcGFudCBSdWxlc1xuICAgIHBhcnRpY2lwYW50IFRlbGVtZXRyeVxuXG4gICAgSW1wbGVtZW50IC0-PiBFdmVudDogR2VuZXJpYyBldmVudCBpcyBtYXBwZWRcbiAgICBFdmVudCAtKSBTdGF0ZTogSW1wbGVtZW50IGV2ZW50IHVwZGF0ZXMgc3RhdGVcbiAgICBcbiAgICBsb29wXG4gICAgICAgIFN0YXRlIC0-PiBSdWxlczogRWFjaCBzdGF0ZSBjaGFuZ2UgaXMgZXZhbHVhdGVkXG4gICAgICAgIFJ1bGVzIC0-PiBTdGF0ZTogUnVsZXMgYXBwbHkgc3RhdGUgY2hhbmdlc1xuICAgIGVuZFxuXG4gICAgU3RhdGUgLSkgQ29tbWFuZDogU3RhdGUgY2hhbmdlZCBtYXBwZWQgdG8gY29tbWFuZFxuICAgIENvbW1hbmQgLT4-IEltcGxlbWVudDogR2VuZXJpYyBjb21tYW5kIGlzIHNlbnQgYmFjayB0byBpbXBsZW1lbnRcbiAgICBTdGF0ZSAtLSkgVGVsZW1ldHJ5OiBTdGF0ZSBjaGFuZ2VzIGFyZSBzZW50IHRvIHRlbGVtZXRyeVxuXG4iLCJtZXJtYWlkIjp7InRoZW1lIjoibmV1dHJhbCJ9LCJ1cGRhdGVFZGl0b3IiOmZhbHNlfQ)](https://mermaid-js.github.io/mermaid-live-editor/#/edit/eyJjb2RlIjoic2VxdWVuY2VEaWFncmFtXG4gICAgcGFydGljaXBhbnQgSW1wbGVtZW50XG4gICAgcGFydGljaXBhbnQgRXZlbnRcbiAgICBwYXJ0aWNpcGFudCBDb21tYW5kXG4gICAgcGFydGljaXBhbnQgU3RhdGVcbiAgICBwYXJ0aWNpcGFudCBSdWxlc1xuICAgIHBhcnRpY2lwYW50IFRlbGVtZXRyeVxuXG4gICAgSW1wbGVtZW50IC0-PiBFdmVudDogR2VuZXJpYyBldmVudCBpcyBtYXBwZWRcbiAgICBFdmVudCAtKSBTdGF0ZTogSW1wbGVtZW50IGV2ZW50IHVwZGF0ZXMgc3RhdGVcbiAgICBcbiAgICBsb29wXG4gICAgICAgIFN0YXRlIC0-PiBSdWxlczogRWFjaCBzdGF0ZSBjaGFuZ2UgaXMgZXZhbHVhdGVkXG4gICAgICAgIFJ1bGVzIC0-PiBTdGF0ZTogUnVsZXMgYXBwbHkgc3RhdGUgY2hhbmdlc1xuICAgIGVuZFxuXG4gICAgU3RhdGUgLSkgQ29tbWFuZDogU3RhdGUgY2hhbmdlZCBtYXBwZWQgdG8gY29tbWFuZFxuICAgIENvbW1hbmQgLT4-IEltcGxlbWVudDogR2VuZXJpYyBjb21tYW5kIGlzIHNlbnQgYmFjayB0byBpbXBsZW1lbnRcbiAgICBTdGF0ZSAtLSkgVGVsZW1ldHJ5OiBTdGF0ZSBjaGFuZ2VzIGFyZSBzZW50IHRvIHRlbGVtZXRyeVxuXG4iLCJtZXJtYWlkIjp7InRoZW1lIjoibmV1dHJhbCJ9LCJ1cGRhdGVFZGl0b3IiOmZhbHNlfQ)
+![](docs/charts/sequence-architecture.svg)
 
 ### Implement
 The implement is the connector, this plugin type provides connectivity
@@ -94,6 +95,16 @@ between your hardware for example the Oxigen Dongle.
 The rule is the definition of rules which are in effect during a race.
 for example fuel simulation
 
+### Pit rules and process
+The pit stop process is a little different from seen else where, for example
+while the car is being "worked on" the car is disabled an unable to move. The
+process does not start immediately, and the process can only be started once
+each time the car enters the pit lane. Therefore, the pit stop must be confirmed
+by not pressing the power lever and either pressing the track call/brake button 
+for at least 1 second, or simply just wait for 5 seconds.  
+![](docs/charts/pit-stop.svg)
+
+
 ### Telemetry
 Optional plugin type which allows all metric collected to be shipped of
 to a database like InfluxDB
@@ -102,8 +113,8 @@ to a database like InfluxDB
 
 # Roadmap
 - [ ] Web interface
-  - [ ] Driver specific view *in progress*
-  - [ ] Race Marshall view *in progress*
+  - [ ] Driver specific view
+  - [ ] Race Marshall view
   - [ ] Leaderboard view *in progress*
 - [X] Websocket Stream
 - [X] Time keeping
@@ -118,7 +129,7 @@ to a database like InfluxDB
 - [ ] Damage simulation
 - [ ] Tire wear simulation
 - [ ] Race planning
-- [ ] Better logging with configurable log levels
+- [X] Better logging with configurable log levels
 - [X] Race management plugin support
 - [X] External metric storage
   - [X] InfluxDB

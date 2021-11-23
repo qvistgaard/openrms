@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentScriptType="application/ecmascript" contentStyleType="text/css" height="435px" preserveAspectRatio="none" style="width:1078px;height:435px;background:#DDDDDD;" version="1.1" viewBox="0 0 1078 435" width="1078px" zoomAndPan="magnify"><defs/><g><rect fill="#DDDDDD" height="111.4063" rx="3.5" ry="3.5" style="stroke:#454645;stroke-width:1.0;" width="310.5" x="293" y="132.3125"/><rect fill="#DDDDDD" height="48.7031" rx="3.5" ry="3.5" style="stroke:#454645;stroke-width:1.0;" width="290.5" x="303" y="188.0156"/><line style="stroke:#454645;stroke-width:1.0;stroke-dasharray:5.0,5.0;" x1="70" x2="70" y1="54.6094" y2="382.125"/><line style="stroke:#454645;stroke-width:1.0;stroke-dasharray:5.0,5.0;" x1="224" x2="224" y1="54.6094" y2="382.125"/><line style="stroke:#454645;stroke-width:1.0;stroke-dasharray:5.0,5.0;" x1="381" x2="381" y1="54.6094" y2="382.125"/><line style="stroke:#454645;stroke-width:1.0;stroke-dasharray:5.0,5.0;" x1="547.5" x2="547.5" y1="54.6094" y2="382.125"/><line style="stroke:#454645;stroke-width:1.0;stroke-dasharray:5.0,5.0;" x1="635.5" x2="635.5" y1="54.6094" y2="382.125"/><line style="stroke:#454645;stroke-width:1.0;stroke-dasharray:5.0,5.0;" x1="758.5" x2="758.5" y1="54.6094" y2="382.125"/><line style="stroke:#454645;stroke-width:1.0;stroke-dasharray:5.0,5.0;" x1="891.5" x2="891.5" y1="54.6094" y2="382.125"/><line style="stroke:#454645;stroke-width:1.0;stroke-dasharray:5.0,5.0;" x1="1012.5" x2="1012.5" y1="54.6094" y2="382.125"/><rect fill="#FF6F61" height="31.6094" rx="3.5" ry="3.5" style="stroke:#FF6F61;stroke-width:1.5;" width="131" x="5" y="22"/><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="117" x="12" y="43.5332">Car enters pit lane</text><rect fill="#FF6F61" height="31.6094" rx="3.5" ry="3.5" style="stroke:#FF6F61;stroke-width:1.5;" width="131" x="5" y="381.125"/><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="117" x="12" y="402.6582">Car enters pit lane</text><rect fill="#FF6F61" height="31.6094" rx="3.5" ry="3.5" style="stroke:#FF6F61;stroke-width:1.5;" width="157" x="146" y="22"/><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="143" x="153" y="43.5332">Car stopped in pit lane</text><rect fill="#FF6F61" height="31.6094" rx="3.5" ry="3.5" style="stroke:#FF6F61;stroke-width:1.5;" width="157" x="146" y="381.125"/><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="143" x="153" y="402.6582">Car stopped in pit lane</text><text fill="#454645" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="130" x="313" y="51.5332">Wait for confirmation</text><ellipse cx="381" cy="21" fill="#FFDA29" rx="12" ry="12" style="stroke:#454645;stroke-width:2.0;"/><polygon fill="#454645" points="377,9,383,4,381,9,383,14,377,9" style="stroke:#454645;stroke-width:1.0;"/><text fill="#454645" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="130" x="313" y="395.6582">Wait for confirmation</text><ellipse cx="381" cy="414.7344" fill="#FFDA29" rx="12" ry="12" style="stroke:#454645;stroke-width:2.0;"/><polygon fill="#454645" points="377,402.7344,383,397.7344,381,402.7344,383,407.7344,377,402.7344" style="stroke:#454645;stroke-width:1.0;"/><text fill="#454645" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="65" x="512.5" y="51.5332">Confirmed</text><ellipse cx="548" cy="21" fill="#FFDA29" rx="12" ry="12" style="stroke:#454645;stroke-width:2.0;"/><line style="stroke:#454645;stroke-width:2.0;" x1="536" x2="560" y1="35" y2="35"/><text fill="#454645" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="65" x="512.5" y="395.6582">Confirmed</text><ellipse cx="548" cy="414.7344" fill="#FFDA29" rx="12" ry="12" style="stroke:#454645;stroke-width:2.0;"/><line style="stroke:#454645;stroke-width:2.0;" x1="536" x2="560" y1="428.7344" y2="428.7344"/><rect fill="#FF6F61" height="31.6094" rx="3.5" ry="3.5" style="stroke:#FF6F61;stroke-width:1.5;" width="85" x="593.5" y="22"/><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="71" x="600.5" y="43.5332">Disable car</text><rect fill="#FF6F61" height="31.6094" rx="3.5" ry="3.5" style="stroke:#FF6F61;stroke-width:1.5;" width="85" x="593.5" y="381.125"/><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="71" x="600.5" y="402.6582">Disable car</text><text fill="#454645" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="135" x="688.5" y="51.5332">Apply Pit stop actions</text><ellipse cx="759" cy="21" fill="#FFDA29" rx="12" ry="12" style="stroke:#454645;stroke-width:2.0;"/><polygon fill="#454645" points="755,9,761,4,759,9,761,14,755,9" style="stroke:#454645;stroke-width:1.0;"/><text fill="#454645" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="135" x="688.5" y="395.6582">Apply Pit stop actions</text><ellipse cx="759" cy="414.7344" fill="#FFDA29" rx="12" ry="12" style="stroke:#454645;stroke-width:2.0;"/><polygon fill="#454645" points="755,402.7344,761,397.7344,759,402.7344,761,407.7344,755,402.7344" style="stroke:#454645;stroke-width:1.0;"/><rect fill="#FF6F61" height="31.6094" rx="3.5" ry="3.5" style="stroke:#FF6F61;stroke-width:1.5;" width="104" x="839.5" y="22"/><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="90" x="846.5" y="43.5332">Re-enable car</text><rect fill="#FF6F61" height="31.6094" rx="3.5" ry="3.5" style="stroke:#FF6F61;stroke-width:1.5;" width="104" x="839.5" y="381.125"/><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="90" x="846.5" y="402.6582">Re-enable car</text><rect fill="#FF6F61" height="31.6094" rx="3.5" ry="3.5" style="stroke:#FF6F61;stroke-width:1.5;" width="119" x="953.5" y="22"/><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="105" x="960.5" y="43.5332">Car exits pit lane</text><rect fill="#FF6F61" height="31.6094" rx="3.5" ry="3.5" style="stroke:#FF6F61;stroke-width:1.5;" width="119" x="953.5" y="381.125"/><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="105" x="960.5" y="402.6582">Car exits pit lane</text><polygon fill="#454645" points="212.5,82.9609,222.5,86.9609,212.5,90.9609,216.5,86.9609" style="stroke:#454645;stroke-width:1.0;"/><line style="stroke:#454645;stroke-width:1.0;" x1="70.5" x2="218.5" y1="86.9609" y2="86.9609"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacing" textLength="7" x="77.5" y="82.1045">1</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="0" x="92.5" y="82.1045"/><polygon fill="#454645" points="369,113.3125,379,117.3125,369,121.3125,373,117.3125" style="stroke:#454645;stroke-width:1.0;"/><line style="stroke:#454645;stroke-width:1.0;" x1="224.5" x2="375" y1="117.3125" y2="117.3125"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacing" textLength="7" x="231.5" y="112.4561">2</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="0" x="246.5" y="112.4561"/><path d="M296.5,132.3125 L472,132.3125 L472,140.3125 L462,150.3125 L293,150.3125 L293,135.8125 A3.5,3.5 0 0 1 296.5,132.3125 " fill="#EEEEEE" style="stroke:#454645;stroke-width:1.0;"/><rect fill="none" height="111.4063" rx="3.5" ry="3.5" style="stroke:#454645;stroke-width:1.0;" width="310.5" x="293" y="132.3125"/><text fill="#454645" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacing" textLength="134" x="308" y="146.8076">Wait for confirmation</text><polygon fill="#454645" points="536,169.0156,546,173.0156,536,177.0156,540,173.0156" style="stroke:#454645;stroke-width:1.0;"/><line style="stroke:#454645;stroke-width:1.0;" x1="381" x2="542" y1="173.0156" y2="173.0156"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacing" textLength="7" x="388" y="168.1592">3</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="132" x="399" y="168.1592">Track call button press</text><path d="M306.5,188.0156 L368,188.0156 L368,196.0156 L358,206.0156 L303,206.0156 L303,191.5156 A3.5,3.5 0 0 1 306.5,188.0156 " fill="#EEEEEE" style="stroke:#454645;stroke-width:1.0;"/><rect fill="none" height="48.7031" rx="3.5" ry="3.5" style="stroke:#454645;stroke-width:1.0;" width="290.5" x="303" y="188.0156"/><text fill="#454645" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacing" textLength="20" x="318" y="202.5107">opt</text><text fill="#454645" font-family="sans-serif" font-size="11" font-weight="bold" lengthAdjust="spacing" textLength="194" x="383" y="201.4346">[auto confirmation after 5 seconds]</text><polygon fill="#454645" points="536,224.7188,546,228.7188,536,232.7188,540,228.7188" style="stroke:#454645;stroke-width:1.0;"/><line style="stroke:#454645;stroke-width:1.0;" x1="381" x2="542" y1="228.7188" y2="228.7188"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacing" textLength="7" x="388" y="223.8623">4</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="0" x="403" y="223.8623"/><polygon fill="#454645" points="624,269.0703,634,273.0703,624,277.0703,628,273.0703" style="stroke:#454645;stroke-width:1.0;"/><line style="stroke:#454645;stroke-width:1.0;" x1="548" x2="630" y1="273.0703" y2="273.0703"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacing" textLength="7" x="555" y="268.2139">5</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="0" x="570" y="268.2139"/><polygon fill="#454645" points="747,299.4219,757,303.4219,747,307.4219,751,303.4219" style="stroke:#454645;stroke-width:1.0;"/><line style="stroke:#454645;stroke-width:1.0;" x1="636" x2="753" y1="303.4219" y2="303.4219"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacing" textLength="7" x="643" y="298.5654">6</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="0" x="658" y="298.5654"/><polygon fill="#454645" points="879.5,329.7734,889.5,333.7734,879.5,337.7734,883.5,333.7734" style="stroke:#454645;stroke-width:1.0;"/><line style="stroke:#454645;stroke-width:1.0;" x1="759" x2="885.5" y1="333.7734" y2="333.7734"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacing" textLength="7" x="766" y="328.917">7</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="0" x="781" y="328.917"/><polygon fill="#454645" points="1001,360.125,1011,364.125,1001,368.125,1005,364.125" style="stroke:#454645;stroke-width:1.0;"/><line style="stroke:#454645;stroke-width:1.0;" x1="891.5" x2="1007" y1="364.125" y2="364.125"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacing" textLength="7" x="898.5" y="359.2686">8</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="0" x="913.5" y="359.2686"/><!--MD5=[129629df54c67036e84974fba2ed750c]
+@startuml
+!theme toy
+
+participant CarEnterPitLane as "Car enters pit lane"
+participant CarStoppedInPitLane as "Car stopped in pit lane"
+control CarWaitingForConfirmation as "Wait for confirmation"
+entity CarWaitingForConfirmed as "Confirmed"
+participant DisableCar as "Disable car"
+control ApplyPitStopActions as "Apply Pit stop actions"
+participant ReenableCar as "Re-enable car"
+participant CarExitsPitLane as "Car exits pit lane"
+
+
+autonumber
+CarEnterPitLane -> CarStoppedInPitLane
+CarStoppedInPitLane -> CarWaitingForConfirmation
+group Wait for confirmation
+    CarWaitingForConfirmation -> CarWaitingForConfirmed: Track call button press
+    opt auto confirmation after 5 seconds
+    CarWaitingForConfirmation -> CarWaitingForConfirmed
+    end
+end
+
+CarWaitingForConfirmed -> DisableCar
+DisableCar -> ApplyPitStopActions
+ApplyPitStopActions -> ReenableCar
+ReenableCar -> CarExitsPitLane
+@enduml
+
+@startuml
+skinparam BackgroundColor DDDDDD
+skinparam shadowing false
+skinparam RoundCorner 7
+skinparam ArrowColor 454645
+skinparam FontColor 454645
+skinparam SequenceLifeLineBorderColor 454645
+skinparam SequenceGroupHeaderFontColor 454645
+skinparam SequenceGroupFontColor 454645
+skinparam SequenceGroupBorderColor 454645
+skinparam SequenceGroupBorderThickness 1
+
+skinparam sequenceDivider {
+    BorderColor 454645
+    BorderThickness 1
+    FontColor 454645
+}
+
+skinparam participant {
+    BackgroundColor FF6F61
+    BorderColor FF6F61
+    FontColor White
+}
+
+skinparam database {
+    BackgroundColor 98DDDE
+    BorderColor 454645
+    FontColor 454645
+}
+
+skinparam entity {
+    BackgroundColor FFDA29
+    BorderColor 454645
+    FontColor 454645
+}
+
+skinparam note {
+    BackgroundColor LightGreen
+    BorderColor LightGreen
+    FontColor 454645
+}
+
+skinparam actor {
+    BackgroundColor 454645
+    BorderColor 454645
+    FontColor 454645
+}
+
+skinparam boundary {
+    BackgroundColor FFDA29
+    BorderColor 454645
+    FontColor 454645
+}
+
+skinparam control {
+    BackgroundColor FFDA29
+    BorderColor 454645
+    FontColor 454645
+}
+
+skinparam collections {
+    BackgroundColor FF6F61
+    BorderColor 454645
+    FontColor 454645
+}
+
+skinparam queue {
+    BackgroundColor FF6F61
+    BorderColor 454645
+    FontColor FFF
+    BorderThickness 1.5
+}
+
+participant CarEnterPitLane as "Car enters pit lane"
+participant CarStoppedInPitLane as "Car stopped in pit lane"
+control CarWaitingForConfirmation as "Wait for confirmation"
+entity CarWaitingForConfirmed as "Confirmed"
+participant DisableCar as "Disable car"
+control ApplyPitStopActions as "Apply Pit stop actions"
+participant ReenableCar as "Re-enable car"
+participant CarExitsPitLane as "Car exits pit lane"
+
+
+autonumber
+CarEnterPitLane -> CarStoppedInPitLane
+CarStoppedInPitLane -> CarWaitingForConfirmation
+group Wait for confirmation
+    CarWaitingForConfirmation -> CarWaitingForConfirmed: Track call button press
+    opt auto confirmation after 5 seconds
+    CarWaitingForConfirmation -> CarWaitingForConfirmed
+    end
+end
+
+CarWaitingForConfirmed -> DisableCar
+DisableCar -> ApplyPitStopActions
+ApplyPitStopActions -> ReenableCar
+ReenableCar -> CarExitsPitLane
+@enduml
+
+PlantUML version 1.2021.11(Sat Oct 02 15:26:11 CEST 2021)
+(GPL source distribution)
+Java Runtime: OpenJDK Runtime Environment
+JVM: OpenJDK 64-Bit Server VM
+Default Encoding: Cp1252
+Language: en
+Country: CA
+--></g></svg>
