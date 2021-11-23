@@ -82,7 +82,7 @@ car:
       # Default fuel burn rate
       # format: Liter per second at max power
       # type: float
-      burn-rate: 30 # 0.223
+      burn-rate: 0.223
 
       # Default fuel refuelling flow rate
       # format: Liter per second
@@ -112,7 +112,7 @@ car:
     - id: 3
       # max-speed: 100
       drivers:
-        - name: Hans Hansen
+        - name: John Doe
   #  - id: 1
   #    max-speed: 100
   #    fuel: 100
@@ -151,11 +151,11 @@ webserver:
 
 
 postprocessors:
-  influxdb:
-    url: "http://localhost:8086"
-    batch-size: 100
-    auth-token: "445DAYLEv4M17iT6nzeSbJ3TRVJQ7fJnNF7v1u8ItuaiE3Ou5nBcG9u0XRedw77tizKnT2rbGxm7KtFHDqYeqQ=="
-    organization: openrms
-    bucket: openrms
+#   influxdb:
+#    url: "http://localhost:8086"
+#    batch-size: 100
+#    auth-token: ""
+#    organization: openrms
+#    bucket: openrms
 
   leaderboard: {}
