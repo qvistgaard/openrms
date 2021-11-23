@@ -123,16 +123,18 @@ car:
 
 
 rules:
-  - plugin: race
-    enabled: false
-    stages:
-      - type: training
-        duration: 10m
-      - type: qualification
-        laps: 10
-      - type: competition
-        duration: 10m
-
+  #- plugin: race
+    # Note:
+    # The race plugin have not been implemented yet, therefore
+    # this section has no effect
+    # enabled: false
+    # stages:
+      # - type: training
+      #   duration: 10m
+      # - type: qualification
+      #   laps: 10
+      # - type: competition
+      #   duration: 10m
 
   - plugin: fuel
     enabled: true
