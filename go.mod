@@ -5,11 +5,9 @@ go 1.16
 require (
 	github.com/divideandconquer/go-merge v0.0.0-20160829212531-bc6b3a394b4e
 	github.com/enriquebris/goconcurrentqueue v0.6.0
-	github.com/faiface/beep v1.0.2
 	github.com/gorilla/websocket v1.4.2
 	github.com/hashicorp/go-version v1.3.0
-	github.com/influxdata/influxdb-client-go/v2 v2.2.3
-	github.com/mikepb/go-serial v0.0.0-20201030162908-19fa9bf168fc
+	github.com/influxdata/influxdb-client-go/v2 v2.6.0
 	github.com/mitchellh/mapstructure v1.4.1
 	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8
 	github.com/qmuntal/stateless v1.5.2
