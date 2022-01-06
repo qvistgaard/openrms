@@ -6,7 +6,7 @@ require (
 	github.com/divideandconquer/go-merge v0.0.0-20160829212531-bc6b3a394b4e
 	github.com/enriquebris/goconcurrentqueue v0.6.0
 	github.com/gorilla/websocket v1.4.2
-	github.com/hashicorp/go-version v1.3.0
+	github.com/hashicorp/go-version v1.4.0
 	github.com/influxdata/influxdb-client-go/v2 v2.6.0
 	github.com/mitchellh/mapstructure v1.4.3
 	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8
