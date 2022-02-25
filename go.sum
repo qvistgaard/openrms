@@ -11,8 +11,8 @@ github.com/divideandconquer/go-merge v0.0.0-20160829212531-bc6b3a394b4e h1:s/uRx
 github.com/divideandconquer/go-merge v0.0.0-20160829212531-bc6b3a394b4e/go.mod h1:Y+Et20MYTm/6Do72xZ3niVupcTZXTnsj0Y663IpuUkA=
 github.com/emirpasic/gods v1.12.0 h1:QAUIPSaCu4G+POclxeqb3F+WPpdKqFGlw36+yOzGlrg=
 github.com/emirpasic/gods v1.12.0/go.mod h1:YfzfFFoVP/catgzJb4IKIqXjX78Ha8FMSDh3ymbK86o=
-github.com/enriquebris/goconcurrentqueue v0.6.0 h1:DJ97cgoPVoqlC4tTGBokn/omaB3o16yIs5QdAm6YEjc=
-github.com/enriquebris/goconcurrentqueue v0.6.0/go.mod h1:wGJhQNFI4wLNHleZLo5ehk1puj8M6OIl0tOjs3kwJus=
+github.com/enriquebris/goconcurrentqueue v0.6.1 h1:eaxv9fnvS96w7svpisub7XKqozaTUz4tntLo6ttOwK0=
+github.com/enriquebris/goconcurrentqueue v0.6.1/go.mod h1:wGJhQNFI4wLNHleZLo5ehk1puj8M6OIl0tOjs3kwJus=
 github.com/getkin/kin-openapi v0.61.0/go.mod h1:7Yn5whZr5kJi6t+kShccXS8ae1APpYTW6yheSwk8Yi4=
 github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
 github.com/go-chi/chi/v5 v5.0.0/go.mod h1:BBug9lr0cqtdAhsu6R4AAdvufI0/XBzAQSsUqJpoZOs=
