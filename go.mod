@@ -10,10 +10,10 @@ require (
 	github.com/influxdata/influxdb-client-go/v2 v2.6.0
 	github.com/mitchellh/mapstructure v1.4.3
 	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8
-	github.com/qmuntal/stateless v1.5.2
+	github.com/qmuntal/stateless v1.6.2
 	github.com/reactivex/rxgo/v2 v2.5.0
 	github.com/sirupsen/logrus v1.8.1
-	github.com/stretchr/testify v1.7.0
+	github.com/stretchr/testify v1.8.1
 	github.com/tarm/serial v0.0.0-20180830185346-98f6abe2eb07
 	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c // indirect
 	gopkg.in/yaml.v2 v2.4.0
