@@ -14,14 +14,21 @@ type ImplementConfig struct {
 	}
 }
 
-func CreateImplement(context *application.Context) error {
+func CreateImplement(context *application.Context, implement *string) error {
 	c := &ImplementConfig{}
 	err := mapstructure.Decode(context.Config, c)
 	if err != nil {
 		return err
 	}
 
-	switch c.Implement.Plugin {
+	var plugin string
+	if implement == nil || *implement == "" {
+		plugin = c.Implement.Plugin
+	} else {
+		plugin = *implement
+	}
+
+	switch plugin {
 	case "oxigen":
 		context.Implement, err = oxigen.CreateFromConfig(context)
 	case "generator":

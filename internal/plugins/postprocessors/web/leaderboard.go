@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/qvistgaard/openrms/internal/config/application"
 	"github.com/qvistgaard/openrms/internal/implement"
-	"github.com/qvistgaard/openrms/internal/plugins/rules/pit"
 	"github.com/qvistgaard/openrms/internal/types"
 	"github.com/qvistgaard/openrms/internal/types/annotations"
 	"github.com/qvistgaard/openrms/internal/types/fields"
@@ -78,16 +77,16 @@ func NewLeaderboard(ctx *application.Context, c *Config) *Leaderboard {
 }*/
 
 type BoardEntry struct {
-	Car       types.Id        `json:"car"`
-	Laps      types.Lap       `json:"lap"`
-	Delta     time.Duration   `json:"delta"`
-	Best      time.Duration   `json:"best"`
-	Last      time.Duration   `json:"last"`
-	Deslotted bool            `json:"deslotted"`
-	InPit     bool            `json:"in-pit"`
-	Fuel      float64         `json:"fuel"`
-	Name      string          `json:"name"`
-	PitState  pit.CarPitState `json:"pit-state"`
+	Car       types.Id          `json:"car"`
+	Laps      types.Lap         `json:"lap"`
+	Delta     time.Duration     `json:"delta"`
+	Best      time.Duration     `json:"best"`
+	Last      time.Duration     `json:"last"`
+	Deslotted bool              `json:"deslotted"`
+	InPit     bool              `json:"in-pit"`
+	Fuel      float64           `json:"fuel"`
+	Name      string            `json:"name"`
+	PitState  types.CarPitState `json:"pit-state"`
 }
 
 func (l *Leaderboard) Configure(observable rxgo.Observable) {
@@ -124,7 +123,7 @@ func (l *Leaderboard) processValueChange(change reactive.ValueChange) {
 				}
 				l.updateLeaderboard()
 			case fields.PitState:
-				entry.PitState = change.Value.(pit.CarPitState)
+				entry.PitState = change.Value.(types.CarPitState)
 			case fields.InPit:
 				entry.InPit = change.Value.(bool)
 				l.updateLeaderboard()

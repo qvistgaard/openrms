@@ -9,10 +9,10 @@ implement:
   plugin: generator
 
   oxigen:
-    port: COM6
+    port: COM7
 
   generator:
-    cars: 3
+    cars: 15
     interval: 1000
 
 # configure the track, this will define of openrms & oxigen
@@ -22,7 +22,7 @@ track:
   # format: percentage
   # type: integer
   # allowed range: 0-100
-  max-speed: 75
+  max-speed: 100
 
   # Track length is used to calculate average speed of the cars
   # format: meter

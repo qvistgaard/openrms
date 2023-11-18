@@ -21,6 +21,7 @@ func main() {
 	flagLogfile := flag.String("log-file", "openrms.log", "OpenRMS log file")
 	flagLoglevel := flag.String("log-level", "trace", "Log level")
 	flagBrowser := flag.Bool("open-browser", true, "Open browser on launch")
+	flagImplement := flag.String("driver", "", "Driver")
 	flag.Parse()
 
 	level, err := log.ParseLevel(*flagLoglevel)
@@ -44,7 +45,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = config.CreateImplement(c)
+	err = config.CreateImplement(c, flagImplement)
 	if err != nil {
 		log.Fatal(err)
 	}

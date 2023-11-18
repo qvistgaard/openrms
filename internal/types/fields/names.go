@@ -3,6 +3,7 @@ package fields
 const (
 	LapTime   = "lap-time"
 	Laps      = "laps"
+	Drivers   = "drivers"
 	LastLap   = "last-lap"
 	InPit     = "in-pit"
 	Fuel      = "fuel"

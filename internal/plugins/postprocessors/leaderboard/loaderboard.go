@@ -61,7 +61,7 @@ func (l *Leaderboard) processValueChange(change reactive.ValueChange) {
 				}
 				l.updateLeaderboard()
 			case fields.PitState:
-				entry.PitState = change.Value.(types.CarPitState)
+				// entry.PitState = change.Value.(types.CarPitState)
 			case fields.InPit:
 				entry.InPit = change.Value.(bool)
 				l.updateLeaderboard()
@@ -71,6 +71,9 @@ func (l *Leaderboard) processValueChange(change reactive.ValueChange) {
 				l.updateLeaderboard()
 			case fields.Deslotted:
 				entry.Deslotted = change.Value.(bool)
+				l.updateLeaderboard()
+			case fields.Drivers:
+				entry.Name = change.Value.(types.Drivers)[0].Name
 				l.updateLeaderboard()
 			}
 		}

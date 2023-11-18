@@ -97,7 +97,7 @@ func (c CarConfiguration) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						CarId:       c.car,
 						MaxSpeed:    c.onTrackSpeed.Value(),
 						MaxPitSpeed: c.inPitSpeed.Value(),
-						DriverName:  c.driverName.View(),
+						DriverName:  c.driverName.Value(),
 					}
 				}
 			}
@@ -129,6 +129,8 @@ func (c CarConfiguration) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return c, tea.Batch(cmds...)
 		}
 	case commands.OpenCarConfiguration:
+		c.focusIndex = 0
+		c.car = msg.CarId
 		c.driverName.SetValue(msg.DriverName)
 		c.inPitSpeed.SetValue(msg.MaxPitSpeed)
 		c.onTrackSpeed.SetValue(msg.MaxSpeed)
@@ -164,7 +166,7 @@ func (c CarConfiguration) View() string {
 			lipgloss.JoinVertical(lipgloss.Top,
 				style.Container.Render(
 					lipgloss.JoinVertical(lipgloss.Top,
-						style.Heading.Width(72).Render("Car configuration"),
+						style.Heading.Width(72).Render("Car configuration (Car #"+c.car+")"),
 						c.driverName.View(),
 					),
 				),
@@ -176,7 +178,7 @@ func (c CarConfiguration) View() string {
 					),
 				),
 				lipgloss.PlaceHorizontal(78, lipgloss.Center,
-					lipgloss.JoinHorizontal(lipgloss.Center, ok, cancel),
+					lipgloss.JoinHorizontal(lipgloss.Center, ok, cancel, c.car),
 				),
 			),
 		),

@@ -13,21 +13,6 @@ import (
 	"time"
 )
 
-func Run(b *Bridge) {
-
-	/*	c.Scheduler.Add(&tasks.Task{
-			Interval: 1 * time.Second,
-			TaskFunc: func() error {
-				board := b.Leaderboard
-				if board != nil {
-					p.Send(board)
-				}
-				return nil
-			},
-		})
-	*/
-}
-
 type Bridge struct {
 	Leaderboard   *leaderboard.Leaderboard
 	Scheduler     *tasks.Scheduler
@@ -79,7 +64,14 @@ func (bridge *Bridge) messageHandler() {
 				fromString, _ := types.IdFromString(msg.CarId)
 				car, _, _ := bridge.Cars.Get(fromString, context.TODO())
 				maxSpeed, _ := types.PercentFromString(msg.MaxSpeed)
+				maxPitSpeed, _ := types.PercentFromString(msg.MaxPitSpeed)
+				name := msg.DriverName
+
 				car.MaxSpeed().Set(maxSpeed)
+				car.PitLaneMaxSpeed().Set(maxPitSpeed)
+				car.Drivers().Set(types.Drivers{
+					{Name: name},
+				})
 			}
 			log.Info(msg)
 		}

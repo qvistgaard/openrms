@@ -30,7 +30,7 @@ func NewCar(implementer implement.Implementer, factory *reactive.Factory, settin
 		lastLapTime:     factory.NewDuration(0, a, reactive.Annotations{annotations.CarValueFieldName: fields.LapTime}),
 		lastLap:         factory.NewDistinctLapNumber(a, reactive.Annotations{annotations.CarValueFieldName: fields.LastLap}),
 		laps:            factory.NewDistinctGauge(0, a, reactive.Annotations{annotations.CarValueFieldName: fields.Laps}),
-		drivers:         factory.NewDistictDrivers(*settings.Drivers, a, reactive.Annotations{annotations.CarValueFieldName: "drivers"}),
+		drivers:         factory.NewDistictDrivers(*settings.Drivers, a, reactive.Annotations{annotations.CarValueFieldName: fields.Drivers}),
 		controller:      controller.NewController(a, factory),
 	}
 	return car

@@ -75,7 +75,7 @@ func (l Leaderboard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "c":
 			return l, func() tea.Msg {
 				return commands.OpenCarConfiguration{
-					CarId:       l.rows[l.table.Cursor()][3],
+					CarId:       l.rows[l.table.Cursor()][2],
 					MaxSpeed:    "100",
 					MaxPitSpeed: "80",
 					DriverName:  l.rows[l.table.Cursor()][1],
@@ -95,7 +95,7 @@ func (l Leaderboard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case types.RaceTelemetry:
 		l.rows = make([]table.Row, 0)
 		for k, v := range msg.(types.RaceTelemetry).Sort() {
-			l.rows = append(l.rows, table.Row{strconv.Itoa(k + 1), v.Name + "fdafas", strconv.Itoa(int(v.Car)), fmt.Sprintf("%f", v.Fuel), v.Last.String(), v.Delta.String(), v.Best.String(), strconv.Itoa(int(v.Laps.LapNumber))})
+			l.rows = append(l.rows, table.Row{strconv.Itoa(k + 1), v.Name, strconv.Itoa(int(v.Car)), fmt.Sprintf("%f", v.Fuel), v.Last.String(), v.Delta.String(), v.Best.String(), strconv.Itoa(int(v.Laps.LapNumber))})
 		}
 		l.table.SetRows(l.rows)
 		l.raceTelemetry = msg.(types.RaceTelemetry)
