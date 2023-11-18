@@ -1,5 +1,6 @@
 package race
 
+/*
 import (
 	"github.com/qvistgaard/openrms/internal/state"
 	"github.com/qvistgaard/openrms/internal/telemetry"
@@ -35,7 +36,7 @@ const (
 
 	None = "none"
 
-	State     = "race-state"
+	ActiveView     = "race-state"
 	Started   = "started"
 	Running   = "running"
 	Stopped   = "stopped"
@@ -66,9 +67,9 @@ func (r *Rule) Notify(v *state.Value) {
 		r.handleReady(c, v)
 
 		if s, vok := v.Get().(state.Lap); vok && v.Name() == state.CarLap {
-			if d, dok := r.course.Get(StageLaps).(Laps); dok && r.course.Get(State) == Running {
+			if d, dok := r.course.Get(StageLaps).(Laps); dok && r.course.Get(ActiveView) == Running {
 				if d < Laps(s.LapNumber) {
-					r.course.Set(State, Stopped)
+					r.course.Set(ActiveView, Stopped)
 				}
 			}
 		}
@@ -96,12 +97,12 @@ func (r *Rule) Notify(v *state.Value) {
 			}
 		}
 		if s, vok := v.Get().(state.RaceTimer); vok && v.Name() == state.RaceTime {
-			if d, dok := c.Get(StageDuration).(time.Duration); dok && c.Get(State) == Running {
+			if d, dok := c.Get(StageDuration).(time.Duration); dok && c.Get(ActiveView) == Running {
 				if d < time.Duration(s) {
 					log.WithField(state.RaceStatus, r.course.Get(state.RaceStatus)).
 						WithField(state.RaceTime, time.Duration(s)).
 						Info("stage duration have been reached")
-					c.Set(State, Stopped)
+					c.Set(ActiveView, Stopped)
 				}
 			}
 		}
@@ -119,7 +120,7 @@ func (r *Rule) Notify(v *state.Value) {
 }
 
 func (r *Rule) handleRaceState(c *state.Course, v *state.Value) {
-	if s, ok := v.Get().(string); ok && v.Name() == State {
+	if s, ok := v.Get().(string); ok && v.Name() == ActiveView {
 		if s == Started {
 			if c.Get(Mode) == None {
 				stage := c.Get(Stage).(StageConfig)
@@ -170,7 +171,7 @@ func (r *Rule) handleCountdown(c *state.Course, v *state.Value) {
 
 	if s, ok := v.Get().(uint8); ok && v.Name() == Countdown {
 		if s <= 0 {
-			c.Set(State, Running)
+			c.Set(ActiveView, Running)
 			log.WithField("race-state", c.Get(state.RaceStatus)).
 				WithField("countdown", s).
 				Info("race pre-start countdown complete")
@@ -186,7 +187,7 @@ func (r *Rule) handleCountdown(c *state.Course, v *state.Value) {
 // Handle car ready related events
 //
 func (r *Rule) handleReady(c *state.Car, v *state.Value) {
-	if r.course.Get(State) == Started {
+	if r.course.Get(ActiveView) == Started {
 		if r.course.Get(Confirmation) == Unconfirmed {
 			if v.Name() == state.ControllerBtnTrackCall && v.Get().(bool) {
 				log.WithField("race-state", r.course.Get(state.RaceStatus)).
@@ -223,13 +224,13 @@ func (r *Rule) InitializeCarState(c *state.Car) {
 func (r *Rule) InitializeCourseState(c *state.Course) {
 	c.Set(Countdown, uint8(0))
 	c.Set(Mode, None)
-	c.Set(State, None)
+	c.Set(ActiveView, None)
 	c.Set(Stage, r.stages[0])
 	c.Set(StageNumber, uint8(0))
 	c.Set(Cars, uint8(0))
 	c.Set(CarsReady, uint8(0))
 	c.Set(Confirmation, Unconfirmed)
-	c.Subscribe(State, r)
+	c.Subscribe(ActiveView, r)
 	c.Subscribe(Countdown, r)
 	c.Subscribe(Confirmation, r)
 	c.Subscribe(CarsReady, r)
@@ -260,3 +261,4 @@ func (s StageConfig) Metrics() []telemetry.Metric {
 		{Name: "race-stage-type", Value: s.Type},
 	}
 }
+*/

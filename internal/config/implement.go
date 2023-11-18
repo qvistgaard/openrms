@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/mitchellh/mapstructure"
 	"github.com/qvistgaard/openrms/internal/config/application"
+	"github.com/qvistgaard/openrms/internal/plugins/implement/generator"
 	"github.com/qvistgaard/openrms/internal/plugins/implement/oxigen"
 )
 
@@ -25,7 +26,7 @@ func CreateImplement(context *application.Context) error {
 		context.Implement, err = oxigen.CreateFromConfig(context)
 	case "generator":
 		// TODO: recreate generating implement
-		// application.Implement, err = generator.CreateFromConfig(application)
+		context.Implement, err = generator.CreateFromConfig(context)
 	default:
 		return errors.New("Unknown implementer: " + c.Implement.Plugin)
 	}

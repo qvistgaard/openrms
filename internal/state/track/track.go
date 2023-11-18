@@ -13,10 +13,10 @@ type Track struct {
 	maxSpeed    *reactive.Percent
 }
 
-func NewTrack(implementer implement.Implementer) *Track {
+func NewTrack(implementer implement.Implementer, factory *reactive.Factory) *Track {
 	return &Track{
 		implementer: implementer,
-		maxSpeed:    reactive.NewPercent(100),
+		maxSpeed:    factory.NewDistinctPercent(100),
 	}
 }
 
@@ -26,7 +26,7 @@ func (t *Track) MaxSpeed() *reactive.Percent {
 
 func (t *Track) Init(ctx context.Context, postProcess reactive.ValuePostProcessor) {
 	t.maxSpeed.RegisterObserver(t.trackMaxSpeedChangeObserver)
-	t.maxSpeed.Init(ctx, postProcess)
+	t.maxSpeed.Init(ctx)
 }
 
 func (t *Track) trackMaxSpeedChangeObserver(observable rxgo.Observable) {

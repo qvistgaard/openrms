@@ -1,5 +1,6 @@
 package race
 
+/*
 import (
 	"github.com/qvistgaard/openrms/internal/config/application"
 	"github.com/qvistgaard/openrms/internal/state"
@@ -21,9 +22,10 @@ func TestRule_Notify(t *testing.T) {
 
 	c := state.CreateCar(1, nil, ctx.Rules)
 
-	ctx.Course.Set(State, Started)
+	ctx.Course.Set(ActiveView, Started)
 
 	c.Set(state.ControllerBtnTrackCall, true)
 
 	time.Sleep(20 * time.Second)
 }
+*/

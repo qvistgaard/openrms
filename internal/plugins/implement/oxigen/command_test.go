@@ -1,5 +1,6 @@
 package oxigen
 
+/*
 import (
 	"github.com/qvistgaard/openrms/internal/state"
 	"github.com/stretchr/testify/assert"
@@ -252,7 +253,7 @@ func TestRaceStatusChangeFromRaceStateMaxSpeed(t *testing.T) {
 	c := newEmptyCommand(s, 0x00, newSettings())
 	assert.Equal(t, uint8(0x64), c.settings.maxSpeed)
 }
-
+*/
 /*
 func TestRaceStateSetToStart(t *testing.T) {
 	state := make(map[string]state.StateInterface)

@@ -1,8 +1,10 @@
 package generator
 
 import (
+	"context"
 	"github.com/qvistgaard/openrms/internal/implement"
-	"github.com/qvistgaard/openrms/internal/state"
+	"github.com/qvistgaard/openrms/internal/types"
+	"github.com/qvistgaard/openrms/internal/types/reactive"
 	"math/rand"
 	"time"
 )
@@ -11,6 +13,22 @@ type Generator struct {
 	cars     uint8
 	interval uint
 	events   chan implement.Event
+}
+
+func (g *Generator) Car(car types.Id) implement.CarImplementer {
+	return NewCar(uint8(car))
+}
+
+func (g *Generator) Track() implement.TrackImplementer {
+	return NewTrack()
+}
+
+func (g *Generator) Race() implement.RaceImplementer {
+	return NewRace()
+}
+
+func (g *Generator) Init(ctx context.Context, processor reactive.ValuePostProcessor) {
+	// NOOP
 }
 
 func (g *Generator) EventLoop() error {
@@ -28,14 +46,6 @@ func (g *Generator) EventChannel() <-chan implement.Event {
 	return g.events
 }
 
-func (g *Generator) SendCarState(c state.CarState) error {
-	return nil
-}
-
-func (g *Generator) SendRaceState(r state.CourseState) error {
-	return nil
-}
-
 func (g *Generator) eventGenerator(carId uint8, interval uint) implement.Event {
 	laps := uint16(0)
 	start := time.Now()
@@ -46,7 +56,7 @@ func (g *Generator) eventGenerator(carId uint8, interval uint) implement.Event {
 			g.events <- implement.Event{
 				RaceTimer: time.Now().Sub(start),
 				Car: implement.Car{
-					Id:        carId,
+					Id:        types.IdFromUint(carId),
 					Reset:     false,
 					InPit:     false,
 					Deslotted: true,
@@ -69,7 +79,4 @@ func (g *Generator) eventGenerator(carId uint8, interval uint) implement.Event {
 		}
 	}
 
-}
-
-func (g *Generator) ResendCarState(c *state.Car) {
 }

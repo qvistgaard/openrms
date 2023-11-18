@@ -15,8 +15,8 @@ type RaceState struct {
 	reactive.Value
 }
 
-func NewRaceState(initial implement.RaceStatus, annotations ...reactive.Annotations) *RaceState {
-	return &RaceState{reactive.NewDistinctValue(initial, annotations...)}
+func NewRaceState(initial implement.RaceStatus, factory *reactive.Factory, annotations ...reactive.Annotations) *RaceState {
+	return &RaceState{factory.NewDistinctValue(initial, annotations...)}
 }
 
 func (p *RaceState) Set(value implement.RaceStatus) {
@@ -37,13 +37,13 @@ func (r *Race) UpdateTime() {
 	}
 }
 
-func NewRace(implementer implement.Implementer) *Race {
+func NewRace(implementer implement.Implementer, factory *reactive.Factory) *Race {
 	return &Race{
 		implementer: implementer,
-		status: NewRaceState(implement.RaceRunning, reactive.Annotations{
+		status: NewRaceState(implement.RaceRunning, factory, reactive.Annotations{
 			annotations.RaceValueFieldName: fields.RaceStatus,
 		}),
-		raceTimer: reactive.NewDuration(0, reactive.Annotations{
+		raceTimer: factory.NewDuration(0, reactive.Annotations{
 			annotations.RaceValueFieldName: fields.RaceTimer,
 		}),
 		raceStart: time.Now(),
@@ -81,10 +81,10 @@ func (r *Race) Init(ctx context.Context, postProcess reactive.ValuePostProcessor
 	})
 
 	r.status.RegisterObserver(r.raceStatusChangeObserver)
-	r.status.Init(ctx, postProcess)
+	r.status.Init(ctx)
 	r.status.Update()
 
-	r.raceTimer.Init(ctx, postProcess)
+	r.raceTimer.Init(ctx)
 }
 
 func (r *Race) raceStatusChangeObserver(observable rxgo.Observable) {

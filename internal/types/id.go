@@ -11,6 +11,11 @@ func (i Id) ToUint() uint {
 	return uint(i)
 }
 
+func IdFromString(id string) (Id, error) {
+	val, err := strconv.ParseUint(id, 10, 32)
+	return Id(uint(val)), err
+}
+
 func (i Id) String() string {
 	return strconv.Itoa(int(i))
 }

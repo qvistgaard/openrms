@@ -31,7 +31,8 @@ func CreatePostProcessors(context *application.Context) error {
 			postprocessors = append(postprocessors, p)
 			go p.Process()
 		case "leaderboard":
-			lb, err := leaderboard.CreateFromConfig(context)
+			lb, err := CreateLeaderBoardFromConfig()
+			context.Leaderboard = lb
 			if err != nil {
 				return err
 			}
@@ -40,4 +41,8 @@ func CreatePostProcessors(context *application.Context) error {
 	}
 	context.Postprocessors = postprocess.CreatePostProcess(postprocessors)
 	return nil
+}
+
+func CreateLeaderBoardFromConfig() (*leaderboard.Leaderboard, error) {
+	return leaderboard.New(), nil
 }

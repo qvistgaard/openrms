@@ -1,6 +1,6 @@
 package race
 
-import (
+/*import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/qvistgaard/openrms/internal/state"
 	log "github.com/sirupsen/logrus"
@@ -37,3 +37,4 @@ func Create(config map[string]interface{}) *Rule {
 	}
 
 }
+*/

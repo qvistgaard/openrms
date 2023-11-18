@@ -9,6 +9,7 @@ import (
 
 type PostProcessor interface {
 	Configure(observable rxgo.Observable)
+	Init(context ctx.Context)
 }
 
 type PostProcess struct {
@@ -43,7 +44,22 @@ func (p *PostProcess) ValuePostProcessor() reactive.ValuePostProcessor {
 }
 
 func (p *PostProcess) Init(context ctx.Context) {
+	for _, processor := range p.postProcessors {
+		processor.Init(context)
+	}
+
 	p.observable.Connect(context)
+}
+
+func Get[T PostProcessor](postProcessors *PostProcess) T {
+	var zero T // Zero value of T
+
+	for _, element := range postProcessors.postProcessors {
+		if converted, ok := element.(T); ok {
+			return converted
+		}
+	}
+	return zero
 }
 
 /*

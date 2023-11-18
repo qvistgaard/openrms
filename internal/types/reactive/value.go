@@ -32,15 +32,17 @@ type Owner struct {
 }
 
 type Value struct {
-	channel     chan rxgo.Item
-	observable  rxgo.Observable
-	valueType   reflect.Type
-	baseValue   interface{}
-	value       interface{}
-	Annotations Annotations
-	lock        *sync.Mutex
-	locked      bool
-	modifiers   []*ValueModifier
+	channel            chan rxgo.Item
+	observable         rxgo.Observable
+	valueType          reflect.Type
+	baseValue          interface{}
+	value              interface{}
+	Annotations        Annotations
+	lock               *sync.Mutex
+	locked             bool
+	modifiers          []*ValueModifier
+	valuePostProcessor ValuePostProcessor
+	initialized        bool
 }
 
 func (r *Value) RegisterObserver(observer func(rxgo.Observable)) {
@@ -63,12 +65,20 @@ func (r *Value) Modifier(modifier ValueModifierFunc, priority int) {
 }
 
 func (r *Value) Update() error {
+	log.Tracef("Value updated, %s, %s", r.Annotations, r.value)
 	r.value = r.baseValue
 	for _, modifier := range r.modifiers {
 		if v, enabled := modifier.Func(r.value); enabled {
 			r.value = v
 		}
 	}
+	if r.value == nil {
+		return errors.New("published value is null")
+	}
+	if r.initialized != true {
+		return errors.New("the Init method was never called")
+	}
+
 	r.channel <- rxgo.Of(r.value)
 	return nil
 }
@@ -85,8 +95,8 @@ func (r *Value) Set(i interface{}) error {
 	r.Update()
 	return nil
 }
-func (r *Value) Init(ctx context.Context, postProcess ValuePostProcessor) (context.Context, rxgo.Disposable) {
-	postProcess(r.observable.Map(func(ctx context.Context, i interface{}) (interface{}, error) {
+func (r *Value) Init(ctx context.Context) (context.Context, rxgo.Disposable) {
+	r.valuePostProcessor(r.observable.Map(func(ctx context.Context, i interface{}) (interface{}, error) {
 		return ValueChange{
 			Value:       i,
 			Type:        r.valueType,
@@ -94,6 +104,7 @@ func (r *Value) Init(ctx context.Context, postProcess ValuePostProcessor) (conte
 			Timestamp:   time.Now(),
 		}, nil
 	}))
+	r.initialized = true
 	return r.observable.Connect(ctx)
 }
 
@@ -105,22 +116,24 @@ type ValueChange struct {
 	Timestamp   time.Time
 }
 
-func NewDistinctValueFunc(initial interface{}, distinctFunc func(ctx context.Context, i interface{}) (interface{}, error), annotations ...Annotations) Value {
-	value := NewValue(initial, annotations...)
+func newDistinctValueFunc(initial interface{}, distinctFunc func(ctx context.Context, i interface{}) (interface{}, error), valuePostProcessor ValuePostProcessor, annotations ...Annotations) Value {
+	value := newValue(initial, valuePostProcessor, annotations...)
 	value.observable = value.observable.DistinctUntilChanged(distinctFunc)
 	return value
 }
 
-func NewDistinctValue(initial interface{}, annotations ...Annotations) Value {
-	distinctValueFunc := func(ctx context.Context, i interface{}) (interface{}, error) {
-		return i, nil
-	}
-	return NewDistinctValueFunc(initial, distinctValueFunc, annotations...)
+func emptyValueProcessor() func(observable rxgo.Observable) {
+	return func(observable rxgo.Observable) {}
 }
 
-func NewValue(initial interface{}, annotations ...Annotations) Value {
-	channel := make(chan rxgo.Item)
+func defaultDistinctFunction() func(ctx context.Context, i interface{}) (interface{}, error) {
+	return func(ctx context.Context, i interface{}) (interface{}, error) {
+		return i, nil
+	}
+}
 
+func newValue(initial interface{}, valuePostProcessor ValuePostProcessor, annotations ...Annotations) Value {
+	channel := make(chan rxgo.Item)
 	mergedAnnotations := Annotations{}
 	for _, i := range annotations {
 		for k, v := range i {
@@ -129,13 +142,14 @@ func NewValue(initial interface{}, annotations ...Annotations) Value {
 	}
 
 	value := Value{
-		Annotations: mergedAnnotations,
-		channel:     channel,
-		baseValue:   initial,
-		locked:      false,
-		lock:        new(sync.Mutex),
-		valueType:   reflect.TypeOf(initial),
-		observable:  rxgo.FromChannel(channel, rxgo.WithPublishStrategy()),
+		Annotations:        mergedAnnotations,
+		channel:            channel,
+		baseValue:          initial,
+		locked:             false,
+		lock:               new(sync.Mutex),
+		valueType:          reflect.TypeOf(initial),
+		observable:         rxgo.FromChannel(channel, rxgo.WithPublishStrategy()),
+		valuePostProcessor: valuePostProcessor,
 	}
 	return value
 }

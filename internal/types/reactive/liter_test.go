@@ -24,7 +24,7 @@ func TestLiterSubtractModifier_Modify(t *testing.T) {
 		})
 	})
 
-	liter.Modifier(mod)
+	liter.Modifier(mod, 1)
 
 	liter.Update()
 	result := <-output

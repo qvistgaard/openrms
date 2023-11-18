@@ -8,14 +8,6 @@ type Percent struct {
 	Value
 }
 
-func NewPercent(initial types.Percent, annotations ...Annotations) *Percent {
-	return &Percent{NewDistinctValue(initial, annotations...)}
-}
-
-func NewPercentAll(initial types.Percent, annotations ...Annotations) *Percent {
-	return &Percent{NewValue(initial, annotations...)}
-}
-
 func (s *Percent) Set(percent types.Percent) error {
 	return s.Value.Set(percent)
 }

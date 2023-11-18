@@ -12,7 +12,7 @@ import (
 	"github.com/qvistgaard/openrms/internal/types/reactive"
 )
 
-func NewCar(implementer implement.Implementer, settings *config.CarSettings, defaults *config.CarSettings, id types.Id) *Car {
+func NewCar(implementer implement.Implementer, factory *reactive.Factory, settings *config.CarSettings, defaults *config.CarSettings, id types.Id) *Car {
 	a := reactive.Annotations{
 		annotations.CarId: id,
 	}
@@ -21,16 +21,17 @@ func NewCar(implementer implement.Implementer, settings *config.CarSettings, def
 	car := &Car{
 		implementer:     implementer,
 		id:              id,
-		maxBreaking:     reactive.NewPercent(*settings.MaxBreaking),
-		maxSpeed:        reactive.NewPercent(*settings.MaxSpeed, a, reactive.Annotations{annotations.CarValueFieldName: "max-speed"}),
-		minSpeed:        reactive.NewPercent(*settings.MinSpeed, a, reactive.Annotations{annotations.CarValueFieldName: "min-speed"}),
-		pitLaneMaxSpeed: reactive.NewPercent(*settings.PitLane.MaxSpeed, a, reactive.Annotations{annotations.CarValueFieldName: "pit-lane-max-speed"}),
-		pit:             reactive.NewBoolean(false, a, reactive.Annotations{annotations.CarValueFieldName: fields.InPit}),
-		deslotted:       reactive.NewBoolean(false, a, reactive.Annotations{annotations.CarValueFieldName: fields.Deslotted}),
-		lastLapTime:     reactive.NewDuration(0, a, reactive.Annotations{annotations.CarValueFieldName: fields.LapTime}),
-		lastLap:         reactive.NewLap(a, reactive.Annotations{annotations.CarValueFieldName: fields.LastLap}),
-		laps:            reactive.NewGauge(0, a, reactive.Annotations{annotations.CarValueFieldName: fields.Laps}),
-		controller:      controller.NewController(a),
+		maxBreaking:     factory.NewDistinctPercent(*settings.MaxBreaking),
+		maxSpeed:        factory.NewDistinctPercent(*settings.MaxSpeed, a, reactive.Annotations{annotations.CarValueFieldName: "max-speed"}),
+		minSpeed:        factory.NewDistinctPercent(*settings.MinSpeed, a, reactive.Annotations{annotations.CarValueFieldName: "min-speed"}),
+		pitLaneMaxSpeed: factory.NewDistinctPercent(*settings.PitLane.MaxSpeed, a, reactive.Annotations{annotations.CarValueFieldName: "pit-lane-max-speed"}),
+		pit:             factory.NewDistinctBoolean(false, a, reactive.Annotations{annotations.CarValueFieldName: fields.InPit}),
+		deslotted:       factory.NewDistinctBoolean(false, a, reactive.Annotations{annotations.CarValueFieldName: fields.Deslotted}),
+		lastLapTime:     factory.NewDuration(0, a, reactive.Annotations{annotations.CarValueFieldName: fields.LapTime}),
+		lastLap:         factory.NewDistinctLapNumber(a, reactive.Annotations{annotations.CarValueFieldName: fields.LastLap}),
+		laps:            factory.NewDistinctGauge(0, a, reactive.Annotations{annotations.CarValueFieldName: fields.Laps}),
+		drivers:         factory.NewDistictDrivers(*settings.Drivers, a, reactive.Annotations{annotations.CarValueFieldName: "drivers"}),
+		controller:      controller.NewController(a, factory),
 	}
 	return car
 }
@@ -48,6 +49,7 @@ type Car struct {
 	lastLapTime     *reactive.Duration
 	laps            *reactive.Gauge
 	lastLap         *reactive.Lap
+	drivers         *reactive.Drivers
 }
 
 func (c *Car) PitLaneMaxSpeed() *reactive.Percent {
@@ -86,6 +88,10 @@ func (c *Car) Laps() *reactive.Gauge {
 	return c.laps
 }
 
+func (c *Car) Drivers() *reactive.Drivers {
+	return c.drivers
+}
+
 func (c *Car) UpdateFromEvent(e implement.Event) {
 	c.Pit().Set(e.Car.InPit)
 	c.Deslotted().Set(e.Car.Deslotted)
@@ -98,26 +104,27 @@ func (c *Car) UpdateFromEvent(e implement.Event) {
 
 func (c *Car) Init(ctx context.Context, postProcess reactive.ValuePostProcessor) {
 	c.maxSpeed.RegisterObserver(c.maxSpeedChangeObserver)
-	c.maxSpeed.Init(ctx, postProcess)
+	c.maxSpeed.Init(ctx)
 	c.maxSpeed.Update()
 
 	c.pitLaneMaxSpeed.RegisterObserver(c.pitLaneMaxSpeedChangeObserver)
-	c.pitLaneMaxSpeed.Init(ctx, postProcess)
+	c.pitLaneMaxSpeed.Init(ctx)
 	c.pitLaneMaxSpeed.Update()
 
-	c.deslotted.Init(ctx, postProcess)
-	c.lastLapTime.Init(ctx, postProcess)
-	c.laps.Init(ctx, postProcess)
-	c.lastLap.Init(ctx, postProcess)
+	c.deslotted.Init(ctx)
+	c.lastLapTime.Init(ctx)
+	c.laps.Init(ctx)
+	c.lastLap.Init(ctx)
 
 	c.minSpeed.RegisterObserver(c.minSpeedChangeObserver)
-	c.minSpeed.Init(ctx, postProcess)
+	c.minSpeed.Init(ctx)
 	c.minSpeed.Update()
 
 	c.maxBreaking.RegisterObserver(c.maxBreakingChangeObserver)
-	c.maxBreaking.Init(ctx, postProcess)
+	c.maxBreaking.Init(ctx)
 	c.maxBreaking.Update()
 
-	c.pit.Init(ctx, postProcess)
-	c.controller.Init(ctx, postProcess)
+	c.pit.Init(ctx)
+	c.controller.Init(ctx)
+	c.drivers.Init(ctx)
 }

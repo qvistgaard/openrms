@@ -37,7 +37,7 @@ func ConfigureTrack(ctx *application.Context) error {
 
 	ctx.Implement.Track().PitLane().LapCounting(c.Track.PitLane.LapCounting.Enabled, o)
 	ctx.Implement.Track().MaxSpeed(c.Track.MaxSpeed)
-	ctx.Track = track.NewTrack(ctx.Implement)
+	ctx.Track = track.NewTrack(ctx.Implement, ctx.ValueFactory)
 
 	return nil
 }

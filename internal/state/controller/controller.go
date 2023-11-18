@@ -11,10 +11,10 @@ type Controller struct {
 	buttonTrackCall *reactive.Boolean
 }
 
-func NewController(a reactive.Annotations) *Controller {
+func NewController(a reactive.Annotations, factory *reactive.Factory) *Controller {
 	return &Controller{
-		triggerValue:    reactive.NewPercentAll(0, a, reactive.Annotations{annotations.CarValueFieldName: "trigger-value"}),
-		buttonTrackCall: reactive.NewBoolean(false, a, reactive.Annotations{annotations.CarValueFieldName: "track-call"}),
+		triggerValue:    factory.NewPercent(0, a, reactive.Annotations{annotations.CarValueFieldName: "trigger-value"}),
+		buttonTrackCall: factory.NewDistinctBoolean(false, a, reactive.Annotations{annotations.CarValueFieldName: "track-call"}),
 	}
 }
 
@@ -26,7 +26,7 @@ func (c *Controller) ButtonTrackCall() *reactive.Boolean {
 	return c.buttonTrackCall
 }
 
-func (c *Controller) Init(ctx context.Context, postProcess reactive.ValuePostProcessor) {
-	c.buttonTrackCall.Init(ctx, postProcess)
-	c.triggerValue.Init(ctx, postProcess)
+func (c *Controller) Init(ctx context.Context) {
+	c.buttonTrackCall.Init(ctx)
+	c.triggerValue.Init(ctx)
 }

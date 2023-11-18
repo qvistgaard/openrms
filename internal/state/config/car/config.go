@@ -12,6 +12,7 @@ type CarSettings struct {
 	PitLane     *PitLaneConfig `mapstructure:"pit-lane"`
 	MaxBreaking *types.Percent `mapstructure:"max-breaking"`
 	MinSpeed    *types.Percent `mapstructure:"min-speed"`
+	Drivers     *types.Drivers `mapstructure:"drivers"`
 }
 
 type Config struct {

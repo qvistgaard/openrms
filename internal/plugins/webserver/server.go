@@ -7,6 +7,7 @@ import (
 	"github.com/qvistgaard/openrms/web"
 	log "github.com/sirupsen/logrus"
 	"net/http"
+	"sync"
 )
 
 type Server struct {
@@ -33,11 +34,13 @@ func (s *Server) PublishEvent(event webserver.Event) {
 	s.events <- event
 }
 
-func (s *Server) RunServer() {
+func (s *Server) RunServer(wg *sync.WaitGroup) {
 	defer func() {
 		log.Fatal("Webserver died")
 	}()
+	defer wg.Done()
 
+	wg.Add(1)
 	go s.processWebsocket()
 
 	http.HandleFunc("/static/", web.StaticContentHandler)

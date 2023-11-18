@@ -38,6 +38,10 @@ func CreateFromConfig(ctx *application.Context) (*CarConfigRepository, error) {
 		c.Car.Defaults.PitLane = &config.PitLaneConfig{MaxSpeed: &percent}
 	}
 
+	if c.Car.Defaults.Drivers == nil {
+		c.Car.Defaults.Drivers = &types.Drivers{}
+	}
+
 	ccr := new(CarConfigRepository)
 	ccr.cars = make(map[types.Id]*car.Car)
 	ccr.config = make(map[types.Id]*config.CarSettings)
@@ -58,13 +62,13 @@ func (c *CarConfigRepository) Get(id types.Id, ctx ctx.Context) (*car.Car, bool,
 		}
 
 		// i := merge.Merge(c.defaults, c.config[id])
-		c.cars[id] = car.NewCar(c.context.Implement, c.config[id], c.defaults, id)
+		c.cars[id] = car.NewCar(c.context.Implement, c.context.ValueFactory, c.config[id], c.defaults, id)
 
 		for _, r := range c.context.Rules.CarRules() {
-			r.ConfigureCarState(c.cars[id])
+			r.ConfigureCarState(c.cars[id], c.context.ValueFactory)
 		}
 		for _, r := range c.context.Rules.CarRules() {
-			r.InitializeCarState(c.cars[id], ctx, c.context.Postprocessors.ValuePostProcessor())
+			r.InitializeCarState(c.cars[id], ctx)
 		}
 		c.cars[id].Init(ctx, c.context.Postprocessors.ValuePostProcessor())
 		carCreated = true

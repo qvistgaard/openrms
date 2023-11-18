@@ -17,7 +17,7 @@ func ConfigureRace(ctx *application.Context) error {
 		return nil
 	}
 
-	ctx.Race = race.NewRace(ctx.Implement)
+	ctx.Race = race.NewRace(ctx.Implement, ctx.ValueFactory)
 
 	return nil
 }

@@ -6,10 +6,6 @@ type Liter struct {
 	Value
 }
 
-func NewLiter(initial types.Liter, annotations ...Annotations) *Liter {
-	return &Liter{NewDistinctValue(initial, annotations...)}
-}
-
 func (s *Liter) Set(liter types.Liter) error {
 	return s.Value.Set(liter)
 }

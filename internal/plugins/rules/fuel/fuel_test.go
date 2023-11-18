@@ -3,7 +3,6 @@ package fuel
 import (
 	ctx "context"
 	"github.com/qmuntal/stateless"
-	"github.com/qvistgaard/openrms/internal/postprocess"
 	"github.com/qvistgaard/openrms/internal/state/car"
 	"github.com/qvistgaard/openrms/internal/types"
 	"github.com/qvistgaard/openrms/internal/types/reactive"
@@ -37,19 +36,18 @@ func TestRefuelFuelCalculation(t *testing.T) {
 }
 
 func TestInternalTransitionNotFailing(t *testing.T) {
-	process := postprocess.CreatePostProcess([]postprocess.PostProcessor{})
+	// process := postprocess.CreatePostProcess([]postprocess.PostProcessor{})
 	c := Consumption{
-		fuel:          make(map[types.Id]*reactive.Liter),
-		state:         make(map[types.Id]*stateless.StateMachine),
-		consumed:      map[types.Id]*reactive.LiterSubtractModifier{},
-		config:        nil,
-		postprocessor: process,
+		fuel:     make(map[types.Id]*reactive.Liter),
+		state:    make(map[types.Id]*stateless.StateMachine),
+		consumed: map[types.Id]*reactive.LiterSubtractModifier{},
+		config:   nil,
 	}
-	car := car.NewCar(nil, nil, nil, nil)
+	car := car.NewCar(nil, nil, nil, nil, 1)
 	car.Init(ctx.Background(), func(observable rxgo.Observable) {
 
 	})
-	c.ConfigureCarState(car, nil)
+	c.ConfigureCarState(car, reactive.NewFactory(nil))
 	car.Deslotted().Set(true)
 	car.Controller().TriggerValue().Set(10)
 

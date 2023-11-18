@@ -47,8 +47,8 @@ type CarPitStateValue struct {
 	reactive.Value
 }
 
-func NewCarPitStateValue(initial CarPitState, annotations ...reactive.Annotations) *CarPitStateValue {
-	return &CarPitStateValue{reactive.NewDistinctValue(initial, annotations...)}
+func NewCarPitStateValue(initial CarPitState, valueFactory *reactive.Factory, annotations ...reactive.Annotations) *CarPitStateValue {
+	return &CarPitStateValue{valueFactory.NewDistinctValue(initial, annotations...)}
 }
 
 func (p *CarPitStateValue) Set(value CarPitState) {
@@ -83,7 +83,7 @@ func (p *Rule) Name() string {
 	return "pit"
 }
 
-func (p *Rule) ConfigureCarState(c *car.Car) {
+func (p *Rule) ConfigureCarState(c *car.Car, valueFactory *reactive.Factory) {
 	carId := c.Id()
 	a := reactive.Annotations{
 		annotations.CarId: carId,
@@ -93,7 +93,7 @@ func (p *Rule) ConfigureCarState(c *car.Car) {
 	p.carState[carId] = stateMachine
 	p.handlerCompleted[carId] = false
 	p.speed[carId] = &reactive.PercentSubtractModifier{Subtract: 100}
-	p.carPitState[carId] = NewCarPitStateValue(PitStateNotInPitLane, a, reactive.Annotations{annotations.CarValueFieldName: fields.PitState})
+	p.carPitState[carId] = NewCarPitStateValue(PitStateNotInPitLane, valueFactory, a, reactive.Annotations{annotations.CarValueFieldName: fields.PitState})
 
 	c.PitLaneMaxSpeed().Modifier(p.speed[carId], 1000)
 
@@ -136,8 +136,8 @@ func (p *Rule) ConfigureCarState(c *car.Car) {
 	})
 }
 
-func (p *Rule) InitializeCarState(car *car.Car, ctx context.Context, postProcess reactive.ValuePostProcessor) {
-	p.carPitState[car.Id()].Init(ctx, postProcess)
+func (p *Rule) InitializeCarState(car *car.Car, ctx context.Context) {
+	p.carPitState[car.Id()].Init(ctx)
 }
 
 func alwaysIgnoreTrigger(context.Context, ...interface{}) bool {

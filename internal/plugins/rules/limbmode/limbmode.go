@@ -29,7 +29,7 @@ type LimbMode struct {
 	speedModifier map[types.Id]*reactive.PercentAbsoluteModifier
 }
 
-func (l *LimbMode) ConfigureCarState(car *car.Car) {
+func (l *LimbMode) ConfigureCarState(car *car.Car, valueFactory *reactive.Factory) {
 	var carConfig *LimbModeConfig
 	var ok bool
 	if carConfig, ok = l.config[car.Id()]; !ok {
@@ -38,7 +38,7 @@ func (l *LimbMode) ConfigureCarState(car *car.Car) {
 	a := reactive.Annotations{
 		annotations.CarId: car.Id(),
 	}
-	l.state[car.Id()] = reactive.NewBoolean(false, a, reactive.Annotations{annotations.CarValueFieldName: "limb-mode"})
+	l.state[car.Id()] = valueFactory.NewDistinctBoolean(false, a, reactive.Annotations{annotations.CarValueFieldName: "limb-mode"})
 	l.speedModifier[car.Id()] = &reactive.PercentAbsoluteModifier{Absolute: *carConfig.MaxSpeed, Enabled: false, Condition: reactive.IfGreaterThen}
 	car.MaxSpeed().Modifier(l.speedModifier[car.Id()], 1)
 
@@ -82,8 +82,8 @@ func (l *LimbMode) InitializeRaceState(race *race.Race, ctx context.Context, pro
 
 }
 
-func (l *LimbMode) InitializeCarState(car *car.Car, ctx context.Context, postProcess reactive.ValuePostProcessor) {
-	l.state[car.Id()].Init(ctx, postProcess)
+func (l *LimbMode) InitializeCarState(car *car.Car, ctx context.Context) {
+	l.state[car.Id()].Init(ctx)
 }
 
 func (l *LimbMode) Get(car *car.Car) *reactive.Boolean {

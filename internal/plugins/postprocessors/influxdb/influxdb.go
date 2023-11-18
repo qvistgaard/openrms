@@ -24,6 +24,10 @@ type InfluxDB struct {
 		car    chan state.CarState*/
 }
 
+func (i *InfluxDB) Init(context context.Context) {
+	// NOOP
+}
+
 func (i *InfluxDB) Configure(observable rxgo.Observable) {
 	observable.DistinctUntilChanged(func(ctx context.Context, i interface{}) (interface{}, error) {
 		return i.(reactive.ValueChange).Value, nil

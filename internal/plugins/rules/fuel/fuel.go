@@ -85,7 +85,7 @@ func (c *Consumption) HandlePitStop(car *car.Car, cancel <-chan bool) bool {
 	}
 }
 
-func (c *Consumption) ConfigureCarState(car *car.Car) {
+func (c *Consumption) ConfigureCarState(car *car.Car, valueFactory *reactive.Factory) {
 	carId := car.Id()
 	for _, v := range c.config.Car.Cars {
 		if *v.Id == carId {
@@ -96,7 +96,7 @@ func (c *Consumption) ConfigureCarState(car *car.Car) {
 		annotations.CarId: carId,
 	}
 	c.consumed[carId] = &reactive.LiterSubtractModifier{Subtract: c.fuelConfig[carId].TankSize - c.fuelConfig[carId].StartingFuel, Enabled: true}
-	c.fuel[carId] = reactive.NewLiter(c.fuelConfig[carId].TankSize, a, reactive.Annotations{annotations.CarValueFieldName: fields.Fuel})
+	c.fuel[carId] = valueFactory.NewLiter(c.fuelConfig[carId].TankSize, a, reactive.Annotations{annotations.CarValueFieldName: fields.Fuel})
 	c.fuel[carId].Modifier(c.consumed[carId], 1000)
 
 	c.maxSpeed[carId] = &reactive.PercentSubtractModifier{Subtract: 0, Enabled: true}
@@ -105,29 +105,7 @@ func (c *Consumption) ConfigureCarState(car *car.Car) {
 	machine := stateless.NewStateMachineWithMode(stateCarOnTrack, stateless.FiringImmediate)
 	machine.SetTriggerParameters(triggerUpdateFuelLevel, reflect.TypeOf(types.Percent(0)))
 	machine.Configure(stateCarOnTrack).
-		InternalTransition(triggerUpdateFuelLevel, func(ctx context.Context, args ...interface{}) error {
-			percent := args[0].(types.Percent)
-			if percent > 0 {
-				liter := c.fuel[carId].Get()
-				if liter > 0 {
-					substract := calculateFuelState(c.fuelConfig[carId].BurnRate, c.consumed[carId].Subtract, percent)
-					if c.fuelConfig[carId].TankSize >= substract {
-						c.consumed[carId].Subtract = substract
-						c.fuel[carId].Update()
-					}
-
-					// TODO: make weight penalty configurable
-					c.maxSpeed[carId].Subtract = types.Percent(math.Round(float64(c.fuel[carId].Get() / 10)))
-					car.MaxSpeed().Update()
-
-					log.WithField("car", carId).
-						WithField("fuel", c.fuel[carId].Get()).
-						WithField("consumed", c.consumed[carId].Subtract).
-						Debug("report car fuel level")
-				}
-			}
-			return nil
-		}).
+		InternalTransition(triggerUpdateFuelLevel, c.handleUpdateFuelLevel(car, carId)).
 		Permit(triggerCarDeslotted, stateCarDeslotted)
 
 	machine.Configure(stateCarDeslotted).
@@ -164,6 +142,32 @@ func (c *Consumption) ConfigureCarState(car *car.Car) {
 	})
 }
 
+func (c *Consumption) handleUpdateFuelLevel(car *car.Car, carId types.Id) func(ctx context.Context, args ...interface{}) error {
+	return func(ctx context.Context, args ...interface{}) error {
+		percent := args[0].(types.Percent)
+		if percent > 0 {
+			liter := c.fuel[carId].Get()
+			if liter > 0 {
+				substract := calculateFuelState(c.fuelConfig[carId].BurnRate, c.consumed[carId].Subtract, percent)
+				if c.fuelConfig[carId].TankSize >= substract {
+					c.consumed[carId].Subtract = substract
+					c.fuel[carId].Update()
+				}
+
+				// TODO: make weight penalty configurable
+				c.maxSpeed[carId].Subtract = types.Percent(math.Round(float64(c.fuel[carId].Get() / 10)))
+				car.MaxSpeed().Update()
+
+				log.WithField("car", carId).
+					WithField("fuel", c.fuel[carId].Get()).
+					WithField("consumed", c.consumed[carId].Subtract).
+					Debug("report car fuel level")
+			}
+		}
+		return nil
+	}
+}
+
 func (c *Consumption) ConfigureRaceState(race *race.Race) {
 	race.Status().RegisterObserver(func(observable rxgo.Observable) {
 		observable.DoOnNext(func(i interface{}) {
@@ -190,7 +194,7 @@ func (c *Consumption) InitializeRaceState(*race.Race, context.Context, reactive.
 }
 
 func (c *Consumption) InitializeCarState(car *car.Car, ctx context.Context, postProcess reactive.ValuePostProcessor) {
-	c.fuel[car.Id()].Init(ctx, postProcess)
+	c.fuel[car.Id()].Init(ctx)
 	c.fuel[car.Id()].Update()
 }
 
