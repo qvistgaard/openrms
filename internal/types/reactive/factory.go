@@ -49,6 +49,6 @@ func (f *Factory) NewDistinctLapNumber(annotations ...Annotations) *Lap {
 	return &Lap{newDistinctValueFunc(types.Lap{}, distinctValueFunc, f.valuePostProcessor, annotations...)}
 }
 
-func (f *Factory) NewDistictDrivers(initial types.Drivers, annotations ...Annotations) *Drivers {
-	return &Drivers{f.NewDistinctValue(initial, annotations...)}
+func (f *Factory) NewDrivers(initial types.Drivers, annotations ...Annotations) *Drivers {
+	return &Drivers{newValue(initial, f.valuePostProcessor, annotations...)}
 }

@@ -70,6 +70,12 @@ func (m Main) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.(tea.KeyMsg).String() {
 		case "ctrl+c":
 			return m, tea.Quit
+		case "s":
+			m.Bridge <- commands.StartRace{}
+		case "p":
+			m.Bridge <- commands.PauseRace{}
+		case "r":
+			m.Bridge <- commands.ResetRace{}
 		}
 		if m.ActiveView == ViewLeaderboard {
 			m.Leaderboard, cmd = m.Leaderboard.Update(msg)

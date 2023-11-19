@@ -4,12 +4,12 @@ import (
 	"context"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/madflojo/tasks"
+	"github.com/qvistgaard/openrms/internal/implement"
 	"github.com/qvistgaard/openrms/internal/plugins/postprocessors/leaderboard"
 	"github.com/qvistgaard/openrms/internal/repostitory/car"
 	"github.com/qvistgaard/openrms/internal/tui/commands"
 	"github.com/qvistgaard/openrms/internal/types"
 	"github.com/reactivex/rxgo/v2"
-	log "github.com/sirupsen/logrus"
 	"time"
 )
 
@@ -21,15 +21,17 @@ type Bridge struct {
 	UI            *UI
 	messages      <-chan tea.Msg
 	Cars          car.Repository
+	Implement     implement.Implementer
 }
 
-func CreateBridge(leaderboard *leaderboard.Leaderboard, scheduler *tasks.Scheduler, cars car.Repository) *Bridge {
+func CreateBridge(leaderboard *leaderboard.Leaderboard, scheduler *tasks.Scheduler, cars car.Repository, implementer implement.Implementer) *Bridge {
 	bridgeChannel := make(chan tea.Msg)
 
 	return &Bridge{
 		messages:    bridgeChannel,
 		Leaderboard: leaderboard,
 		Scheduler:   scheduler,
+		Implement:   implementer,
 		Cars:        cars,
 		UI:          Create(bridgeChannel),
 	}
@@ -65,15 +67,25 @@ func (bridge *Bridge) messageHandler() {
 				car, _, _ := bridge.Cars.Get(fromString, context.TODO())
 				maxSpeed, _ := types.PercentFromString(msg.MaxSpeed)
 				maxPitSpeed, _ := types.PercentFromString(msg.MaxPitSpeed)
+				minSpeed, _ := types.PercentFromString(msg.MinSpeed)
 				name := msg.DriverName
 
 				car.MaxSpeed().Set(maxSpeed)
 				car.PitLaneMaxSpeed().Set(maxPitSpeed)
+				car.MinSpeed().Set(minSpeed)
 				car.Drivers().Set(types.Drivers{
 					{Name: name},
 				})
+			case commands.StartRace:
+				// TODO: add function for doing this
+				bridge.Implement.Race().Status(implement.RaceRunning)
+			case commands.PauseRace:
+				bridge.Implement.Race().Status(implement.RacePaused)
+			case commands.ResetRace:
+				bridge.Implement.Race().Status(implement.RaceStopped)
+
 			}
-			log.Info(msg)
+			// log.Info(fmt.Sprintf("%+v\n", msg))
 		}
 	}
 }

@@ -61,6 +61,12 @@ func (c *CarConfigRepository) Get(id types.Id, ctx ctx.Context) (*car.Car, bool,
 			c.config[id] = &config.CarSettings{}
 		}
 
+		if c.config[id].Drivers == nil {
+			c.config[id].Drivers = &types.Drivers{
+				{Name: getRandomDriver()},
+			}
+		}
+
 		// i := merge.Merge(c.defaults, c.config[id])
 		c.cars[id] = car.NewCar(c.context.Implement, c.context.ValueFactory, c.config[id], c.defaults, id)
 

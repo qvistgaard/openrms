@@ -66,7 +66,7 @@ func (g *Generator) eventGenerator(carId uint8, interval uint) implement.Event {
 						TrackCall:      false,
 						ArrowUp:        false,
 						ArrowDown:      false,
-						TriggerValue:   rand.Float64(),
+						TriggerValue:   rand.Float64() * 100,
 					},
 
 					Lap: implement.Lap{

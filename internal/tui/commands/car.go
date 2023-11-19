@@ -7,6 +7,7 @@ type OpenCarConfiguration struct {
 	MaxSpeed    string
 	MaxPitSpeed string
 	DriverName  string
+	MinSpeed    string
 }
 
 type SaveCarConfiguration OpenCarConfiguration

@@ -6,16 +6,19 @@ import (
 )
 
 type RaceTelemetryEntry struct {
-	Car       Id
-	Laps      Lap
-	Delta     time.Duration
-	Best      time.Duration
-	Last      time.Duration
-	Deslotted bool
-	InPit     bool
-	Fuel      float64
-	Name      string
-	PitState  CarPitState
+	Car         Id
+	Laps        Lap
+	Delta       time.Duration
+	Best        time.Duration
+	Last        time.Duration
+	Deslotted   bool
+	MinSpeed    float64
+	MaxSpeed    float64
+	MaxPitSpeed float64
+	InPit       bool
+	Fuel        float64
+	Name        string
+	PitState    CarPitState
 }
 
 type RaceTelemetry map[Id]*RaceTelemetryEntry

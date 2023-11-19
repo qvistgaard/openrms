@@ -1,7 +1,6 @@
 package types
 
 import (
-	"math"
 	"strconv"
 )
 
@@ -12,7 +11,8 @@ func NewPercentFromUint8(i uint8) Percent {
 }
 
 func NewPercentFromFloat64(i float64) Percent {
-	return Percent(math.Round(i / 255 * 100))
+	// math.Round(i / 255 * 100) something is wrong here, can't remember why, check up on other usage, in this case push value
+	return Percent(i)
 }
 
 func PercentFromString(percent string) (Percent, error) {

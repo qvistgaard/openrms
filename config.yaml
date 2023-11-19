@@ -12,7 +12,7 @@ implement:
     port: COM7
 
   generator:
-    cars: 15
+    cars: 1
     interval: 1000
 
 # configure the track, this will define of openrms & oxigen

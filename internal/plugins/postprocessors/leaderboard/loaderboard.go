@@ -72,6 +72,15 @@ func (l *Leaderboard) processValueChange(change reactive.ValueChange) {
 			case fields.Deslotted:
 				entry.Deslotted = change.Value.(bool)
 				l.updateLeaderboard()
+			case fields.MinSpeed:
+				entry.MinSpeed = float64(change.Value.(types.Percent))
+				l.updateLeaderboard()
+			case fields.MaxTrackSpeed:
+				entry.MaxSpeed = float64(change.Value.(types.Percent))
+				l.updateLeaderboard()
+			case fields.MaxPitSpeed:
+				entry.MaxPitSpeed = float64(change.Value.(types.Percent))
+				l.updateLeaderboard()
 			case fields.Drivers:
 				entry.Name = change.Value.(types.Drivers)[0].Name
 				l.updateLeaderboard()

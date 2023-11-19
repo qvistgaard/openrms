@@ -10,16 +10,19 @@ import (
 	"github.com/qvistgaard/openrms/internal/tui"
 	log "github.com/sirupsen/logrus"
 	"io"
+	"math/rand"
 	"os"
 	"sync"
+	"time"
 )
 
 func main() {
 	var err error
+	rand.Seed(time.Now().UnixNano())
 
 	flagConfig := flag.String("config", "config.yaml", "OpenRMS Config file")
 	flagLogfile := flag.String("log-file", "openrms.log", "OpenRMS log file")
-	flagLoglevel := flag.String("log-level", "trace", "Log level")
+	flagLoglevel := flag.String("log-level", "debug", "Log level")
 	flagBrowser := flag.Bool("open-browser", true, "Open browser on launch")
 	flagImplement := flag.String("driver", "", "Driver")
 	flag.Parse()
@@ -29,7 +32,7 @@ func main() {
 		log.Fatal(err)
 	}
 	log.SetLevel(level)
-	log.SetReportCaller(false)
+	log.SetReportCaller(true)
 
 	logFile, err := os.OpenFile(*flagLogfile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 
@@ -79,7 +82,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	b := tui.CreateBridge(c.Leaderboard, c.Scheduler, c.Cars)
+	b := tui.CreateBridge(c.Leaderboard, c.Scheduler, c.Cars, c.Implement)
 
 	if *flagBrowser {
 		browser.OpenURL("http://localhost:8080")
@@ -92,5 +95,4 @@ func main() {
 
 	b.Run()
 	b.UI.Run()
-	//tui.Run1()
 }

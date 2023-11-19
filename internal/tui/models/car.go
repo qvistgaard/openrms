@@ -8,6 +8,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/qvistgaard/openrms/internal/tui/commands"
 	"github.com/qvistgaard/openrms/internal/tui/style"
+	"strconv"
 )
 
 type CarDetails struct {
@@ -22,6 +23,7 @@ type CarConfiguration struct {
 	onTrackSpeed textinput.Model
 	inPitSpeed   textinput.Model
 	driverName   textinput.Model
+	minSpeed     textinput.Model
 }
 
 var (
@@ -60,7 +62,14 @@ func InitialModel() CarConfiguration {
 	m.inPitSpeed.TextStyle = focusedStyle
 	m.inPitSpeed.CharLimit = 3
 
-	m.inputs = []*textinput.Model{&m.driverName, &m.onTrackSpeed, &m.inPitSpeed}
+	m.minSpeed = textinput.New()
+	m.minSpeed.Placeholder = "75"
+	m.minSpeed.PromptStyle = blurredStyle.Copy().Width(18)
+	m.minSpeed.Prompt = "Min speed:"
+	m.minSpeed.TextStyle = focusedStyle
+	m.minSpeed.CharLimit = 3
+
+	m.inputs = []*textinput.Model{&m.driverName, &m.onTrackSpeed, &m.inPitSpeed, &m.minSpeed}
 	m.focusIndexMax = len(m.inputs) + 1
 	return m
 }
@@ -70,12 +79,12 @@ func (c CarConfiguration) Init() tea.Cmd {
 }
 
 func (c CarConfiguration) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	c.inputs = []*textinput.Model{&c.driverName, &c.onTrackSpeed, &c.inPitSpeed}
+	c.inputs = []*textinput.Model{&c.driverName, &c.onTrackSpeed, &c.inPitSpeed, &c.minSpeed}
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "ctrl+c", "esc":
+		case "esc":
 			return c, func() tea.Msg {
 				return ViewLeaderboard
 			}
@@ -91,11 +100,12 @@ func (c CarConfiguration) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					return ViewLeaderboard
 				}
 			}
-			if s == "enter" && c.focusIndex == 3 {
+			if s == "enter" && c.focusIndex == len(c.inputs) {
 				return c, func() tea.Msg {
 					return commands.SaveCarConfiguration{
 						CarId:       c.car,
 						MaxSpeed:    c.onTrackSpeed.Value(),
+						MinSpeed:    c.minSpeed.Value(),
 						MaxPitSpeed: c.inPitSpeed.Value(),
 						DriverName:  c.driverName.Value(),
 					}
@@ -134,6 +144,9 @@ func (c CarConfiguration) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		c.driverName.SetValue(msg.DriverName)
 		c.inPitSpeed.SetValue(msg.MaxPitSpeed)
 		c.onTrackSpeed.SetValue(msg.MaxSpeed)
+		c.minSpeed.SetValue(msg.MinSpeed)
+		c.driverName.Focus()
+		return c, nil
 	}
 
 	var cmd tea.Cmd
@@ -145,7 +158,7 @@ func (c CarConfiguration) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (c CarConfiguration) View() string {
 	var ok string
-	if c.focusIndex == 3 {
+	if c.focusIndex == len(c.inputs) {
 		ok = focusedStyle.Copy().Render("[ Save ]")
 	} else {
 		ok = blurredStyle.Copy().Render("[ Save ]")
@@ -153,7 +166,7 @@ func (c CarConfiguration) View() string {
 
 	var cancel string
 
-	if c.focusIndex == 4 {
+	if c.focusIndex == len(c.inputs)+1 {
 		cancel = focusedStyle.Copy().Render("[ Cancel ]")
 	} else {
 		cancel = blurredStyle.Copy().Render("[ Cancel ]")
@@ -162,7 +175,7 @@ func (c CarConfiguration) View() string {
 	return lipgloss.PlaceHorizontal(200,
 		lipgloss.Center,
 
-		style.DialogBox.Width(76).Height(14).Render(
+		style.DialogBox.Width(77).Height(14).Render(
 			lipgloss.JoinVertical(lipgloss.Top,
 				style.Container.Render(
 					lipgloss.JoinVertical(lipgloss.Top,
@@ -175,10 +188,11 @@ func (c CarConfiguration) View() string {
 						style.Heading.Width(72).Render("Max speed"),
 						c.onTrackSpeed.View(),
 						c.inPitSpeed.View(),
+						c.minSpeed.View(),
 					),
 				),
 				lipgloss.PlaceHorizontal(78, lipgloss.Center,
-					lipgloss.JoinHorizontal(lipgloss.Center, ok, cancel, c.car),
+					lipgloss.JoinHorizontal(lipgloss.Center, ok, cancel, strconv.Itoa(c.focusIndex)),
 				),
 			),
 		),

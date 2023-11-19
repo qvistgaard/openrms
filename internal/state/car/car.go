@@ -22,15 +22,15 @@ func NewCar(implementer implement.Implementer, factory *reactive.Factory, settin
 		implementer:     implementer,
 		id:              id,
 		maxBreaking:     factory.NewDistinctPercent(*settings.MaxBreaking),
-		maxSpeed:        factory.NewDistinctPercent(*settings.MaxSpeed, a, reactive.Annotations{annotations.CarValueFieldName: "max-speed"}),
-		minSpeed:        factory.NewDistinctPercent(*settings.MinSpeed, a, reactive.Annotations{annotations.CarValueFieldName: "min-speed"}),
-		pitLaneMaxSpeed: factory.NewDistinctPercent(*settings.PitLane.MaxSpeed, a, reactive.Annotations{annotations.CarValueFieldName: "pit-lane-max-speed"}),
+		maxSpeed:        factory.NewDistinctPercent(*settings.MaxSpeed, a, reactive.Annotations{annotations.CarValueFieldName: fields.MaxTrackSpeed}),
+		minSpeed:        factory.NewDistinctPercent(*settings.MinSpeed, a, reactive.Annotations{annotations.CarValueFieldName: fields.MinSpeed}),
+		pitLaneMaxSpeed: factory.NewDistinctPercent(*settings.PitLane.MaxSpeed, a, reactive.Annotations{annotations.CarValueFieldName: fields.MaxPitSpeed}),
 		pit:             factory.NewDistinctBoolean(false, a, reactive.Annotations{annotations.CarValueFieldName: fields.InPit}),
 		deslotted:       factory.NewDistinctBoolean(false, a, reactive.Annotations{annotations.CarValueFieldName: fields.Deslotted}),
 		lastLapTime:     factory.NewDuration(0, a, reactive.Annotations{annotations.CarValueFieldName: fields.LapTime}),
 		lastLap:         factory.NewDistinctLapNumber(a, reactive.Annotations{annotations.CarValueFieldName: fields.LastLap}),
 		laps:            factory.NewDistinctGauge(0, a, reactive.Annotations{annotations.CarValueFieldName: fields.Laps}),
-		drivers:         factory.NewDistictDrivers(*settings.Drivers, a, reactive.Annotations{annotations.CarValueFieldName: fields.Drivers}),
+		drivers:         factory.NewDrivers(*settings.Drivers, a, reactive.Annotations{annotations.CarValueFieldName: fields.Drivers}),
 		controller:      controller.NewController(a, factory),
 	}
 	return car
@@ -62,6 +62,10 @@ func (c *Car) LastLap() *reactive.Lap {
 
 func (c *Car) MaxSpeed() *reactive.Percent {
 	return c.maxSpeed
+}
+
+func (c *Car) MinSpeed() *reactive.Percent {
+	return c.minSpeed
 }
 
 func (c *Car) Controller() *controller.Controller {
@@ -127,4 +131,5 @@ func (c *Car) Init(ctx context.Context, postProcess reactive.ValuePostProcessor)
 	c.pit.Init(ctx)
 	c.controller.Init(ctx)
 	c.drivers.Init(ctx)
+	c.drivers.Update()
 }
