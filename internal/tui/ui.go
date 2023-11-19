@@ -15,6 +15,7 @@ func Create(bridge chan<- tea.Msg) *UI {
 	return &UI{
 		program: tea.NewProgram(models.Main{
 			Bridge:           bridge,
+			StatusBar:        models.StatusBar{},
 			ActiveView:       models.ViewLeaderboard,
 			Leaderboard:      models.NewLeaderBoard(),
 			CarConfiguration: models.InitialModel(),

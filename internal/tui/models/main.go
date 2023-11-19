@@ -5,8 +5,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/qvistgaard/openrms/internal/tui/commands"
 	"github.com/qvistgaard/openrms/internal/types"
-	"golang.org/x/term"
-	"os"
 )
 
 type ActiveView int
@@ -51,13 +49,18 @@ var (
 type Main struct {
 	Bridge           chan<- tea.Msg
 	ActiveView       ActiveView
+	StatusBar        tea.Model
 	Leaderboard      tea.Model
 	CarConfiguration tea.Model
 	raceControl      tea.Model
+	width            int
+	height           int
 }
 
 func (m Main) Init() tea.Cmd {
-	// m.Leaderboard.Init()
+	m.Leaderboard.Init()
+	m.StatusBar.Init()
+	m.CarConfiguration.Init()
 	return nil
 }
 
@@ -87,13 +90,19 @@ func (m Main) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.ActiveView == ViewLeaderboard {
 			m.Leaderboard, cmd = m.Leaderboard.Update(msg)
 		}
-		//
 	case tea.WindowSizeMsg:
-		if m.ActiveView == ViewLeaderboard {
-			m.Leaderboard, cmd = m.Leaderboard.Update(msg)
+		width := msg.(tea.WindowSizeMsg).Width
+		height := msg.(tea.WindowSizeMsg).Height
+		updatedMsg := tea.WindowSizeMsg{
+			Width:  width - 4,
+			Height: height - 2,
 		}
-		// m.Leaderboard, cmd = m.Leaderboard.Update(msg)
-
+		if m.ActiveView == ViewLeaderboard {
+			m.Leaderboard, cmd = m.Leaderboard.Update(updatedMsg)
+		}
+		m.height = height
+		m.width = width
+		m.StatusBar, _ = m.StatusBar.Update(updatedMsg)
 	case commands.OpenCarConfiguration:
 		m.ActiveView = ViewCarConfiguration
 		m.CarConfiguration, cmd = m.CarConfiguration.Update(msg)
@@ -107,21 +116,20 @@ func (m Main) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m Main) View() string {
 
-	physicalWidth, physicalHeight, _ := term.GetSize(int(os.Stdout.Fd()))
+	// physicalWidth, physicalHeight, _ := term.GetSize(int(os.Stdout.Fd()))
 
 	docStyle := lipgloss.NewStyle().Padding(1, 2, 1, 2)
-	if physicalWidth > 0 {
-		docStyle = docStyle.Width(physicalWidth - 2)
+	if m.width > 0 {
+		docStyle = docStyle.Width(m.width)
 	}
-	if physicalWidth > 0 {
-		docStyle = docStyle.Height(physicalHeight - 4)
+	if m.height > 0 {
+		docStyle = docStyle.Height(m.height)
 	}
 
 	return docStyle.Render(lipgloss.JoinVertical(lipgloss.Top,
 		Header{}.View(),
 		m.activeView(),
-
-		//m.Leaderboard.View(),
+		m.StatusBar.View(),
 	))
 }
 
@@ -131,6 +139,7 @@ func (m Main) activeView() string {
 		return m.Leaderboard.View()
 	case ViewCarConfiguration:
 		return m.CarConfiguration.View()
+
 	}
 	return "No view"
 }

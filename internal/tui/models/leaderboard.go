@@ -7,7 +7,10 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/qvistgaard/openrms/internal/tui/commands"
 	"github.com/qvistgaard/openrms/internal/types"
+	"math"
 	"strconv"
+	"strings"
+	"time"
 )
 
 type Leaderboard struct {
@@ -75,7 +78,7 @@ func (l Leaderboard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return l, nil
 		case "c":
 			return l, func() tea.Msg {
-				carIdString := l.rows[l.table.Cursor()][2]
+				carIdString := strings.TrimSpace(l.rows[l.table.Cursor()][2])
 				carId, _ := types.IdFromString(carIdString)
 				return commands.OpenCarConfiguration{
 					CarId:       carIdString,
@@ -92,9 +95,10 @@ func (l Leaderboard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.WindowSizeMsg:
 		l.width = msg.(tea.WindowSizeMsg).Width
-		columns[1] = table.Column{Title: "Name", Width: l.width - 66}
+		columns[1] = table.Column{Title: "Name", Width: l.width - 51}
 
 		l.table.SetWidth(l.width)
+		l.table.SetHeight(msg.(tea.WindowSizeMsg).Height - 7)
 		l.table.SetColumns(columns)
 	case types.RaceTelemetry:
 		l.rows = make([]table.Row, 0)
@@ -104,9 +108,9 @@ func (l Leaderboard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				v.Name,
 				alignRight.Width(3).Render(strconv.Itoa(int(v.Car))),
 				alignRight.Width(4).Render(fmt.Sprintf("%.f", v.Fuel)),
-				alignRight.Width(7).Render(v.Last.String()),
-				alignRight.Width(7).Render(v.Delta.String()),
-				alignRight.Width(7).Render(v.Best.String()),
+				alignRight.Width(7).Render(formatDurationSecondsMilliseconds(v.Last)),
+				alignRight.Width(7).Render(formatDurationSecondsMilliseconds(v.Delta)),
+				alignRight.Width(7).Render(formatDurationSecondsMilliseconds(v.Best)),
 				alignRight.Width(4).Render(strconv.Itoa(int(v.Laps.LapNumber))),
 			})
 		}
@@ -120,4 +124,15 @@ func (l Leaderboard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (l Leaderboard) View() string {
 	return l.table.View()
+}
+
+func formatDurationSecondsMilliseconds(d time.Duration) string {
+	// Extract seconds and milliseconds
+	seconds := math.Floor(d.Seconds())
+
+	milliseconds := float64(d.Milliseconds()) - (seconds * 1000)
+
+	// Format as "ss.ms"
+	string := fmt.Sprintf("%.0f.%03.0fs", seconds, milliseconds)
+	return string
 }

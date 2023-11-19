@@ -113,7 +113,7 @@ func (o *Oxigen) EventLoop() error {
 
 		log.WithField("message", fmt.Sprintf("%x", buffer)).
 			WithField("bytes", read).
-			Trace("received message from oxygen dongle")
+			Info("received message from oxygen dongle")
 		if err == nil {
 			if read == 13 {
 				o.timer = buffer[7:10]
@@ -210,6 +210,7 @@ func (o *Oxigen) event(b []byte) implement.Event {
 			},
 		},
 	}
+	log.Infof("%08b", b[0])
 	return e
 }
 

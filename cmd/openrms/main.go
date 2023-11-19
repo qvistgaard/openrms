@@ -23,7 +23,7 @@ func main() {
 	flagConfig := flag.String("config", "config.yaml", "OpenRMS Config file")
 	flagLogfile := flag.String("log-file", "openrms.log", "OpenRMS log file")
 	flagLoglevel := flag.String("log-level", "debug", "Log level")
-	flagBrowser := flag.Bool("open-browser", true, "Open browser on launch")
+	flagBrowser := flag.Bool("open-browser", false, "Open browser on launch")
 	flagImplement := flag.String("driver", "", "Driver")
 	flag.Parse()
 
@@ -32,7 +32,7 @@ func main() {
 		log.Fatal(err)
 	}
 	log.SetLevel(level)
-	log.SetReportCaller(true)
+	log.SetReportCaller(false)
 
 	logFile, err := os.OpenFile(*flagLogfile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 

@@ -37,7 +37,7 @@ track:
       # Count lap on entry or exit
       # type: boolean
       # format: if true count on entry, if false count on exit
-      on-entry: true
+      on-entry: false
 
 # Car behaviour
 car:
@@ -113,6 +113,10 @@ car:
       # max-speed: 100
       drivers:
         - name: John Doe
+    - id: 7
+      max-speed: 30
+    - id: 8
+      max-speed: 38
   #  - id: 1
   #    max-speed: 100
   #    fuel: 100

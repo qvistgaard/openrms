@@ -57,12 +57,5 @@ func (h Header) View() string {
 			helpStyle.Render(""),
 			helpStyle.Render(""),
 		),
-		lipgloss.JoinHorizontal(lipgloss.Right,
-			style1.Render(""),
-			groupStyle.Render(""),
-			helpStyle.Render(""),
-			helpStyle.Render("Race Timer"),
-			helpStyle.Render("00:00:00"),
-		),
 	)
 }
