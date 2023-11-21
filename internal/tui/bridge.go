@@ -4,10 +4,11 @@ import (
 	"context"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/madflojo/tasks"
-	"github.com/qvistgaard/openrms/internal/implement"
 	"github.com/qvistgaard/openrms/internal/plugins/postprocessors/leaderboard"
 	"github.com/qvistgaard/openrms/internal/repostitory/car"
+	"github.com/qvistgaard/openrms/internal/state/race"
 	"github.com/qvistgaard/openrms/internal/tui/commands"
+	"github.com/qvistgaard/openrms/internal/tui/messages"
 	"github.com/qvistgaard/openrms/internal/types"
 	"github.com/reactivex/rxgo/v2"
 	"time"
@@ -18,21 +19,21 @@ type Bridge struct {
 	Scheduler     *tasks.Scheduler
 	RaceTelemetry types.RaceTelemetry
 	Program       *tea.Program
+	Race          *race.Race
 	UI            *UI
 	messages      <-chan tea.Msg
 	Cars          car.Repository
-	Implement     implement.Implementer
 }
 
-func CreateBridge(leaderboard *leaderboard.Leaderboard, scheduler *tasks.Scheduler, cars car.Repository, implementer implement.Implementer) *Bridge {
+func CreateBridge(leaderboard *leaderboard.Leaderboard, scheduler *tasks.Scheduler, cars car.Repository, race *race.Race) *Bridge {
 	bridgeChannel := make(chan tea.Msg)
 
 	return &Bridge{
 		messages:    bridgeChannel,
 		Leaderboard: leaderboard,
 		Scheduler:   scheduler,
-		Implement:   implementer,
 		Cars:        cars,
+		Race:        race,
 		UI:          Create(bridgeChannel),
 	}
 }
@@ -49,12 +50,16 @@ func (bridge *Bridge) Run() {
 		Interval: 1 * time.Second,
 		TaskFunc: func() error {
 			if bridge.RaceTelemetry != nil && bridge.UI != nil {
-				bridge.UI.Send(bridge.RaceTelemetry)
+				bridge.UI.Send(messages.Update{
+					RaceTelemetry: bridge.RaceTelemetry,
+					RaceStatus:    bridge.Race.CurrentState(),
+					RaceDuration:  bridge.Race.Duration(),
+				})
 			}
+
 			return nil
 		},
 	})
-
 }
 
 func (bridge *Bridge) messageHandler() {
@@ -77,12 +82,15 @@ func (bridge *Bridge) messageHandler() {
 					{Name: name},
 				})
 			case commands.StartRace:
-				// TODO: add function for doing this
-				bridge.Implement.Race().Status(implement.RaceRunning)
+				bridge.Race.Start()
+			case commands.ResumeRace:
+				bridge.Race.Start()
 			case commands.PauseRace:
-				bridge.Implement.Race().Status(implement.RacePaused)
-			case commands.ResetRace:
-				bridge.Implement.Race().Status(implement.RaceStopped)
+				bridge.Race.Pause()
+			case commands.StopRace:
+				bridge.Race.Stop()
+			case commands.FlagRace:
+				bridge.Race.Flag()
 
 			}
 			// log.Info(fmt.Sprintf("%+v\n", msg))

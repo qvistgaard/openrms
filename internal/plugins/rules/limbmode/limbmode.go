@@ -2,7 +2,6 @@ package limbmode
 
 import (
 	"context"
-	"github.com/qvistgaard/openrms/internal/implement"
 	"github.com/qvistgaard/openrms/internal/state/car"
 	"github.com/qvistgaard/openrms/internal/state/race"
 	"github.com/qvistgaard/openrms/internal/types"
@@ -50,11 +49,11 @@ func (l *LimbMode) ConfigureCarState(car *car.Car, valueFactory *reactive.Factor
 	})
 }
 
-func (l *LimbMode) ConfigureRaceState(race *race.Race) {
-	race.Status().RegisterObserver(func(observable rxgo.Observable) {
+func (l *LimbMode) ConfigureRaceState(raceState *race.Race) {
+	raceState.Status().RegisterObserver(func(observable rxgo.Observable) {
 		observable.DoOnNext(func(i interface{}) {
-			s := i.(implement.RaceStatus)
-			if s == implement.RaceStopped {
+			s := i.(race.RaceStatus)
+			if s == race.RaceStopped {
 				for id, v := range l.speedModifier {
 					v.Enabled = false
 					l.state[id].Update()

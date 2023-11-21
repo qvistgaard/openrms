@@ -1,13 +1,18 @@
 package models
 
 import (
+	"fmt"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"strconv"
+	"github.com/qvistgaard/openrms/internal/state/race"
+	"github.com/qvistgaard/openrms/internal/tui/messages"
+	"time"
 )
 
 type StatusBar struct {
-	width int
+	width      int
+	raceTime   time.Duration
+	raceStatus race.RaceStatus
 }
 
 func (s StatusBar) Init() tea.Cmd {
@@ -18,6 +23,9 @@ func (s StatusBar) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg.(type) {
 	case tea.WindowSizeMsg:
 		s.width = msg.(tea.WindowSizeMsg).Width
+	case messages.Update:
+		s.raceTime = msg.(messages.Update).RaceDuration
+		s.raceStatus = msg.(messages.Update).RaceStatus
 	}
 	return s, nil
 }
@@ -27,6 +35,30 @@ func (s StatusBar) View() string {
 		Foreground(lipgloss.Color("229")).
 		Background(lipgloss.Color("24")).
 		PaddingLeft(1).
+		PaddingRight(1).
+		AlignHorizontal(lipgloss.Right).
 		Width(s.width).
-		Render("Status: XXX", strconv.Itoa(s.width))
+		Render("Race time: ", formatDuration(s.raceTime), "Status: ", formatRaceStatus(s.raceStatus))
+}
+
+func formatDuration(d time.Duration) string {
+	hours := int(d.Hours())
+	minutes := int(d.Minutes()) % 60
+	seconds := int(d.Seconds()) % 60
+
+	return fmt.Sprintf("%02d:%02d:%02d", hours, minutes, seconds)
+}
+
+func formatRaceStatus(status race.RaceStatus) string {
+	switch status {
+	case race.RaceRunning:
+		return "Running"
+	case race.RaceStopped:
+		return "Stopped"
+	case race.RaceFlagged:
+		return "Flagged"
+	case race.RacePaused:
+		return "Paused"
+	}
+	return "N/A"
 }

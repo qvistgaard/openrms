@@ -6,6 +6,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/qvistgaard/openrms/internal/tui/commands"
+	"github.com/qvistgaard/openrms/internal/tui/messages"
 	"github.com/qvistgaard/openrms/internal/types"
 	"math"
 	"strconv"
@@ -39,17 +40,18 @@ var (
 
 	columns = []table.Column{
 		{Title: alignRight.Width(3).Render("P"), Width: 3},
-		{Title: "Name", Width: 120 - 60},
+		{Title: "Name", Width: 120 - 65},
 		{Title: alignRight.Width(3).Render("#"), Width: 3},
 		{Title: alignRight.Width(4).Render("Fuel"), Width: 4},
 		{Title: alignRight.Width(7).Render("Lap"), Width: 7},
 		{Title: alignRight.Width(7).Render("Delta"), Width: 7},
 		{Title: alignRight.Width(7).Render("Best"), Width: 7},
 		{Title: alignRight.Width(4).Render("Laps"), Width: 4},
+		{Title: alignRight.Width(3).Render("Pit"), Width: 3},
 	}
 )
 
-func NewLeaderBoard() Leaderboard {
+func InitialLeaderboardModel() Leaderboard {
 	s := table.DefaultStyles()
 	s.Header = headerStyle
 	s.Selected = selectedStyle
@@ -88,21 +90,27 @@ func (l Leaderboard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					DriverName:  l.rows[l.table.Cursor()][1],
 				}
 			}
-
 		}
 		l.table, cmd = l.table.Update(msg)
 		break
 
 	case tea.WindowSizeMsg:
 		l.width = msg.(tea.WindowSizeMsg).Width
-		columns[1] = table.Column{Title: "Name", Width: l.width - 51}
+		columns[1] = table.Column{Title: "Name", Width: l.width - 57}
 
 		l.table.SetWidth(l.width)
 		l.table.SetHeight(msg.(tea.WindowSizeMsg).Height - 7)
 		l.table.SetColumns(columns)
-	case types.RaceTelemetry:
+	case messages.Update:
 		l.rows = make([]table.Row, 0)
-		for k, v := range msg.(types.RaceTelemetry).Sort() {
+		telemetry := msg.(messages.Update).RaceTelemetry
+		for k, v := range telemetry.Sort() {
+			var inPitString string
+			if v.InPit {
+				inPitString = "P"
+			} else {
+				inPitString = "N"
+			}
 			l.rows = append(l.rows, table.Row{
 				alignRight.Width(3).Render(strconv.Itoa(k + 1)),
 				v.Name,
@@ -112,10 +120,11 @@ func (l Leaderboard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				alignRight.Width(7).Render(formatDurationSecondsMilliseconds(v.Delta)),
 				alignRight.Width(7).Render(formatDurationSecondsMilliseconds(v.Best)),
 				alignRight.Width(4).Render(strconv.Itoa(int(v.Laps.LapNumber))),
+				alignRight.Width(3).AlignHorizontal(lipgloss.Center).Render(inPitString),
 			})
 		}
 		l.table.SetRows(l.rows)
-		l.raceTelemetry = msg.(types.RaceTelemetry)
+		l.raceTelemetry = telemetry
 	}
 
 	return l, cmd

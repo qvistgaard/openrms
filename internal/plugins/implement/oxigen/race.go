@@ -1,15 +1,12 @@
 package oxigen
 
-import (
-	"github.com/qvistgaard/openrms/internal/implement"
-	log "github.com/sirupsen/logrus"
-)
-
 const (
-	RaceUnknownByte = 0x00
-	RaceStoppedByte = 0x01
-	RaceRunningByte = 0x03
-	RacePausedByte  = 0x04
+	RaceUnknownByte           = 0x00
+	RaceStoppedByte           = 0x01
+	RaceRunningByte           = 0x03
+	RacePausedByte            = 0x04
+	RaceFlaggedLcEnabledByte  = 0x05
+	RaceFlaggedLcDisabledByte = 0x15
 )
 
 type Race struct {
@@ -22,18 +19,18 @@ func NewRace() *Race {
 	}
 }
 
-func (r *Race) Status(status implement.RaceStatus) {
-	log.WithField("implement", "oxigen").
-		WithField("state", status).
-		Info("set race")
-	switch status {
-	case implement.RaceRunning:
-		r.status = RaceRunningByte
-	case implement.RacePaused:
-		r.status = RacePausedByte
-	case implement.RaceStopped:
-		r.status = RaceStoppedByte
-	default:
-		log.Warn("race state not implemented")
-	}
+func (r *Race) Start() {
+	r.status = RaceRunningByte
+}
+
+func (r *Race) Flag() {
+	r.status = RaceFlaggedLcEnabledByte
+}
+
+func (r *Race) Pause() {
+	r.status = RacePausedByte
+}
+
+func (r *Race) Stop() {
+	r.status = RaceStoppedByte
 }

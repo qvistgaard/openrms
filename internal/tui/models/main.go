@@ -3,8 +3,9 @@ package models
 import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/qvistgaard/openrms/internal/state/race"
 	"github.com/qvistgaard/openrms/internal/tui/commands"
-	"github.com/qvistgaard/openrms/internal/types"
+	"github.com/qvistgaard/openrms/internal/tui/messages"
 )
 
 type ActiveView int
@@ -12,6 +13,7 @@ type ActiveView int
 const (
 	ViewLeaderboard ActiveView = iota
 	ViewCarConfiguration
+	ViewRaceConfiguration
 )
 
 var (
@@ -49,12 +51,14 @@ var (
 type Main struct {
 	Bridge           chan<- tea.Msg
 	ActiveView       ActiveView
+	Header           tea.Model
 	StatusBar        tea.Model
 	Leaderboard      tea.Model
 	CarConfiguration tea.Model
-	raceControl      tea.Model
+	RaceControl      tea.Model
 	width            int
 	height           int
+	raceStatus       race.RaceStatus
 }
 
 func (m Main) Init() tea.Cmd {
@@ -74,11 +78,18 @@ func (m Main) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+c":
 			return m, tea.Quit
 		case "s":
-			m.Bridge <- commands.StartRace{}
+			if m.raceStatus == race.RaceStopped {
+				m.ActiveView = ViewRaceConfiguration
+				return m, nil
+			} else {
+				m.Bridge <- commands.ResumeRace{}
+			}
 		case "p":
 			m.Bridge <- commands.PauseRace{}
-		case "r":
-			m.Bridge <- commands.ResetRace{}
+		case "f":
+			m.Bridge <- commands.FlagRace{}
+		case "e":
+			m.Bridge <- commands.StopRace{}
 		}
 		if m.ActiveView == ViewLeaderboard {
 			m.Leaderboard, cmd = m.Leaderboard.Update(msg)
@@ -86,10 +97,16 @@ func (m Main) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.ActiveView == ViewCarConfiguration {
 			m.CarConfiguration, cmd = m.CarConfiguration.Update(msg)
 		}
-	case types.RaceTelemetry:
+		if m.ActiveView == ViewRaceConfiguration {
+			m.RaceControl, cmd = m.RaceControl.Update(msg)
+		}
+	case messages.Update:
 		if m.ActiveView == ViewLeaderboard {
 			m.Leaderboard, cmd = m.Leaderboard.Update(msg)
 		}
+		m.raceStatus = msg.(messages.Update).RaceStatus
+		m.StatusBar, _ = m.StatusBar.Update(msg)
+
 	case tea.WindowSizeMsg:
 		width := msg.(tea.WindowSizeMsg).Width
 		height := msg.(tea.WindowSizeMsg).Height
@@ -103,11 +120,17 @@ func (m Main) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.height = height
 		m.width = width
 		m.StatusBar, _ = m.StatusBar.Update(updatedMsg)
+		m.Header, _ = m.Header.Update(updatedMsg)
+
 	case commands.OpenCarConfiguration:
 		m.ActiveView = ViewCarConfiguration
 		m.CarConfiguration, cmd = m.CarConfiguration.Update(msg)
 	case commands.SaveCarConfiguration:
 		m.ActiveView = ViewLeaderboard
+		m.Bridge <- msg
+	case commands.StartRace:
+		m.ActiveView = ViewLeaderboard
+		m.RaceControl, cmd = m.RaceControl.Update(msg)
 		m.Bridge <- msg
 	}
 
@@ -127,7 +150,7 @@ func (m Main) View() string {
 	}
 
 	return docStyle.Render(lipgloss.JoinVertical(lipgloss.Top,
-		Header{}.View(),
+		m.Header.View(),
 		m.activeView(),
 		m.StatusBar.View(),
 	))
@@ -139,7 +162,8 @@ func (m Main) activeView() string {
 		return m.Leaderboard.View()
 	case ViewCarConfiguration:
 		return m.CarConfiguration.View()
-
+	case ViewRaceConfiguration:
+		return m.RaceControl.View()
 	}
 	return "No view"
 }

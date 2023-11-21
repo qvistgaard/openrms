@@ -75,7 +75,7 @@ func (r *Runner) processEvents() {
 		rule.InitializeRaceState(r.race, background, r.postprocessors.ValuePostProcessor())
 	}
 
-	r.race.Init(background, r.postprocessors.ValuePostProcessor())
+	r.race.Init(background)
 
 	channel := r.implement.EventChannel()
 	for {
@@ -87,7 +87,6 @@ func (r *Runner) processEvents() {
 					c.UpdateFromEvent(e)
 				}
 			}
-			r.race.UpdateTime()
 			log.Tracef("processing time: %s", time.Now().Sub(start))
 		}
 	}

@@ -15,10 +15,12 @@ func Create(bridge chan<- tea.Msg) *UI {
 	return &UI{
 		program: tea.NewProgram(models.Main{
 			Bridge:           bridge,
+			Header:           models.Header{},
 			StatusBar:        models.StatusBar{},
 			ActiveView:       models.ViewLeaderboard,
-			Leaderboard:      models.NewLeaderBoard(),
-			CarConfiguration: models.InitialModel(),
+			Leaderboard:      models.InitialLeaderboardModel(),
+			CarConfiguration: models.InitialCarConfigurationModel(),
+			RaceControl:      models.InitialRaceControlModel(),
 		}, tea.WithAltScreen()),
 	}
 }

@@ -20,15 +20,6 @@ const (
 	LapCountingOnExit
 )
 
-type RaceStatus int
-
-const (
-	RaceStopped RaceStatus = iota
-	RacePaused
-	RaceRunning
-	RaceFlagged
-)
-
 type PitLaneImplementer interface {
 	LapCounting(enabled bool, option PitLaneLapCounting)
 }
@@ -39,7 +30,10 @@ type TrackImplementer interface {
 }
 
 type RaceImplementer interface {
-	Status(status RaceStatus)
+	Start()
+	Flag()
+	Pause()
+	Stop()
 }
 
 type Implementer interface {
@@ -51,22 +45,4 @@ type Implementer interface {
 	Track() TrackImplementer
 	Race() RaceImplementer
 	Init(ctx context.Context, processor reactive.ValuePostProcessor)
-
-	/*	CarMaxSpeed(car uint, percent state.Percent)
-		CarMaxBreaking(car uint, percent state.Percent)
-		CarMinSpeed(car uint, percent state.Percent)
-		CarPitLaneSpeed(car uint, percent state.Percent)
-	*/
-
-	/*	CourseMaxSpeed(percent state.Percent)*/
-
-	/*	SendCarState(c interface{}) error
-		SendRaceState(r interface{}) error*/
-
-	// Resend relevant car state to implement.
-	//
-	// this method is executed if for example the controller
-	// looses link with the dongle. But also for each car if
-	// race status changes.
-	// ResendCarState(c interface{})
 }

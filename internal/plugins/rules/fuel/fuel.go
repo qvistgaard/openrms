@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/divideandconquer/go-merge/merge"
 	"github.com/qmuntal/stateless"
-	"github.com/qvistgaard/openrms/internal/implement"
 	"github.com/qvistgaard/openrms/internal/plugins/rules/limbmode"
 	"github.com/qvistgaard/openrms/internal/state/car"
 	"github.com/qvistgaard/openrms/internal/state/race"
@@ -39,7 +38,7 @@ type Consumption struct {
 	config     *Config
 	fuelConfig map[types.Id]*FuelConfig
 	rules      rules.Rules
-	raceStatus implement.RaceStatus
+	raceStatus race.RaceStatus
 }
 
 func (c *Consumption) Priority() int {
@@ -168,17 +167,17 @@ func (c *Consumption) handleUpdateFuelLevel(car *car.Car, carId types.Id) func(c
 	}
 }
 
-func (c *Consumption) ConfigureRaceState(race *race.Race) {
-	race.Status().RegisterObserver(func(observable rxgo.Observable) {
+func (c *Consumption) ConfigureRaceState(raceState *race.Race) {
+	raceState.Status().RegisterObserver(func(observable rxgo.Observable) {
 		observable.DoOnNext(func(i interface{}) {
-			c.raceStatus = i.(implement.RaceStatus)
-			if c.raceStatus == implement.RaceStopped {
+			c.raceStatus = i.(race.RaceStatus)
+			if c.raceStatus == race.RaceStopped {
 				for id, v := range c.consumed {
 					v.Enabled = false
 					c.fuel[id].Update()
 				}
 			}
-			if c.raceStatus == implement.RaceRunning {
+			if c.raceStatus == race.RaceRunning {
 				for id, v := range c.consumed {
 					v.Enabled = true
 					v.Subtract = 0

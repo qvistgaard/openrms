@@ -15,15 +15,15 @@ type CarDetails struct {
 }
 
 type CarConfiguration struct {
+	car string
+
 	focusIndex    int
 	focusIndexMax int
 	inputs        []*textinput.Model
-	car           string
-
-	onTrackSpeed textinput.Model
-	inPitSpeed   textinput.Model
-	driverName   textinput.Model
-	minSpeed     textinput.Model
+	onTrackSpeed  textinput.Model
+	inPitSpeed    textinput.Model
+	driverName    textinput.Model
+	minSpeed      textinput.Model
 }
 
 var (
@@ -37,7 +37,7 @@ var (
 	blurredButton = fmt.Sprintf("[ %s ]", blurredStyle.Render("Submit"))
 )
 
-func InitialModel() CarConfiguration {
+func InitialCarConfigurationModel() CarConfiguration {
 	m := CarConfiguration{}
 
 	m.driverName = textinput.New()

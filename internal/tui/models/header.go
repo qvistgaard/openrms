@@ -25,6 +25,7 @@ var headingStyle = lipgloss.NewStyle().
 	BorderBottom(true)
 
 type Header struct {
+	width int
 }
 
 func (h Header) Init() tea.Cmd {
@@ -32,30 +33,28 @@ func (h Header) Init() tea.Cmd {
 }
 
 func (h Header) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch msg.(type) {
+	case tea.WindowSizeMsg:
+		h.width = msg.(tea.WindowSizeMsg).Width
+	}
 	return h, nil
 }
 
 func (h Header) View() string {
 	return lipgloss.JoinVertical(lipgloss.Top,
 		lipgloss.JoinHorizontal(lipgloss.Right,
-			style1.Render("OpenRMS"),
+			style1.Width(h.width-76).Render("OpenRMS"),
 			groupStyle.Render("Race: "),
 			helpStyle.Render("[S] Start"),
+			helpStyle.Render("[F] Flag"),
 			helpStyle.Render("[P] Pause"),
-			helpStyle.Render("[R] Reset"),
+			helpStyle.Render("[E] Stop"),
 		),
 		lipgloss.JoinHorizontal(lipgloss.Right,
 			style1.Render(""),
 			groupStyle.Render("Car:"),
 			// helpStyle.Render("[ENTER] Details"),
 			helpStyle.Render("[C] Configuration"),
-		),
-		lipgloss.JoinHorizontal(lipgloss.Right,
-			style1.Render(""),
-			groupStyle.Render(""),
-			helpStyle.Render(""),
-			helpStyle.Render(""),
-			helpStyle.Render(""),
 		),
 	)
 }

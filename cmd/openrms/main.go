@@ -82,7 +82,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	b := tui.CreateBridge(c.Leaderboard, c.Scheduler, c.Cars, c.Implement)
+	b := tui.CreateBridge(c.Leaderboard, c.Scheduler, c.Cars, c.Race)
 
 	if *flagBrowser {
 		browser.OpenURL("http://localhost:8080")

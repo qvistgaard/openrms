@@ -1,5 +1,8 @@
 package race
 
+type Rule struct {
+}
+
 /*
 import (
 	"github.com/qvistgaard/openrms/internal/state"
