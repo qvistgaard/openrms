@@ -6,16 +6,21 @@ import (
 	"reflect"
 )
 
-const (
-	stateCarOnTrack   = "car-on-track"
-	stateCarDeslotted = "car-deslotted"
+type machineState string
+type machineTrigger string
 
-	triggerCarOnTrack      = "trigger-car-on-track"
-	triggerCarDeslotted    = "trigger-car-deslotted"
-	triggerUpdateFuelLevel = "trigger-update-fuel-level"
+const (
+	stateCarOnTrack   = machineState("car-on-track")
+	stateCarDeslotted = machineState("car-deslotted")
+	stateCarInPit     = machineState("car-in-pit")
+
+	triggerCarOnTrack      = machineTrigger("trigger-car-on-track")
+	triggerCarDeslotted    = machineTrigger("trigger-car-deslotted")
+	triggerCarInPit        = machineTrigger("trigger-in-pit")
+	triggerUpdateFuelLevel = machineTrigger("trigger-update-fuel-level")
 )
 
-func machine(fuelUpdate func(ctx context.Context, args ...interface{}) error) *stateless.StateMachine {
+func machine(fuelUpdate func(ctx context.Context, args ...any) error) *stateless.StateMachine {
 	m := stateless.NewStateMachineWithMode(stateCarOnTrack, stateless.FiringImmediate)
 	m.SetTriggerParameters(triggerUpdateFuelLevel, reflect.TypeOf(uint8(0)))
 	m.Configure(stateCarOnTrack).

@@ -1,6 +1,7 @@
 package fuel
 
 import (
+	"github.com/qmuntal/stateless"
 	"github.com/qvistgaard/openrms/internal/plugins/limbmode"
 	"github.com/qvistgaard/openrms/internal/state/car"
 	"github.com/qvistgaard/openrms/internal/state/observable"
@@ -12,14 +13,15 @@ type Plugin struct {
 	fuel      map[types.Id]observable.Observable[float32]
 	config    Config
 	carConfig map[types.Id]CarSettings
-	fuelState map[types.Id]fuelState
+	state     map[types.Id]*state
 	status    race.RaceStatus
 	limbMode  *limbmode.Plugin
 }
 
-type fuelState struct {
+type state struct {
 	enabled  bool
 	consumed float32
+	machine  *stateless.StateMachine
 }
 
 func New(config Config, limbMode *limbmode.Plugin) (*Plugin, error) {
@@ -33,39 +35,51 @@ func New(config Config, limbMode *limbmode.Plugin) (*Plugin, error) {
 // TODO implement fuel
 func (p *Plugin) ConfigureCar(car *car.Car) {
 	carId := car.Id()
+	p.state[carId] = &state{}
+	carState := p.state[carId]
 
 	p.fuel[carId] = observable.Create(float32(p.carConfig[carId].FuelConfig.TankSize))
-	p.fuelState[carId] = fuelState{true, 0}
+	// .fuelState[carId] = fuelState{true, 0}
 
 	car.Controller().TriggerValue().RegisterObserver(func(v uint8, annotations observable.Annotations) {
-		if v > 0 {
-			liter := p.fuel[carId].Get()
-			if liter > 0 {
-				s := p.fuelState[carId]
-				used := calculateFuelState(p.carConfig[carId].FuelConfig.BurnRate, p.fuelState[carId].consumed, v)
-				if float32(p.carConfig[carId].FuelConfig.TankSize) >= used {
-					s.consumed = used
+		carState.machine.Fire(triggerUpdateFuelLevel, v)
+		/*
+			if v > 0 {
+				liter := p.fuel[carId].Get()
+				if liter > 0 {
+					s := p.fuelState[carId]
+					used := calculateFuelState(p.carConfig[carId].FuelConfig.BurnRate, p.fuelState[carId].consumed, v)
+					if float32(p.carConfig[carId].FuelConfig.TankSize) >= used {
+						s.consumed = used
+					}
+					p.fuel[carId].Publish()
 				}
-				p.fuel[carId].Publish()
 			}
-		}
+		*/
+
 		panic("Implement me")
 	})
 
 	car.Deslotted().RegisterObserver(func(b bool, annotations observable.Annotations) {
-		panic("Implement me")
-
+		if b {
+			carState.machine.Fire(triggerCarDeslotted)
+		} else {
+			carState.machine.Fire(triggerCarOnTrack)
+		}
 	})
 
 	car.Pit().RegisterObserver(func(b bool, a observable.Annotations) {
-		panic("Implement me")
-
-		// TODO Clear consumption when entering pit
+		if b {
+			carState.machine.Fire(triggerCarInPit)
+		} else {
+			carState.machine.Fire(triggerCarOnTrack)
+		}
 	})
 
 	p.fuel[carId].RegisterObserver(func(f float32, a observable.Annotations) {
-		panic("Implement me")
-
+		if f <= 0 {
+			p.limbMode.Car(carId).Enable()
+		}
 	})
 
 	p.fuel[carId].Modifier(func(f float32) (float32, bool) {

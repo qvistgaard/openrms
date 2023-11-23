@@ -15,7 +15,6 @@ require (
 	github.com/madflojo/tasks v1.1.0
 	github.com/mitchellh/mapstructure v1.4.3
 	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8
-	github.com/qmuntal/stateless v1.5.2
 	github.com/reactivex/rxgo/v2 v2.5.0
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.0
@@ -42,6 +41,7 @@ require (
 	github.com/muesli/termenv v0.15.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/qmuntal/stateless v1.6.8 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/rs/xid v1.5.0 // indirect
 	github.com/stretchr/objx v0.1.0 // indirect
