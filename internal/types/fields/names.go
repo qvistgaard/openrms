@@ -13,6 +13,7 @@ const (
 	MaxTrackSpeed = "max-track-speed"
 	MaxPitSpeed   = "max-pit-speed"
 
-	RaceStatus = "race-status"
-	RaceTimer  = "race-timer"
+	RaceStatus   = "race-status"
+	RaceTimer    = "race-timer"
+	RaceDuration = "race-duration"
 )

@@ -2,7 +2,6 @@ package postprocess
 
 import (
 	ctx "context"
-	"github.com/qvistgaard/openrms/internal/types/reactive"
 	"github.com/reactivex/rxgo/v2"
 	"sync"
 )
@@ -19,6 +18,7 @@ type PostProcess struct {
 	observable     rxgo.Observable
 }
 
+/*
 func CreatePostProcess(postProcessors []PostProcessor) *PostProcess {
 	channel := make(chan rxgo.Item)
 
@@ -34,15 +34,15 @@ func CreatePostProcess(postProcessors []PostProcessor) *PostProcess {
 	}
 	return process
 }
-
-func (p *PostProcess) ValuePostProcessor() reactive.ValuePostProcessor {
+*/
+/*func (p *PostProcess) ValuePostProcessor() reactive.ValuePostProcessor {
 	return func(observable rxgo.Observable) {
 		observable.DoOnNext(func(i interface{}) {
 			p.channel <- rxgo.Of(i)
 		})
 	}
 }
-
+*/
 func (p *PostProcess) Init(context ctx.Context) {
 	for _, processor := range p.postProcessors {
 		processor.Init(context)
@@ -51,6 +51,7 @@ func (p *PostProcess) Init(context ctx.Context) {
 	p.observable.Connect(context)
 }
 
+/*
 func Get[T PostProcessor](postProcessors *PostProcess) T {
 	var zero T // Zero value of T
 
@@ -61,7 +62,7 @@ func Get[T PostProcessor](postProcessors *PostProcess) T {
 	}
 	return zero
 }
-
+*/
 /*
 import (
 	"github.com/qvistgaard/openrms/internal/state"

@@ -1,5 +1,6 @@
 package influxdb
 
+/*
 import (
 	"context"
 	"fmt"
@@ -22,6 +23,7 @@ type InfluxDB struct {
 	api    api2.WriteAPI
 	/*	race   chan state.CourseState
 		car    chan state.CarState*/
+/*
 }
 
 func (i *InfluxDB) Init(context context.Context) {
@@ -123,7 +125,7 @@ func (i *InfluxDB) processStateValue(p *write.Point, n string, v interface{}) {
 	}
 
 }
-
+*/
 /*
 func (i *InfluxDB) CarChannel() chan<- state.CarState {
 	return i.car

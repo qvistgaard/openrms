@@ -1,9 +1,6 @@
 package reactive
 
-import (
-	"github.com/qvistgaard/openrms/internal/types"
-)
-
+/*
 type RaceTelemetry struct {
 	Value
 }
@@ -17,3 +14,4 @@ func NewDistinctRaceTelemetry(annotations ...Annotations) *RaceTelemetry {
 		newValue(make(types.RaceTelemetry), emptyValueProcessor(), annotations...),
 	}
 }
+*/

@@ -1,7 +1,6 @@
 package reactive
 
-import "github.com/qvistgaard/openrms/internal/types"
-
+/*
 type Liter struct {
 	Value
 }
@@ -40,3 +39,4 @@ func (l *LiterSubtractModifier) Modify() LiterModifierFunc {
 		}
 	}
 }
+*/

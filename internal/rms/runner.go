@@ -3,10 +3,10 @@ package rms
 import (
 	"context"
 	"github.com/qvistgaard/openrms/internal/implement"
+	"github.com/qvistgaard/openrms/internal/plugins"
 	"github.com/qvistgaard/openrms/internal/postprocess"
-	"github.com/qvistgaard/openrms/internal/repostitory/car"
+	"github.com/qvistgaard/openrms/internal/state/car/repository"
 	"github.com/qvistgaard/openrms/internal/state/race"
-	"github.com/qvistgaard/openrms/internal/state/rules"
 	"github.com/qvistgaard/openrms/internal/state/track"
 	log "github.com/sirupsen/logrus"
 	"sync"
@@ -19,9 +19,9 @@ type Runner struct {
 	postprocessors *postprocess.PostProcess
 	implement      implement.Implementer
 	track          *track.Track
-	rules          rules.Rules
 	race           *race.Race
-	cars           car.Repository
+	cars           repository.Repository
+	plugins        *plugins.Plugins
 }
 
 func (r *Runner) Run() {
@@ -33,15 +33,14 @@ func (r *Runner) Run() {
 
 }
 
-func Create(waitGroup *sync.WaitGroup, postprocessors *postprocess.PostProcess, implement implement.Implementer, track *track.Track, rules rules.Rules, race *race.Race, cars car.Repository) *Runner {
+func Create(waitGroup *sync.WaitGroup, implement implement.Implementer, plugins *plugins.Plugins, track *track.Track, race *race.Race, cars repository.Repository) *Runner {
 	return &Runner{
-		wg:             waitGroup,
-		postprocessors: postprocessors,
-		implement:      implement,
-		track:          track,
-		rules:          rules,
-		race:           race,
-		cars:           cars,
+		wg:        waitGroup,
+		implement: implement,
+		track:     track,
+		plugins:   plugins,
+		race:      race,
+		cars:      cars,
 	}
 }
 
@@ -65,17 +64,17 @@ func (r *Runner) processEvents() {
 	log.Info("rms: started event processor.")
 
 	background := context.Background()
-	r.postprocessors.Init(background)
-	r.track.Init(background, r.postprocessors.ValuePostProcessor())
+	// r.postprocessors.Init(background)
+	r.track.Init(background)
 
-	for _, rule := range r.rules.RaceRules() {
-		rule.ConfigureRaceState(r.race)
+	for _, rule := range r.plugins.Race() {
+		rule.ConfigureRace(r.race)
 	}
-	for _, rule := range r.rules.RaceRules() {
-		rule.InitializeRaceState(r.race, background, r.postprocessors.ValuePostProcessor())
-	}
+	/*	for _, rule := range r.plugins.Race() {
+		rule.InitializeRaceState(r.race, background)
+	}*/
 
-	r.race.Init(background)
+	// r.race.Init(background)
 
 	channel := r.implement.EventChannel()
 	for {
@@ -83,10 +82,11 @@ func (r *Runner) processEvents() {
 		case e := <-channel:
 			start := time.Now()
 			if e.Car.Id > 0 {
-				if c, ok, _ := r.cars.Get(e.Car.Id, background); ok {
+				if c, ok, _ := r.cars.Get(e.Car.Id); ok {
 					c.UpdateFromEvent(e)
 				}
 			}
+			r.race.UpdateFromEvent(e)
 			log.Tracef("processing time: %s", time.Now().Sub(start))
 		}
 	}

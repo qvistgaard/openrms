@@ -1,9 +1,6 @@
 package reactive
 
-import (
-	"github.com/qvistgaard/openrms/internal/types"
-)
-
+/*
 type Percent struct {
 	Value
 }
@@ -59,3 +56,4 @@ func (p *PercentAbsoluteModifier) Modify() PercentModifierFunc {
 		return p.Absolute, p.Enabled
 	}
 }
+*/

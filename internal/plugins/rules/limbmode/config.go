@@ -1,11 +1,7 @@
 package limbmode
 
 import (
-	"github.com/mitchellh/mapstructure"
-	"github.com/qvistgaard/openrms/internal/config/application"
 	"github.com/qvistgaard/openrms/internal/types"
-	"github.com/qvistgaard/openrms/internal/types/reactive"
-	log "github.com/sirupsen/logrus"
 )
 
 type LimbModeConfig struct {
@@ -23,7 +19,7 @@ type Config struct {
 		Cars     []*CarSettings `mapstructure:"cars"`
 	}
 }
-
+/*
 func CreateFromConfig(applicationConfig *application.Config) *LimbMode {
 	config := &Config{}
 
@@ -44,9 +40,10 @@ func CreateFromConfig(applicationConfig *application.Config) *LimbMode {
 	}
 
 	return &LimbMode{
-		defaults:      config.Car.Defaults.LimbMode,
-		config:        carConfig,
-		state:         map[types.Id]*reactive.Boolean{},
-		speedModifier: map[types.Id]*reactive.PercentAbsoluteModifier{},
+		defaults: config.Car.Defaults.LimbMode,
+		config:   carConfig,
+		state:    map[types.Id]observable.Observable[bool]{},
+		// speedModifier: map[types.Id]*reactive.PercentAbsoluteModifier{},
 	}
 }
+*/

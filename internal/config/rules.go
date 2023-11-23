@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/mitchellh/mapstructure"
 	"github.com/qvistgaard/openrms/internal/config/application"
+	"github.com/qvistgaard/openrms/internal/plugins/leaderboard"
 	"github.com/qvistgaard/openrms/internal/plugins/rules/fuel"
 	"github.com/qvistgaard/openrms/internal/plugins/rules/limbmode"
 	"github.com/qvistgaard/openrms/internal/plugins/rules/pit"
@@ -34,7 +35,11 @@ func CreateRules(ctx *application.Context) error {
 		return err
 	}
 
+	lb := leaderboard.New()
 	ctx.Rules = rules.NewRuleList()
+	ctx.Rules.Append(lb)
+	ctx.Leaderboard = lb
+
 	for _, r := range c.Rules {
 		if r.Enabled {
 			switch r.Plugin {

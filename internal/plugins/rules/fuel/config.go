@@ -1,13 +1,7 @@
 package fuel
 
 import (
-	"github.com/mitchellh/mapstructure"
-	"github.com/qmuntal/stateless"
-	"github.com/qvistgaard/openrms/internal/config/application"
-	"github.com/qvistgaard/openrms/internal/state/rules"
 	"github.com/qvistgaard/openrms/internal/types"
-	"github.com/qvistgaard/openrms/internal/types/reactive"
-	log "github.com/sirupsen/logrus"
 )
 
 type Config struct {
@@ -29,7 +23,7 @@ type FuelConfig struct {
 	FlowRate     types.LiterPerSecond `mapstructure:"flow-rate"`
 }
 
-func CreateFromConfig(applicationConfig *application.Config, rules rules.Rules) *Consumption {
+/*func CreateFromConfig(applicationConfig *application.Config, rules rules.Rules) *Consumption {
 	config := &Config{}
 	err := mapstructure.Decode(applicationConfig, config)
 	if err != nil {
@@ -37,13 +31,13 @@ func CreateFromConfig(applicationConfig *application.Config, rules rules.Rules) 
 	}
 
 	consumption := &Consumption{
-		fuel:       make(map[types.Id]*reactive.Liter),
-		state:      make(map[types.Id]*stateless.StateMachine),
-		maxSpeed:   make(map[types.Id]*reactive.PercentSubtractModifier),
-		consumed:   map[types.Id]*reactive.LiterSubtractModifier{},
+		fuel:  make(map[types.Id]observable.Observable[float32]),
+		state: make(map[types.Id]*stateless.StateMachine),
+		// maxSpeed:   make(map[types.Id]*reactive.PercentSubtractModifier),
 		fuelConfig: map[types.Id]*FuelConfig{},
 		config:     config,
 		rules:      rules,
 	}
 	return consumption
 }
+*/

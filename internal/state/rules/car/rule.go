@@ -3,7 +3,6 @@ package car
 import (
 	"context"
 	"github.com/qvistgaard/openrms/internal/state/car"
-	"github.com/qvistgaard/openrms/internal/types/reactive"
 )
 
 type Rule interface {
@@ -21,7 +20,7 @@ type Rule interface {
 	// Note: This method should focus on preparing the rule's configuration
 	// and should not depend on the initialization of the rule, as it precedes
 	// the InitializeCarState method.
-	ConfigureCarState(*car.Car, *reactive.Factory)
+	ConfigureCarState(*car.Car)
 
 	// InitializeCarState is called after all the ConfigureCarState methods
 	// from various rules have been executed. This method is responsible for

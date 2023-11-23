@@ -1,16 +1,6 @@
 package reactive
 
-import (
-	"context"
-	"errors"
-	"github.com/reactivex/rxgo/v2"
-	log "github.com/sirupsen/logrus"
-	"reflect"
-	"sort"
-	"sync"
-	"time"
-)
-
+/*
 type Condition int
 
 const (
@@ -153,3 +143,4 @@ func newValue(initial interface{}, valuePostProcessor ValuePostProcessor, annota
 	}
 	return value
 }
+*/

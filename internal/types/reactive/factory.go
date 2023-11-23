@@ -1,29 +1,16 @@
 package reactive
 
-import (
-	"context"
-	"github.com/qvistgaard/openrms/internal/types"
-	"time"
-)
-
-type Factory struct {
+/*type Factory struct {
 	valuePostProcessor ValuePostProcessor
 }
-
+*/
+/*
 func NewFactory(valuePostProcessor ValuePostProcessor) *Factory {
 	return &Factory{valuePostProcessor: valuePostProcessor}
 }
 
 func (f *Factory) NewDistinctValue(initial interface{}, annotations ...Annotations) Value {
 	return newDistinctValueFunc(initial, defaultDistinctFunction(), f.valuePostProcessor, annotations...)
-}
-
-func (f *Factory) NewDistinctBoolean(initial bool, annotations ...Annotations) *Boolean {
-	return &Boolean{f.NewDistinctValue(initial, annotations...)}
-}
-
-func (f *Factory) NewDuration(initial time.Duration, annotations ...Annotations) *Duration {
-	return &Duration{f.NewDistinctValue(initial, annotations...)}
 }
 
 func (f *Factory) NewDistinctGauge(initial float64, annotations ...Annotations) *Gauge {
@@ -52,3 +39,4 @@ func (f *Factory) NewDistinctLapNumber(annotations ...Annotations) *Lap {
 func (f *Factory) NewDrivers(initial types.Drivers, annotations ...Annotations) *Drivers {
 	return &Drivers{newValue(initial, f.valuePostProcessor, annotations...)}
 }
+*/

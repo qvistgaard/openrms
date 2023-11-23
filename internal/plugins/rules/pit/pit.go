@@ -4,12 +4,11 @@ import (
 	"context"
 	"github.com/qmuntal/stateless"
 	"github.com/qvistgaard/openrms/internal/state/car"
+	"github.com/qvistgaard/openrms/internal/state/observable"
 	"github.com/qvistgaard/openrms/internal/state/rules"
 	"github.com/qvistgaard/openrms/internal/types"
 	"github.com/qvistgaard/openrms/internal/types/annotations"
 	"github.com/qvistgaard/openrms/internal/types/fields"
-	"github.com/qvistgaard/openrms/internal/types/reactive"
-	"github.com/reactivex/rxgo/v2"
 	log "github.com/sirupsen/logrus"
 	"time"
 )
@@ -43,23 +42,19 @@ const (
 	PitStateComplete
 )
 
-type CarPitStateValue struct {
+/*type CarPitStateValue struct {
 	reactive.Value
-}
-
-func NewCarPitStateValue(initial CarPitState, valueFactory *reactive.Factory, annotations ...reactive.Annotations) *CarPitStateValue {
-	return &CarPitStateValue{valueFactory.NewDistinctValue(initial, annotations...)}
 }
 
 func (p *CarPitStateValue) Set(value CarPitState) {
 	p.Value.Set(value)
 }
-
+*/
 type Rule struct {
-	rules            rules.Rules
-	speed            map[types.Id]*reactive.PercentSubtractModifier
+	rules rules.Rules
+	// speed            map[types.Id]*reactive.PercentSubtractModifier
 	carState         map[types.Id]*stateless.StateMachine
-	carPitState      map[types.Id]*CarPitStateValue
+	carPitState      map[types.Id]observable.Observable[CarPitState]
 	handlerCompleted map[types.Id]bool
 
 	// course   *state.Course
@@ -68,8 +63,8 @@ type Rule struct {
 func CreatePitRule(rules rules.Rules) *Rule {
 	p := new(Rule)
 	p.rules = rules
-	p.speed = make(map[types.Id]*reactive.PercentSubtractModifier)
-	p.carPitState = make(map[types.Id]*CarPitStateValue)
+	// p.speed = make(map[types.Id]*reactive.PercentSubtractModifier)
+	p.carPitState = make(map[types.Id]observable.Observable[CarPitState])
 	p.handlerCompleted = make(map[types.Id]bool)
 	p.carState = make(map[types.Id]*stateless.StateMachine)
 	return p
@@ -83,61 +78,60 @@ func (p *Rule) Name() string {
 	return "pit"
 }
 
-func (p *Rule) ConfigureCarState(c *car.Car, valueFactory *reactive.Factory) {
+func (p *Rule) ConfigureCarState(c *car.Car) {
 	carId := c.Id()
-	a := reactive.Annotations{
-		annotations.CarId: carId,
+	a := []observable.Annotation{
+		{annotations.CarId, carId.String()},
 	}
 
 	stateMachine := p.newState(c)
 	p.carState[carId] = stateMachine
 	p.handlerCompleted[carId] = false
-	p.speed[carId] = &reactive.PercentSubtractModifier{Subtract: 100}
-	p.carPitState[carId] = NewCarPitStateValue(PitStateNotInPitLane, valueFactory, a, reactive.Annotations{annotations.CarValueFieldName: fields.PitState})
+	// p.speed[carId] = &reactive.PercentSubtractModifier{Subtract: 100}
+	p.carPitState[carId] = observable.Create(PitStateNotInPitLane, append(a, observable.Annotation{annotations.CarValueFieldName, fields.PitState})...)
 
-	c.PitLaneMaxSpeed().Modifier(p.speed[carId], 1000)
+	/*	c.PitLaneMaxSpeed().Modifier(func(u uint8) (uint8, bool) {
 
-	c.Pit().RegisterObserver(func(observable rxgo.Observable) {
-		observable.DoOnNext(func(i interface{}) {
-			var err error
-			if b, ok := i.(bool); ok && !b {
-				err = stateMachine.Fire(triggerCarExitedPitLane)
-			} else {
-				err = stateMachine.Fire(triggerCarEnteredPitLane)
-			}
+		})
+		c.PitLaneMaxSpeed().Modifier(p.speed[carId], 1000)
+	*/
+	c.Pit().RegisterObserver(func(b bool, a observable.Annotations) {
+		var err error
+		if !b {
+			err = stateMachine.Fire(triggerCarExitedPitLane)
+		} else {
+			err = stateMachine.Fire(triggerCarEnteredPitLane)
+		}
+		if err != nil {
+			log.Error(err)
+		}
+	})
+
+	c.Controller().ButtonTrackCall().RegisterObserver(func(b bool, a observable.Annotations) {
+		if b && !p.handlerCompleted[carId] {
+			err := stateMachine.Fire(triggerCarPitStopConfirmed)
 			if err != nil {
 				log.Error(err)
 			}
-		})
+		}
 	})
-	c.Controller().ButtonTrackCall().RegisterObserver(func(observable rxgo.Observable) {
-		observable.DoOnNext(func(i interface{}) {
-			if i.(bool) && !p.handlerCompleted[carId] {
-				err := stateMachine.Fire(triggerCarPitStopConfirmed)
-				if err != nil {
-					log.Error(err)
-				}
-			}
-		})
-	})
-	c.Controller().TriggerValue().RegisterObserver(func(observable rxgo.Observable) {
-		observable.DoOnNext(func(i interface{}) {
-			var err error
-			triggerValue := i.(types.Percent)
-			if triggerValue == 0 {
-				err = stateMachine.Fire(triggerCarStopped)
-			} else {
-				err = stateMachine.Fire(triggerCarMoving)
-			}
-			if err != nil {
-				log.Error(err)
-			}
-		})
+
+	c.Controller().TriggerValue().RegisterObserver(func(u uint8, a observable.Annotations) {
+		var err error
+		triggerValue := u
+		if triggerValue == 0 {
+			err = stateMachine.Fire(triggerCarStopped)
+		} else {
+			err = stateMachine.Fire(triggerCarMoving)
+		}
+		if err != nil {
+			log.Error(err)
+		}
 	})
 }
 
 func (p *Rule) InitializeCarState(car *car.Car, ctx context.Context) {
-	p.carPitState[car.Id()].Init(ctx)
+	// p.carPitState[car.Id()].Init(ctx)
 }
 
 func alwaysIgnoreTrigger(context.Context, ...interface{}) bool {
@@ -168,7 +162,7 @@ func (p *Rule) pitStopActivationHandlerAction(car *car.Car, machine *stateless.S
 	return func(ctx context.Context, args ...interface{}) error {
 		if !p.handlerCompleted[car.Id()] {
 			p.carPitState[car.Id()].Set(PitStateWaiting)
-			p.carPitState[car.Id()].Update()
+			// p.carPitState[car.Id()].Update()
 			go pitStopActivationHandler(car, machine, cancel)
 		}
 		return nil
@@ -201,7 +195,7 @@ func (p *Rule) newState(car *car.Car) *stateless.StateMachine {
 
 			p.handlerCompleted[car.Id()] = false
 			p.carPitState[car.Id()].Set(PitStateNotInPitLane)
-			p.carPitState[car.Id()].Update()
+			// p.carPitState[car.Id()].Update()
 			return nil
 		}).
 		Permit(triggerCarEnteredPitLane, stateCarInPitLane).
@@ -214,7 +208,7 @@ func (p *Rule) newState(car *car.Car) *stateless.StateMachine {
 		OnEntry(logPitStateChangeAction(car, stateCarInPitLane, "car entered pit lane")).
 		OnEntry(func(ctx context.Context, args ...interface{}) error {
 			p.carPitState[car.Id()].Set(PitStateEntered)
-			p.carPitState[car.Id()].Update()
+			// p.carPitState[car.Id()].Update()
 			return nil
 		}).
 		OnExit(cancelPitStopAutoConfirmation(cancelWait)).
@@ -252,12 +246,12 @@ func (p *Rule) newState(car *car.Car) *stateless.StateMachine {
 		OnEntry(logPitStateChangeAction(car, stateCarPitStopActive, "entering active pit state")).
 		OnEntry(func(ctx context.Context, args ...interface{}) error {
 			p.carPitState[car.Id()].Set(PitStateActive)
-			p.carPitState[car.Id()].Update()
+			// p.carPitState[car.Id()].Update()
 
 			// TODO: Figure out why car can drive when pit is active
 
-			p.speed[car.Id()].Enabled = true
-			car.PitLaneMaxSpeed().Update()
+			// p.speed[car.Id()].Enabled = true
+			// car.PitLaneMaxSpeed().Update()
 			go func() {
 				for _, r := range p.rules.PitRules() {
 					if !r.HandlePitStop(car, make(chan bool)) {
@@ -274,8 +268,8 @@ func (p *Rule) newState(car *car.Car) *stateless.StateMachine {
 		}).
 		OnExit(func(ctx context.Context, args ...interface{}) error {
 			p.handlerCompleted[car.Id()] = true
-			p.speed[car.Id()].Enabled = false
-			car.PitLaneMaxSpeed().Update()
+			// p.speed[car.Id()].Enabled = false
+			// car.PitLaneMaxSpeed().Update()
 			log.Info("re-enable car")
 			return nil
 		}).
@@ -290,7 +284,7 @@ func (p *Rule) newState(car *car.Car) *stateless.StateMachine {
 		OnEntry(logPitStateChangeAction(car, stateCarPitStopComplete, "pit stop complete")).
 		OnEntry(func(ctx context.Context, args ...interface{}) error {
 			p.carPitState[car.Id()].Set(PitStateComplete)
-			p.carPitState[car.Id()].Update()
+			// p.carPitState[car.Id()].Update()
 			return nil
 		}).
 		Permit(triggerCarMoving, stateCarMoving).

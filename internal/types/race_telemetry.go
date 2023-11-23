@@ -29,9 +29,9 @@ func (r RaceTelemetry) Sort() []RaceTelemetryEntry {
 		sorted = append(sorted, *v)
 	}
 	sort.Slice(sorted, func(i, j int) bool {
-		if sorted[i].Laps.LapNumber > sorted[j].Laps.LapNumber {
+		if sorted[i].Laps.Number > sorted[j].Laps.Number {
 			return true
-		} else if sorted[i].Laps.LapNumber == sorted[j].Laps.LapNumber {
+		} else if sorted[i].Laps.Number == sorted[j].Laps.Number {
 			if sorted[i].Laps.RaceTimer < sorted[j].Laps.RaceTimer {
 				return true
 			}

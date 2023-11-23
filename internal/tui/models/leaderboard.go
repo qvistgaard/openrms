@@ -119,7 +119,7 @@ func (l Leaderboard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				alignRight.Width(7).Render(formatDurationSecondsMilliseconds(v.Last)),
 				alignRight.Width(7).Render(formatDurationSecondsMilliseconds(v.Delta)),
 				alignRight.Width(7).Render(formatDurationSecondsMilliseconds(v.Best)),
-				alignRight.Width(4).Render(strconv.Itoa(int(v.Laps.LapNumber))),
+				alignRight.Width(4).Render(strconv.Itoa(int(v.Laps.Number))),
 				alignRight.Width(3).AlignHorizontal(lipgloss.Center).Render(inPitString),
 			})
 		}

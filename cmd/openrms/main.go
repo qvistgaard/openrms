@@ -4,8 +4,9 @@ import (
 	"flag"
 	"github.com/madflojo/tasks"
 	"github.com/pkg/browser"
-	"github.com/qvistgaard/openrms/internal/config"
-	"github.com/qvistgaard/openrms/internal/config/application"
+	"github.com/qvistgaard/openrms/cmd/openrms/configuration"
+	"github.com/qvistgaard/openrms/internal/plugins"
+	"github.com/qvistgaard/openrms/internal/plugins/leaderboard"
 	"github.com/qvistgaard/openrms/internal/rms"
 	"github.com/qvistgaard/openrms/internal/tui"
 	log "github.com/sirupsen/logrus"
@@ -24,7 +25,7 @@ func main() {
 	flagLogfile := flag.String("log-file", "openrms.log", "OpenRMS log file")
 	flagLoglevel := flag.String("log-level", "debug", "Log level")
 	flagBrowser := flag.Bool("open-browser", false, "Open browser on launch")
-	flagImplement := flag.String("driver", "", "Driver")
+	flagDriver := flag.String("driver", "", "Driver")
 	flag.Parse()
 
 	level, err := log.ParseLevel(*flagLoglevel)
@@ -36,61 +37,74 @@ func main() {
 
 	logFile, err := os.OpenFile(*flagLogfile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 
-	mw := io.MultiWriter(logFile)
-	log.SetOutput(mw)
+	log.SetOutput(io.MultiWriter(os.Stdout, logFile))
 
-	c := &application.Context{
-		Scheduler: tasks.New(),
-	}
-	defer c.Scheduler.Stop()
+	scheduler := tasks.New()
+	defer scheduler.Stop()
 
-	err = config.FromFile(c, flagConfig)
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = config.CreateImplement(c, flagImplement)
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = config.CreateWebserver(c)
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = config.CreatePostProcessors(c)
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = config.CreateValueFactory(c)
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = config.CreateRules(c)
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = config.CreateCarRepository(c)
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = config.ConfigureTrack(c)
+	cfg, err := configuration.FromFile(flagConfig)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = config.ConfigureRace(c)
+	driver, err := configuration.Driver(cfg, flagDriver)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	b := tui.CreateBridge(c.Leaderboard, c.Scheduler, c.Cars, c.Race)
+	/*	err = config.CreateWebserver(c)
+		if err != nil {
+			log.Fatal(err)
+		}*/
+
+	leaderboardPlugin := leaderboard.New()
+
+	racePlugin, err := configuration.RacePlugin(cfg)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	limpModePlugin, err := configuration.LimbModePlugin(cfg)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fuelPlugin, err := configuration.FuelPlugin(cfg, limpModePlugin)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	plugins := &plugins.Plugins{}
+	plugins.Append(racePlugin)
+	plugins.Append(leaderboardPlugin)
+	plugins.Append(limpModePlugin)
+	plugins.Append(fuelPlugin)
+
+	repository, err := configuration.CarRepository(cfg, plugins)
+	if err != nil {
+		log.Fatal(err)
+	}
+	track, err := configuration.Track(cfg, driver)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	race, err := configuration.Race(cfg, driver)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	if *flagBrowser {
 		browser.OpenURL("http://localhost:8080")
 	}
 
+	log.SetOutput(io.Writer(logFile))
+
+	b := tui.CreateBridge(leaderboardPlugin, racePlugin, scheduler, repository, race)
+
 	var wg sync.WaitGroup
 	wg.Add(1)
-	go rms.Create(&wg, c.Postprocessors, c.Implement, c.Track, c.Rules, c.Race, c.Cars).Run()
+	go rms.Create(&wg, driver, plugins, track, race, repository).Run()
 	//go c.Webserver.RunServer(&wg)
 
 	b.Run()

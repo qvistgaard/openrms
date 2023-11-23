@@ -3,14 +3,13 @@ package implement
 import (
 	"context"
 	"github.com/qvistgaard/openrms/internal/types"
-	"github.com/qvistgaard/openrms/internal/types/reactive"
 )
 
 type CarImplementer interface {
-	MaxSpeed(percent types.Percent)
-	PitLaneMaxSpeed(percent types.Percent)
+	MaxSpeed(percent uint8)
+	PitLaneMaxSpeed(percent uint8)
 	MaxBreaking(percent types.Percent)
-	MinSpeed(percent types.Percent)
+	MinSpeed(percent uint8)
 }
 
 type PitLaneLapCounting int
@@ -25,7 +24,7 @@ type PitLaneImplementer interface {
 }
 
 type TrackImplementer interface {
-	MaxSpeed(percent types.Percent)
+	MaxSpeed(percent uint8)
 	PitLane() PitLaneImplementer
 }
 
@@ -44,5 +43,5 @@ type Implementer interface {
 
 	Track() TrackImplementer
 	Race() RaceImplementer
-	Init(ctx context.Context, processor reactive.ValuePostProcessor)
+	Init(ctx context.Context)
 }
