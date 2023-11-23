@@ -57,8 +57,6 @@ func main() {
 			log.Fatal(err)
 		}*/
 
-	leaderboardPlugin := leaderboard.New()
-
 	racePlugin, err := configuration.RacePlugin(cfg)
 	if err != nil {
 		log.Fatal(err)
@@ -73,6 +71,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	leaderboardPlugin := leaderboard.New(fuelPlugin)
 
 	plugins := &plugins.Plugins{}
 	plugins.Append(racePlugin)
@@ -80,7 +79,7 @@ func main() {
 	plugins.Append(limpModePlugin)
 	plugins.Append(fuelPlugin)
 
-	repository, err := configuration.CarRepository(cfg, plugins)
+	repository, err := configuration.CarRepository(cfg, driver, plugins)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -98,8 +97,6 @@ func main() {
 		browser.OpenURL("http://localhost:8080")
 	}
 
-	log.SetOutput(io.Writer(logFile))
-
 	b := tui.CreateBridge(leaderboardPlugin, racePlugin, scheduler, repository, race)
 
 	var wg sync.WaitGroup
@@ -107,6 +104,10 @@ func main() {
 	go rms.Create(&wg, driver, plugins, track, race, repository).Run()
 	//go c.Webserver.RunServer(&wg)
 
+	// wg.Wait()
+	log.SetOutput(io.Writer(logFile))
+
 	b.Run()
 	b.UI.Run()
+
 }

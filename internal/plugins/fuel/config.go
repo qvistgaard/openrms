@@ -18,8 +18,8 @@ type CarSettings struct {
 
 type FuelConfig struct {
 	TankSize     uint8                `mapstructure:"tank-size"`
-	StartingFuel types.Liter          `mapstructure:"starting-fuel"`
-	BurnRate     types.LiterPerSecond `mapstructure:"burn-rate"`
+	StartingFuel uint8                `mapstructure:"starting-fuel"`
+	BurnRate     float32              `mapstructure:"burn-rate"`
 	FlowRate     types.LiterPerSecond `mapstructure:"flow-rate"`
 }
 

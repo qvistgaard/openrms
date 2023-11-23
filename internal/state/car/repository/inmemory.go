@@ -16,7 +16,7 @@ type InMemory struct {
 	implement implement.Implementer
 }
 
-func New(config car.Config, plugins plugins.List) Repository {
+func New(config car.Config, driver implement.Implementer, plugins plugins.List) Repository {
 	if config.Car.Defaults.MinSpeed == nil {
 		percent := uint8(0)
 		config.Car.Defaults.MinSpeed = &percent
@@ -41,6 +41,7 @@ func New(config car.Config, plugins plugins.List) Repository {
 	ccr.config = make(map[types.Id]*car.CarSettings)
 	ccr.defaults = config.Car.Defaults
 	ccr.plugins = plugins
+	ccr.implement = driver
 
 	for _, cs := range config.Car.Cars {
 		ccr.config[*cs.Id] = cs

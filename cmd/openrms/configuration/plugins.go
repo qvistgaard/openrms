@@ -18,19 +18,19 @@ import (
 //
 // Example usage:
 //
-//   // Load fuel plugin configuration from a previously loaded configuration map.
-//   fuelConfig := configMap["fuel"].(map[string]interface{})
+//	// Load fuel plugin configuration from a previously loaded configuration map.
+//	fuelConfig := configMap["fuel"].(map[string]interface{})
 //
-//   // Initialize the LimpMode plugin (LimpMode plugin initialization not shown here).
-//   var limpMode *limbmode.Plugin
+//	// Initialize the LimpMode plugin (LimpMode plugin initialization not shown here).
+//	var limpMode *limbmode.Plugin
 //
-//   // Initialize the fuel plugin instance based on the configuration and LimpMode plugin.
-//   fuelInstance, err := FuelPlugin(fuelConfig, limpMode)
-//   if err != nil {
-//       log.Fatal("Failed to initialize the fuel plugin: ", err)
-//   }
+//	// Initialize the fuel plugin instance based on the configuration and LimpMode plugin.
+//	fuelInstance, err := FuelPlugin(fuelConfig, limpMode)
+//	if err != nil {
+//	    log.Fatal("Failed to initialize the fuel plugin: ", err)
+//	}
 //
-//   // Use the 'fuelInstance' for managing fuel-related operations.
+//	// Use the 'fuelInstance' for managing fuel-related operations.
 //
 // Returns:
 //   - A new instance of the 'fuel.Plugin' type representing the initialized fuel plugin.
@@ -52,16 +52,16 @@ func FuelPlugin(conf Config, limpMode *limbmode.Plugin) (*fuel.Plugin, error) {
 //
 // Example usage:
 //
-//   // Load race plugin configuration from a previously loaded configuration map.
-//   raceConfig := configMap["race"].(map[string]interface{})
+//	// Load race plugin configuration from a previously loaded configuration map.
+//	raceConfig := configMap["race"].(map[string]interface{})
 //
-//   // Initialize the race plugin instance based on the configuration.
-//   raceInstance, err := RacePlugin(raceConfig)
-//   if err != nil {
-//       log.Fatal("Failed to initialize the race plugin: ", err)
-//   }
+//	// Initialize the race plugin instance based on the configuration.
+//	raceInstance, err := RacePlugin(raceConfig)
+//	if err != nil {
+//	    log.Fatal("Failed to initialize the race plugin: ", err)
+//	}
 //
-//   // Use the 'raceInstance' for managing race-related operations.
+//	// Use the 'raceInstance' for managing race-related operations.
 //
 // Returns:
 //   - A new instance of the 'race.Plugin' type representing the initialized race plugin.
@@ -77,20 +77,25 @@ func RacePlugin(_ Config) (*race.Plugin, error) {
 //
 // Example usage:
 //
-//   // Load LimpMode plugin configuration from a previously loaded configuration map.
-//   limpModeConfig := configMap["limpmode"].(map[string]interface{})
+//	// Load LimpMode plugin configuration from a previously loaded configuration map.
+//	limpModeConfig := configMap["limpmode"].(map[string]interface{})
 //
-//   // Initialize the LimpMode plugin instance based on the configuration.
-//   limpModeInstance, err := LimbModePlugin(limpModeConfig)
-//   if err != nil {
-//       log.Fatal("Failed to initialize the LimpMode plugin: ", err)
-//   }
+//	// Initialize the LimpMode plugin instance based on the configuration.
+//	limpModeInstance, err := LimbModePlugin(limpModeConfig)
+//	if err != nil {
+//	    log.Fatal("Failed to initialize the LimpMode plugin: ", err)
+//	}
 //
-//   // Use the 'limpModeInstance' for managing LimpMode-related operations.
+//	// Use the 'limpModeInstance' for managing LimpMode-related operations.
 //
 // Returns:
 //   - A new instance of the 'limbmode.Plugin' type representing the initialized LimpMode plugin.
 //   - An error if there was an issue initializing the LimpMode plugin instance.
-func LimbModePlugin(_ Config) (*limbmode.Plugin, error) {
-	return &limbmode.Plugin{}, nil
+func LimbModePlugin(conf Config) (*limbmode.Plugin, error) {
+	c := &limbmode.Config{}
+	err := mapstructure.Decode(conf, c)
+	if err != nil {
+		return nil, errors.WithMessage(err, "failed to read fuel plugin configuration")
+	}
+	return limbmode.New(c)
 }

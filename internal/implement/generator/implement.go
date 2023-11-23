@@ -28,7 +28,7 @@ func (g *Generator) Race() implement.RaceImplementer {
 	return g.race
 }
 
-func (g *Generator) Init(ctx context.Context) {
+func (g *Generator) Init(_ context.Context) {
 	// NOOP
 }
 
@@ -66,7 +66,7 @@ func (g *Generator) eventGenerator(carId uint8, interval uint) implement.Event {
 					Id:        types.IdFromUint(carId),
 					Reset:     false,
 					InPit:     false,
-					Deslotted: true,
+					Deslotted: false,
 					Controller: implement.Controller{
 						BatteryWarning: false,
 						Link:           false,

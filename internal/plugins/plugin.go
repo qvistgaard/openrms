@@ -11,7 +11,7 @@ type Plugin interface {
 
 type Car interface {
 
-	// ConfigureCarState is responsible for setting up the plugin-specific
+	// ConfigureCar is responsible for setting up the plugin-specific
 	// configuration for a Car object. This method is invoked when a new car
 	// is detected, allowing each plugin to apply its unique configuration to the
 	// car's state. This method should not alter the car itself but should

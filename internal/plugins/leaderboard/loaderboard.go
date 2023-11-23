@@ -2,6 +2,7 @@ package leaderboard
 
 import (
 	"context"
+	"github.com/qvistgaard/openrms/internal/plugins/fuel"
 	"github.com/qvistgaard/openrms/internal/state/car"
 	"github.com/qvistgaard/openrms/internal/state/observable"
 	"github.com/qvistgaard/openrms/internal/types"
@@ -9,14 +10,16 @@ import (
 )
 
 type Plugin struct {
-	listener  observable.Observable[types.RaceTelemetry]
-	telemetry types.RaceTelemetry
+	listener   observable.Observable[types.RaceTelemetry]
+	telemetry  types.RaceTelemetry
+	fuelPlugin *fuel.Plugin
 }
 
-func New() *Plugin {
+func New(fuelPlugin *fuel.Plugin) *Plugin {
 	return &Plugin{
-		listener:  observable.Create(make(types.RaceTelemetry)),
-		telemetry: make(types.RaceTelemetry),
+		listener:   observable.Create(make(types.RaceTelemetry)),
+		telemetry:  make(types.RaceTelemetry),
+		fuelPlugin: fuelPlugin,
 	}
 }
 
@@ -37,6 +40,10 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 		}
 		p.telemetry[id] = entry
 	}
+
+	p.fuelPlugin.Fuel(id).RegisterObserver(func(f float32, annotations observable.Annotations) {
+		p.telemetry[id].Fuel = f
+	})
 
 	car.LastLap().RegisterObserver(func(lap types.Lap, a observable.Annotations) {
 		p.telemetry[id].Laps = lap

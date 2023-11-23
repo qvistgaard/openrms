@@ -3,6 +3,7 @@ package configuration
 import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
+	"github.com/qvistgaard/openrms/internal/implement"
 	"github.com/qvistgaard/openrms/internal/plugins"
 	"github.com/qvistgaard/openrms/internal/state/car"
 	"github.com/qvistgaard/openrms/internal/state/car/repository"
@@ -19,30 +20,30 @@ import (
 //
 // Example usage:
 //
-//   conf := configuration.Config{
-//       // Populate the configuration settings as needed.
-//   }
+//	conf := configuration.Config{
+//	    // Populate the configuration settings as needed.
+//	}
 //
-//   plugins := plugins.List{
-//       // Populate the list of plugins as needed.
-//   }
+//	plugins := plugins.List{
+//	    // Populate the list of plugins as needed.
+//	}
 //
-//   carRepo, err := CarRepository(conf, plugins)
-//   if err != nil {
-//       log.Fatal("Failed to create car repository: ", err)
-//   }
+//	carRepo, err := CarRepository(conf, plugins)
+//	if err != nil {
+//	    log.Fatal("Failed to create car repository: ", err)
+//	}
 //
-//   // Use the car repository for managing car-related data.
+//	// Use the car repository for managing car-related data.
 //
 // Returns:
 //   - A `Repository` interface representing the car repository.
 //   - An error if there was an issue creating the repository.
-func CarRepository(conf Config, plugins plugins.List) (repository.Repository, error) {
+func CarRepository(conf Config, driver implement.Implementer, plugins plugins.List) (repository.Repository, error) {
 	c := &car.Config{}
 	err := mapstructure.Decode(conf, c)
 	if err != nil {
 		return nil, errors.WithMessage(err, "failed to read car configuration")
 	}
 
-	return repository.New(*c, plugins), err
+	return repository.New(*c, driver, plugins), err
 }

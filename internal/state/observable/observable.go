@@ -27,6 +27,8 @@ type Observable[T any] interface {
 	// It triggers the execution of observer functions.
 	Publish()
 
+	Update()
+
 	// Set sets a new value for the Observable. It applies all registered modifiers,
 	// updates the current value, and notifies observers.
 	// It takes a value of type T.

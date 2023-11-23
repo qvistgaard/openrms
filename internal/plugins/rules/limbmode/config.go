@@ -5,7 +5,7 @@ import (
 )
 
 type LimbModeConfig struct {
-	MaxSpeed *types.Percent `mapstructure:"max-speed"`
+	MaxSpeed *uint8 `mapstructure:"max-speed"`
 }
 
 type CarSettings struct {
