@@ -62,12 +62,7 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 	carState := p.state[carId]
 	config := p.carConfig[carId].FuelConfig
 	if config == nil {
-		config = &FuelConfig{
-			TankSize:     80,
-			StartingFuel: 60,
-			BurnRate:     100,
-			FlowRate:     0,
-		}
+		config = p.config.Car.Defaults.FuelConfig
 	}
 
 	carState.machine = machine(handleUpdateFuelLevel(carState, config.TankSize, config.BurnRate))
