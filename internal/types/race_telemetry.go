@@ -13,7 +13,7 @@ type RaceTelemetryEntry struct {
 	Last        time.Duration
 	Deslotted   bool
 	MinSpeed    float64
-	MaxSpeed    float64
+	MaxSpeed    uint8
 	MaxPitSpeed float64
 	InPit       bool
 	LimbMode    bool

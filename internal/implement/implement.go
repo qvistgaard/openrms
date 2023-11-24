@@ -8,7 +8,7 @@ import (
 type CarImplementer interface {
 	MaxSpeed(percent uint8)
 	PitLaneMaxSpeed(percent uint8)
-	MaxBreaking(percent types.Percent)
+	MaxBreaking(percent uint8)
 	MinSpeed(percent uint8)
 }
 

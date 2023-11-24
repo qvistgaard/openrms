@@ -2,7 +2,6 @@ package generator
 
 import (
 	"github.com/qvistgaard/openrms/internal/implement"
-	"github.com/qvistgaard/openrms/internal/types"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -25,7 +24,7 @@ func (c Car) PitLaneMaxSpeed(percent uint8) {
 		Info("Pit lane max speed updated")
 }
 
-func (c Car) MaxBreaking(percent types.Percent) {
+func (c Car) MaxBreaking(percent uint8) {
 	log.WithField("value", percent).
 		Info("Maximum braking updated")
 

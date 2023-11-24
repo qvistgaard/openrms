@@ -9,7 +9,7 @@ implement:
   plugin: generator
 
   oxigen:
-    port: COM7
+    port: COM3
 
   generator:
     cars: 5
@@ -130,7 +130,7 @@ plugins:
   fuel:
     enabled: true
   race:
-    enabled: true
+    enabled: false
   leaderboard:
     enabled: true
   limb-mode:

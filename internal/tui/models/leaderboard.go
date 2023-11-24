@@ -40,7 +40,7 @@ var (
 
 	columns = []table.Column{
 		{Title: alignRight.Width(3).Render("P"), Width: 3},
-		{Title: "Name", Width: 120 - 66},
+		{Title: "Name", Width: 120 - 69},
 		{Title: alignRight.Width(3).Render("#"), Width: 3},
 		{Title: alignRight.Width(4).Render("Fuel"), Width: 4},
 		{Title: alignRight.Width(7).Render("Lap"), Width: 7},
@@ -50,6 +50,7 @@ var (
 		{Title: alignRight.Width(3).Render("Pit"), Width: 3},
 		{Title: alignRight.Width(3).Render("LM"), Width: 3},
 		{Title: alignRight.Width(3).Render("DS"), Width: 3},
+		{Title: alignRight.Width(3).Render("MS"), Width: 3},
 	}
 )
 
@@ -98,7 +99,7 @@ func (l Leaderboard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.WindowSizeMsg:
 		l.width = msg.(tea.WindowSizeMsg).Width
-		columns[1] = table.Column{Title: "Name", Width: l.width - 66}
+		columns[1] = table.Column{Title: "Name", Width: l.width - 71}
 
 		l.table.SetWidth(l.width)
 		l.table.SetHeight(msg.(tea.WindowSizeMsg).Height - 7)
@@ -111,9 +112,9 @@ func (l Leaderboard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			var lmMode string
 			var deslotted string
 			if v.InPit {
-				inPitString = "P"
+				inPitString = "X"
 			} else {
-				inPitString = "N"
+				inPitString = ""
 			}
 			if v.LimbMode {
 				lmMode = "X"
@@ -138,6 +139,7 @@ func (l Leaderboard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				alignRight.Width(3).AlignHorizontal(lipgloss.Center).Render(inPitString),
 				alignRight.Width(2).AlignHorizontal(lipgloss.Right).Render(lmMode),
 				alignRight.Width(2).AlignHorizontal(lipgloss.Right).Render(deslotted),
+				alignRight.Width(3).AlignHorizontal(lipgloss.Right).Render(strconv.Itoa(int(v.MaxSpeed))),
 			})
 		}
 		l.table.SetRows(l.rows)

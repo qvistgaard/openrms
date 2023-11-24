@@ -1,7 +1,6 @@
 package race
 
 import (
-	"context"
 	"github.com/qvistgaard/openrms/internal/implement"
 	"github.com/qvistgaard/openrms/internal/state/observable"
 	"github.com/qvistgaard/openrms/internal/types/annotations"
@@ -40,6 +39,10 @@ func New(_ Config, implementer implement.Implementer) (*Race, error) {
 
 func (r *Race) Start() {
 	r.raceStatus = RaceRunning
+	r.raceStart = time.Now()
+	if r.raceStatus == RaceStopped {
+		r.raceDuration = time.Second * 0
+	}
 	r.implementer.Race().Start()
 	r.status.Set(r.raceStatus)
 }
@@ -51,12 +54,14 @@ func (r *Race) Flag() {
 }
 
 func (r *Race) Stop() {
+	r.raceDuration = calculateRaceDuration(r.raceDuration, r.raceStart, time.Now())
 	r.implementer.Race().Stop()
 	r.raceStatus = RaceStopped
 	r.status.Set(r.raceStatus)
 }
 
 func (r *Race) Pause() {
+	r.raceDuration = calculateRaceDuration(r.raceDuration, r.raceStart, time.Now())
 	r.implementer.Race().Pause()
 	r.raceStatus = RacePaused
 	r.status.Set(r.raceStatus)
@@ -74,13 +79,13 @@ func (r *Race) Status() observable.Observable[RaceStatus] {
 	return r.status
 }
 
-func (r *Race) Init(ctx context.Context) {
-
-	// r.status.Init(ctx)
-	// r.duration.Init(ctx)
+func (r *Race) UpdateFromEvent(e implement.Event) {
+	r.laps.Set(e.Car.Lap.Number)
+	if r.raceStatus == RaceRunning {
+		r.duration.Set(calculateRaceDuration(r.raceDuration, r.raceStart, time.Now()))
+	}
 }
 
-func (r *Race) UpdateFromEvent(e implement.Event) {
-	r.duration.Set(e.RaceTimer)
-	r.laps.Set(e.Car.Lap.Number)
+func calculateRaceDuration(duration time.Duration, startTime time.Time, currentTime time.Time) time.Duration {
+	return duration + currentTime.Sub(startTime)
 }

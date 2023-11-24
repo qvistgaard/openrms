@@ -26,6 +26,7 @@ type Car interface {
 	// and should not depend on the initialization of the plugin, as it precedes
 	// the InitializeCarState method.
 	ConfigureCar(*car.Car)
+	InitializeCar(*car.Car)
 }
 
 type Race interface {

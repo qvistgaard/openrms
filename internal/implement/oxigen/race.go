@@ -1,5 +1,7 @@
 package oxigen
 
+import log "github.com/sirupsen/logrus"
+
 const (
 	RaceUnknownByte           = 0x00
 	RaceStoppedByte           = 0x01
@@ -20,6 +22,9 @@ func NewRace() *Race {
 }
 
 func (r *Race) Start() {
+	log.WithField("implement", "oxigen").
+		WithField("race-status", "start").
+		Info("Race status changed")
 	r.status = RaceRunningByte
 }
 
@@ -28,9 +33,15 @@ func (r *Race) Flag() {
 }
 
 func (r *Race) Pause() {
+	log.WithField("implement", "oxigen").
+		WithField("race-status", "pause").
+		Info("Race status changed")
 	r.status = RacePausedByte
 }
 
 func (r *Race) Stop() {
+	log.WithField("implement", "oxigen").
+		WithField("race-status", "stopepd").
+		Info("Race status changed")
 	r.status = RaceStoppedByte
 }

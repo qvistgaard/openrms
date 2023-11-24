@@ -1,7 +1,6 @@
 package car
 
 import (
-	"context"
 	"github.com/divideandconquer/go-merge/merge"
 	"github.com/qvistgaard/openrms/internal/implement"
 	"github.com/qvistgaard/openrms/internal/state/controller"
@@ -59,7 +58,7 @@ func (c *Car) registerObservers() {
 		c.implementer.Car(c.id).PitLaneMaxSpeed(u)
 	})
 	c.maxBreaking.RegisterObserver(func(u uint8, a observable.Annotations) {
-		c.implementer.Car(c.id).PitLaneMaxSpeed(u)
+		c.implementer.Car(c.id).MaxBreaking(u)
 	})
 }
 
@@ -138,7 +137,12 @@ func (c *Car) UpdateFromEvent(e implement.Event) {
 	c.Controller().TriggerValue().Set(uint8(e.Car.Controller.TriggerValue))
 }
 
-func (c *Car) Init(ctx context.Context) {
+func (c *Car) Initialize() {
+	c.maxSpeed.Publish()
+	c.pitLaneMaxSpeed.Publish()
+	c.minSpeed.Publish()
+	c.maxBreaking.Publish()
+
 	/*	c.maxSpeed.RegisterObserver(c.maxSpeedChangeObserver)
 		c.maxSpeed.Init(ctx)
 		c.maxSpeed.Update()

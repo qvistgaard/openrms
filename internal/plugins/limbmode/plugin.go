@@ -53,6 +53,10 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 	})
 }
 
+func (p *Plugin) InitializeCar(c *car.Car) {
+
+}
+
 func (p *Plugin) ConfigureRace(r *race.Race) {
 	r.Status().RegisterObserver(func(status race.RaceStatus, annotations observable.Annotations) {
 

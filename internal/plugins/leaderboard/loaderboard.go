@@ -55,6 +55,9 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 		p.telemetry[id].InPit = b
 	})
 
+	car.MaxSpeed().RegisterObserver(func(u uint8, annotations observable.Annotations) {
+		p.telemetry[id].MaxSpeed = u
+	})
 	p.limbModePlugin.LimbMode(id).RegisterObserver(func(b bool, annotations observable.Annotations) {
 		p.telemetry[id].LimbMode = b
 
@@ -70,6 +73,10 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 		p.telemetry[id].Name = car.Team().Get()
 		p.updateLeaderboard()
 	})
+}
+
+func (p *Plugin) InitializeCar(c *car.Car) {
+
 }
 
 func (p *Plugin) RegisterObserver(observer observable.Observer[types.RaceTelemetry]) {

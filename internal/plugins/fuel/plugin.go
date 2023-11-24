@@ -102,6 +102,10 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 
 }
 
+func (p *Plugin) InitializeCar(c *car.Car) {
+
+}
+
 // Priority returns the priority of the fuel plugin.
 func (p *Plugin) Priority() int {
 	return 10

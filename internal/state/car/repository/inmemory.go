@@ -72,6 +72,11 @@ func (c *InMemory) Get(id types.Id) (*car.Car, bool, bool) {
 		for _, r := range c.plugins.Car() {
 			r.ConfigureCar(c.cars[id])
 		}
+
+		c.cars[id].Initialize()
+		for _, r := range c.plugins.Car() {
+			r.InitializeCar(c.cars[id])
+		}
 		carCreated = true
 	}
 	return c.cars[id], true, carCreated

@@ -3,7 +3,6 @@ package generator
 import (
 	"context"
 	"github.com/qvistgaard/openrms/internal/implement"
-	"github.com/qvistgaard/openrms/internal/state/race"
 	"github.com/qvistgaard/openrms/internal/types"
 	"math/rand"
 	"time"
@@ -53,15 +52,8 @@ func (g *Generator) eventGenerator(carId uint8, interval uint) implement.Event {
 	for {
 		select {
 		case <-time.After(time.Duration(interval) * time.Millisecond):
-
-			var duration time.Duration
-			if g.race.raceStatus == race.RaceRunning {
-				duration = calculateRaceDuration(g.race.raceDuration, g.race.raceStart, time.Now())
-			} else {
-				duration = g.race.raceDuration
-			}
 			g.events <- implement.Event{
-				RaceTimer: duration,
+				RaceTimer: time.Now().Sub(g.race.raceStart),
 				Car: implement.Car{
 					Id:        types.IdFromUint(carId),
 					Reset:     false,
