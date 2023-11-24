@@ -40,7 +40,7 @@ var (
 
 	columns = []table.Column{
 		{Title: alignRight.Width(3).Render("P"), Width: 3},
-		{Title: "Name", Width: 120 - 65},
+		{Title: "Name", Width: 120 - 66},
 		{Title: alignRight.Width(3).Render("#"), Width: 3},
 		{Title: alignRight.Width(4).Render("Fuel"), Width: 4},
 		{Title: alignRight.Width(7).Render("Lap"), Width: 7},
@@ -48,6 +48,8 @@ var (
 		{Title: alignRight.Width(7).Render("Best"), Width: 7},
 		{Title: alignRight.Width(4).Render("Laps"), Width: 4},
 		{Title: alignRight.Width(3).Render("Pit"), Width: 3},
+		{Title: alignRight.Width(3).Render("LM"), Width: 3},
+		{Title: alignRight.Width(3).Render("DS"), Width: 3},
 	}
 )
 
@@ -96,7 +98,7 @@ func (l Leaderboard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.WindowSizeMsg:
 		l.width = msg.(tea.WindowSizeMsg).Width
-		columns[1] = table.Column{Title: "Name", Width: l.width - 57}
+		columns[1] = table.Column{Title: "Name", Width: l.width - 66}
 
 		l.table.SetWidth(l.width)
 		l.table.SetHeight(msg.(tea.WindowSizeMsg).Height - 7)
@@ -106,11 +108,24 @@ func (l Leaderboard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		telemetry := msg.(messages.Update).RaceTelemetry
 		for k, v := range telemetry.Sort() {
 			var inPitString string
+			var lmMode string
+			var deslotted string
 			if v.InPit {
 				inPitString = "P"
 			} else {
 				inPitString = "N"
 			}
+			if v.LimbMode {
+				lmMode = "X"
+			} else {
+				lmMode = ""
+			}
+			if v.Deslotted {
+				deslotted = "X"
+			} else {
+				deslotted = ""
+			}
+
 			l.rows = append(l.rows, table.Row{
 				alignRight.Width(3).Render(strconv.Itoa(k + 1)),
 				v.Name,
@@ -121,6 +136,8 @@ func (l Leaderboard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				alignRight.Width(7).Render(formatDurationSecondsMilliseconds(v.Best)),
 				alignRight.Width(4).Render(strconv.Itoa(int(v.Laps.Number))),
 				alignRight.Width(3).AlignHorizontal(lipgloss.Center).Render(inPitString),
+				alignRight.Width(2).AlignHorizontal(lipgloss.Right).Render(lmMode),
+				alignRight.Width(2).AlignHorizontal(lipgloss.Right).Render(deslotted),
 			})
 		}
 		l.table.SetRows(l.rows)
@@ -142,6 +159,5 @@ func formatDurationSecondsMilliseconds(d time.Duration) string {
 	milliseconds := float64(d.Milliseconds()) - (seconds * 1000)
 
 	// Format as "ss.ms"
-	string := fmt.Sprintf("%.0f.%03.0fs", seconds, milliseconds)
-	return string
+	return fmt.Sprintf("%.0f.%03.0fs", seconds, milliseconds)
 }

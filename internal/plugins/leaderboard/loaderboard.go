@@ -1,8 +1,8 @@
 package leaderboard
 
 import (
-	"context"
 	"github.com/qvistgaard/openrms/internal/plugins/fuel"
+	"github.com/qvistgaard/openrms/internal/plugins/limbmode"
 	"github.com/qvistgaard/openrms/internal/state/car"
 	"github.com/qvistgaard/openrms/internal/state/observable"
 	"github.com/qvistgaard/openrms/internal/types"
@@ -10,16 +10,18 @@ import (
 )
 
 type Plugin struct {
-	listener   observable.Observable[types.RaceTelemetry]
-	telemetry  types.RaceTelemetry
-	fuelPlugin *fuel.Plugin
+	listener       observable.Observable[types.RaceTelemetry]
+	telemetry      types.RaceTelemetry
+	fuelPlugin     *fuel.Plugin
+	limbModePlugin *limbmode.Plugin
 }
 
-func New(fuelPlugin *fuel.Plugin) *Plugin {
+func New(fuelPlugin *fuel.Plugin, limbModePlugin *limbmode.Plugin) *Plugin {
 	return &Plugin{
-		listener:   observable.Create(make(types.RaceTelemetry)),
-		telemetry:  make(types.RaceTelemetry),
-		fuelPlugin: fuelPlugin,
+		listener:       observable.Create(make(types.RaceTelemetry)),
+		telemetry:      make(types.RaceTelemetry),
+		fuelPlugin:     fuelPlugin,
+		limbModePlugin: limbModePlugin,
 	}
 }
 
@@ -45,6 +47,19 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 		p.telemetry[id].Fuel = f
 	})
 
+	car.Deslotted().RegisterObserver(func(b bool, annotations observable.Annotations) {
+		p.telemetry[id].Deslotted = b
+	})
+
+	car.Pit().RegisterObserver(func(b bool, annotations observable.Annotations) {
+		p.telemetry[id].InPit = b
+	})
+
+	p.limbModePlugin.LimbMode(id).RegisterObserver(func(b bool, annotations observable.Annotations) {
+		p.telemetry[id].LimbMode = b
+
+	})
+
 	car.LastLap().RegisterObserver(func(lap types.Lap, a observable.Annotations) {
 		p.telemetry[id].Laps = lap
 		p.telemetry[id].Delta = time.Duration(lap.Time.Nanoseconds() - p.telemetry[id].Last.Nanoseconds())
@@ -56,81 +71,6 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 		p.updateLeaderboard()
 	})
 }
-
-func (p *Plugin) InitializeCarState(car *car.Car, ctx context.Context) {
-
-}
-
-/*
-func (l *Plugin) processValueChange(change reactive.ValueChange) {
-	if val, ok := change.Annotations[annotations.CarId]; ok {
-
-		if field, ok := change.Annotations[annotations.CarValueFieldName]; ok {
-			id := val.(types.Id)
-			var entry *types.RaceTelemetryEntry
-
-			if entry, ok = l.telemetry[id]; !ok {
-				entry = &types.RaceTelemetryEntry{
-					Car: id,
-				}
-				l.telemetry[id] = entry
-			}
-
-			switch field {
-			case fields.LastLap:
-				lap := change.Value.(types.Lap)
-				entry.Laps = lap
-				l.updateLeaderboard()
-
-			case fields.LapTime:
-				lapTime := change.Value.(time.Duration)
-				entry.Delta = time.Duration(lapTime.Nanoseconds() - entry.Last.Nanoseconds())
-				entry.Last = lapTime
-				if entry.Best == 0 || entry.Last < entry.Best {
-					entry.Best = entry.Last
-				}
-				l.updateLeaderboard()
-			case fields.PitState:
-				// entry.PitState = change.Value.(types.CarPitState)
-			case fields.InPit:
-				entry.InPit = change.Value.(bool)
-				l.updateLeaderboard()
-			case fields.Fuel:
-				t := change.Value.(types.Liter)
-				entry.Fuel = t.ToFloat64()
-				l.updateLeaderboard()
-			case fields.Deslotted:
-				entry.Deslotted = change.Value.(bool)
-				l.updateLeaderboard()
-			case fields.MinSpeed:
-				entry.MinSpeed = float64(change.Value.(types.Percent))
-				l.updateLeaderboard()
-			case fields.MaxTrackSpeed:
-				entry.MaxSpeed = float64(change.Value.(types.Percent))
-				l.updateLeaderboard()
-			case fields.MaxPitSpeed:
-				entry.MaxPitSpeed = float64(change.Value.(types.Percent))
-				l.updateLeaderboard()
-			case fields.Drivers:
-				entry.Name = change.Value.(types.Drivers)[0].Name
-				l.updateLeaderboard()
-			}
-		}
-	}
-	/*	if val, ok := change.Annotations[annotations.RaceValueFieldName]; ok {
-		switch val {
-		case fields.RaceTimer:
-			l.raceTimer = change.Value.(time.Duration)
-			l.updateLeaderboard()
-
-		case fields.RaceStatus:
-			l.raceStatus = change.Value.(implement.RaceStatus)
-			l.updateLeaderboard()
-		}
-	}*/
-/*
-}
-*/
 
 func (p *Plugin) RegisterObserver(observer observable.Observer[types.RaceTelemetry]) {
 	p.listener.RegisterObserver(observer)

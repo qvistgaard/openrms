@@ -1,12 +1,19 @@
 package plugins
 
-import (
-	"sort"
-)
+import "sort"
 
 type Plugins struct {
-	car  []Car
-	race []Race
+	car    []Car
+	race   []Race
+	config map[string]pluginConfig
+}
+
+func New(config *Config) (*Plugins, error) {
+	return &Plugins{
+		car:    make([]Car, 0),
+		race:   make([]Race, 0),
+		config: config.Plugins,
+	}, nil
 }
 
 func (p *Plugins) Car() []Car {
@@ -18,18 +25,19 @@ func (p *Plugins) Race() []Race {
 }
 
 func (p *Plugins) Append(plugin Plugin) Plugin {
-	if rule, ok := plugin.(Car); ok {
-		p.car = append(p.car, rule)
+	if c, ok := p.config[plugin.Name()]; ok && c.Enabled {
+		if rule, ok := plugin.(Car); ok {
+			p.car = append(p.car, rule)
+		}
+		if rule, ok := plugin.(Race); ok {
+			p.race = append(p.race, rule)
+		}
+		sort.Slice(p.car, func(i, j int) bool {
+			return p.car[i].(Plugin).Priority() < p.car[j].(Plugin).Priority()
+		})
+		sort.Slice(p.race, func(i, j int) bool {
+			return p.race[i].(Plugin).Priority() < p.race[j].(Plugin).Priority()
+		})
 	}
-	if rule, ok := plugin.(Race); ok {
-		p.race = append(p.race, rule)
-	}
-
-	sort.Slice(p.car, func(i, j int) bool {
-		return p.car[i].(Plugin).Priority() < p.car[j].(Plugin).Priority()
-	})
-	sort.Slice(p.race, func(i, j int) bool {
-		return p.race[i].(Plugin).Priority() < p.race[j].(Plugin).Priority()
-	})
 	return plugin
 }

@@ -112,6 +112,10 @@ func (p *Plugin) Priority() int {
 	return 10
 }
 
+func (p *Plugin) Name() string {
+	return "fuel"
+}
+
 // Fuel returns the observable fuel level for a given car.
 func (p *Plugin) Fuel(car types.Id) observable.Observable[float32] {
 	return p.state[car].fuel

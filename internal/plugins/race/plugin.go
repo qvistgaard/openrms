@@ -32,6 +32,10 @@ func (p *Plugin) ConfigureRace(r *race.Race) {
 	})
 }
 
+func (p *Plugin) Name() string {
+	return "race"
+}
+
 func (p *Plugin) Priority() int {
 	return 0
 }

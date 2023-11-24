@@ -16,6 +16,7 @@ type RaceTelemetryEntry struct {
 	MaxSpeed    float64
 	MaxPitSpeed float64
 	InPit       bool
+	LimbMode    bool
 	Fuel        float32
 	Name        string
 	PitState    CarPitState

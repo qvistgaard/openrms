@@ -3,10 +3,20 @@ package configuration
 import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
+	"github.com/qvistgaard/openrms/internal/plugins"
 	"github.com/qvistgaard/openrms/internal/plugins/fuel"
 	"github.com/qvistgaard/openrms/internal/plugins/limbmode"
 	"github.com/qvistgaard/openrms/internal/plugins/race"
 )
+
+func Plugins(conf Config) (*plugins.Plugins, error) {
+	c := &plugins.Config{}
+	err := mapstructure.Decode(conf, c)
+	if err != nil {
+		return nil, errors.WithMessage(err, "failed to read fuel plugin configuration")
+	}
+	return plugins.New(c)
+}
 
 // FuelPlugin initializes and returns a new fuel plugin instance based on the provided configuration and LimpMode plugin.
 // It takes a `Config` map containing the fuel plugin configuration settings and an optional `limbmode.Plugin` instance.

@@ -66,3 +66,7 @@ func (p *Plugin) LimbMode(carId types.Id) observable.Observable[bool] {
 func (p *Plugin) Priority() int {
 	return 10
 }
+
+func (p *Plugin) Name() string {
+	return "limb-mode"
+}

@@ -7,6 +7,7 @@ import (
 
 type Plugin interface {
 	Priority() int
+	Name() string
 }
 
 type Car interface {

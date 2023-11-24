@@ -126,6 +126,16 @@ car:
   #    max-speed: 100
 
 
+plugins:
+  fuel:
+    enabled: true
+  race:
+    enabled: true
+  leaderboard:
+    enabled: true
+  limb-mode:
+    enabled: true
+
 rules:
   #- plugin: race
     # Note:

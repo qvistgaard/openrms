@@ -5,21 +5,18 @@ import (
 	"github.com/madflojo/tasks"
 	"github.com/pkg/browser"
 	"github.com/qvistgaard/openrms/cmd/openrms/configuration"
-	"github.com/qvistgaard/openrms/internal/plugins"
 	"github.com/qvistgaard/openrms/internal/plugins/leaderboard"
 	"github.com/qvistgaard/openrms/internal/rms"
 	"github.com/qvistgaard/openrms/internal/tui"
 	log "github.com/sirupsen/logrus"
 	"io"
-	"math/rand"
 	"os"
 	"sync"
-	"time"
 )
 
 func main() {
 	var err error
-	rand.Seed(time.Now().UnixNano())
+	// rand.Seed(time.Now().UnixNano())
 
 	flagConfig := flag.String("config", "config.yaml", "OpenRMS Config file")
 	flagLogfile := flag.String("log-file", "openrms.log", "OpenRMS log file")
@@ -71,9 +68,12 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	leaderboardPlugin := leaderboard.New(fuelPlugin)
+	leaderboardPlugin := leaderboard.New(fuelPlugin, limpModePlugin)
 
-	plugins := &plugins.Plugins{}
+	plugins, err := configuration.Plugins(cfg)
+	if err != nil {
+		log.Fatal(err)
+	}
 	plugins.Append(racePlugin)
 	plugins.Append(leaderboardPlugin)
 	plugins.Append(limpModePlugin)
