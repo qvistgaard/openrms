@@ -19,7 +19,6 @@ type RaceTelemetryEntry struct {
 	LimbMode    bool
 	Fuel        float32
 	Name        string
-	PitState    CarPitState
 }
 
 type RaceTelemetry map[Id]*RaceTelemetryEntry
