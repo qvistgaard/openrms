@@ -1,5 +1,5 @@
 package config
-
+/*
 import (
 	"errors"
 	"github.com/mitchellh/mapstructure"
@@ -53,6 +53,7 @@ func CreateRules(ctx *application.Context) error {
 
 				/*					case "damage":
 									ctx.Rules.Append(&damage.Rule{})*/
+/*
 			case "pit":
 				ctx.Rules.Append(pit.CreatePitRule(ctx.Rules))
 				log.Info("pit plugin loaded")
@@ -62,6 +63,7 @@ func CreateRules(ctx *application.Context) error {
 								ctx.Rules.Append(&leaderboard.Rule{})
 							case "race":
 								ctx.Rules.Append(race.CreateFromConfig(rm.Rules[k]))*/
+				/*
 			default:
 				return errors.New("Unknown rule: " + r.Plugin)
 			}
@@ -69,3 +71,4 @@ func CreateRules(ctx *application.Context) error {
 	}
 	return nil
 }
+*/

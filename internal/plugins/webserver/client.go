@@ -1,14 +1,6 @@
 package webserver
 
-import (
-	"github.com/qvistgaard/openrms/internal/config/application"
-	log "github.com/sirupsen/logrus"
-	"net/http"
-	"time"
-
-	"github.com/gorilla/websocket"
-)
-
+/*
 const (
 	// time allowed to write a message to the peer.
 	writeWait = 10 * time.Second
@@ -109,3 +101,4 @@ func (c *Client) writePump() {
 		}
 	}
 }
+*/

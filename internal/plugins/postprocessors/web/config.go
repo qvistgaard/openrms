@@ -1,5 +1,5 @@
 package web
-
+/*
 import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/qvistgaard/openrms/internal/config/application"
@@ -23,3 +23,4 @@ func CreateFromConfig(ctx *application.Context) (*Leaderboard, error) {
 
 	return NewLeaderboard(ctx, c), nil
 }
+*/

@@ -1,15 +1,8 @@
 package webserver
 
-import (
-	"encoding/json"
-	"github.com/qvistgaard/openrms/internal/config/application"
-	"github.com/qvistgaard/openrms/internal/webserver"
-	"github.com/qvistgaard/openrms/web"
-	log "github.com/sirupsen/logrus"
-	"net/http"
-	"sync"
-)
+import ()
 
+/*
 type Server struct {
 	clients    map[*Client]bool
 	register   chan *Client
@@ -109,3 +102,4 @@ func serveWebSocket(ws *Server, w http.ResponseWriter, r *http.Request) {
 	go client.writePump()
 	go client.read()
 }
+*/

@@ -1,5 +1,6 @@
 package web
 
+/*
 import (
 	"fmt"
 	"github.com/qvistgaard/openrms/internal/config/application"
@@ -75,7 +76,7 @@ func NewLeaderboard(ctx *application.Context, c *Config) *Leaderboard {
 	number  *float64
 	lastLap types.Lap
 }*/
-
+/*
 type BoardEntry struct {
 	Car       types.Id          `json:"car"`
 	Laps      types.Lap         `json:"lap"`
@@ -166,3 +167,4 @@ func (l *Leaderboard) updateLeaderboard() {
 	}
 	l.emitterChannel <- rxgo.Of(sorted)
 }
+*/
