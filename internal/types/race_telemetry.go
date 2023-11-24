@@ -12,9 +12,9 @@ type RaceTelemetryEntry struct {
 	Best        time.Duration
 	Last        time.Duration
 	Deslotted   bool
-	MinSpeed    float64
+	MinSpeed    uint8
 	MaxSpeed    uint8
-	MaxPitSpeed float64
+	MaxPitSpeed uint8
 	InPit       bool
 	LimbMode    bool
 	Fuel        float32

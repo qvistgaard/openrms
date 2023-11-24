@@ -58,9 +58,14 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 	car.MaxSpeed().RegisterObserver(func(u uint8, annotations observable.Annotations) {
 		p.telemetry[id].MaxSpeed = u
 	})
+	car.MinSpeed().RegisterObserver(func(u uint8, annotations observable.Annotations) {
+		p.telemetry[id].MinSpeed = u
+	})
+	car.PitLaneMaxSpeed().RegisterObserver(func(u uint8, annotations observable.Annotations) {
+		p.telemetry[id].MaxPitSpeed = u
+	})
 	p.limbModePlugin.LimbMode(id).RegisterObserver(func(b bool, annotations observable.Annotations) {
 		p.telemetry[id].LimbMode = b
-
 	})
 
 	car.LastLap().RegisterObserver(func(lap types.Lap, a observable.Annotations) {

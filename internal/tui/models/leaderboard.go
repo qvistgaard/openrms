@@ -87,9 +87,9 @@ func (l Leaderboard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				carId, _ := types.IdFromString(carIdString)
 				return commands.OpenCarConfiguration{
 					CarId:       carIdString,
-					MaxSpeed:    fmt.Sprintf("%.f", l.raceTelemetry[carId].MaxSpeed),
-					MaxPitSpeed: fmt.Sprintf("%.f", l.raceTelemetry[carId].MaxPitSpeed),
-					MinSpeed:    fmt.Sprintf("%.f", l.raceTelemetry[carId].MinSpeed),
+					MaxSpeed:    fmt.Sprintf("%d", l.raceTelemetry[carId].MaxSpeed),
+					MaxPitSpeed: fmt.Sprintf("%d", l.raceTelemetry[carId].MaxPitSpeed),
+					MinSpeed:    fmt.Sprintf("%d", l.raceTelemetry[carId].MinSpeed),
 					DriverName:  l.rows[l.table.Cursor()][1],
 				}
 			}

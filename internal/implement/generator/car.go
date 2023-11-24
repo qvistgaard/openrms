@@ -15,22 +15,26 @@ func NewCar(id uint8) implement.CarImplementer {
 
 func (c Car) MaxSpeed(percent uint8) {
 	log.WithField("value", percent).
+		WithField("car", *c.id).
 		Info("Max speed updated")
 
 }
 
 func (c Car) PitLaneMaxSpeed(percent uint8) {
 	log.WithField("value", percent).
+		WithField("car", *c.id).
 		Info("Pit lane max speed updated")
 }
 
 func (c Car) MaxBreaking(percent uint8) {
 	log.WithField("value", percent).
+		WithField("car", *c.id).
 		Info("Maximum braking updated")
 
 }
 
 func (c Car) MinSpeed(percent uint8) {
 	log.WithField("value", percent).
+		WithField("car", *c.id).
 		Info("Min speed updated")
 }

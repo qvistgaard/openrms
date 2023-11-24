@@ -152,7 +152,7 @@ func (o *Oxigen) sendCommand() {
 					"value":   fmt.Sprintf("%x", cmd.value),
 					"cmd":     fmt.Sprintf("%x", cmd.code),
 					"hex":     fmt.Sprintf("%s", hex.Dump(b)),
-				}).Trace("sendind message to oxygen dongle")
+				}).Debug("sending message to oxygen dongle")
 			}
 			l, err := o.serial.Write(b)
 			if err != nil {
