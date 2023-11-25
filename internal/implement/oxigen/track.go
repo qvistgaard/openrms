@@ -17,7 +17,7 @@ func NewTrack() *Track {
 }
 
 func (t *Track) MaxSpeed(percent uint8) {
-	t.maxSpeed = percent
+	t.maxSpeed = percentageToByte(percent)
 }
 
 func (t *Track) PitLane() implement.PitLaneImplementer {

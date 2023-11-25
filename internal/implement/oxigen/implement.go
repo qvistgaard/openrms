@@ -156,7 +156,7 @@ func (o *Oxigen) receiveMessage() {
 
 	log.WithField("message", fmt.Sprintf("%x", buffer)).
 		WithField("bytes", read).
-		Debug("received message from oxygen dongle")
+		Trace("received message from oxygen dongle")
 	if err == nil {
 		if read == 13 {
 			o.timer = buffer[9:12]

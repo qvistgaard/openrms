@@ -9,7 +9,7 @@ implement:
   plugin: generator
 
   oxigen:
-    port: COM3
+    port: COM7
 
   generator:
     cars: 5
@@ -116,7 +116,9 @@ car:
     - id: 7
       max-speed: 30
     - id: 8
-      max-speed: 38
+      max-speed: 100
+      pit-lane:
+        max-speed: 28
   #  - id: 1
   #    max-speed: 100
   #    fuel: 100
