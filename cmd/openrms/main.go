@@ -16,8 +16,14 @@ import (
 
 func main() {
 	var err error
-	// rand.Seed(time.Now().UnixNano())
+	var wg sync.WaitGroup
 
+	/*	wg.Add(1)
+		go func() {
+			defer wg.Done()
+			fn()
+		}()
+	*/
 	flagConfig := flag.String("config", "config.yaml", "OpenRMS Config file")
 	flagLogfile := flag.String("log-file", "openrms.log", "OpenRMS log file")
 	flagLoglevel := flag.String("log-level", "debug", "Log level")
@@ -99,7 +105,6 @@ func main() {
 
 	b := tui.CreateBridge(leaderboardPlugin, racePlugin, scheduler, repository, race)
 
-	var wg sync.WaitGroup
 	wg.Add(1)
 	go rms.Create(&wg, driver, plugins, track, race, repository).Run()
 	//go c.Webserver.RunServer(&wg)

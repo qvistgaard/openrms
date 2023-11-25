@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/qvistgaard/openrms/internal/implement"
 	"github.com/qvistgaard/openrms/internal/plugins"
-	"github.com/qvistgaard/openrms/internal/postprocess"
 	"github.com/qvistgaard/openrms/internal/state/car/repository"
 	"github.com/qvistgaard/openrms/internal/state/race"
 	"github.com/qvistgaard/openrms/internal/state/track"
@@ -15,13 +14,12 @@ import (
 
 type Runner struct {
 	// context        *application.Context
-	wg             *sync.WaitGroup
-	postprocessors *postprocess.PostProcess
-	implement      implement.Implementer
-	track          *track.Track
-	race           *race.Race
-	cars           repository.Repository
-	plugins        *plugins.Plugins
+	wg        *sync.WaitGroup
+	implement implement.Implementer
+	track     *track.Track
+	race      *race.Race
+	cars      repository.Repository
+	plugins   *plugins.Plugins
 }
 
 func (r *Runner) Run() {

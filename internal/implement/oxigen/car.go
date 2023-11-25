@@ -38,7 +38,7 @@ func (c *Car) MaxBreaking(percent uint8) {
 		WithField("cmd", carMaxBreakingCode).
 		WithField("hex", fmt.Sprintf("%x", toByte)).
 		Info("set car max breaking")
-	// c.oxigen.sendCarCommand(c.id, carMaxBreakingCode, toByte)
+	c.oxigen.sendCarCommand(c.id, carMaxBreakingCode, toByte)
 }
 
 func (c *Car) MinSpeed(percent uint8) {
@@ -49,7 +49,7 @@ func (c *Car) MinSpeed(percent uint8) {
 		WithField("cmd", carMinSpeedCode).
 		WithField("hex", fmt.Sprintf("%x", toByte)).
 		Info("set car min speed")
-	// c.oxigen.sendCarCommand(c.id, carMinSpeedCode, toByte)
+	c.oxigen.sendCarCommand(c.id, carMinSpeedCode, toByte)
 }
 
 func (c *Car) MaxSpeed(percent uint8) {
@@ -60,7 +60,7 @@ func (c *Car) MaxSpeed(percent uint8) {
 		WithField("cmd", carMaxSpeedCode).
 		WithField("hex", fmt.Sprintf("%x", toByte)).
 		Info("set car max speed")
-	// c.oxigen.sendCarCommand(c.id, carMaxSpeedCode, toByte)
+	c.oxigen.sendCarCommand(c.id, carMaxSpeedCode, toByte)
 }
 
 func (c *Car) PitLaneMaxSpeed(percent uint8) {
@@ -71,7 +71,7 @@ func (c *Car) PitLaneMaxSpeed(percent uint8) {
 		WithField("cmd", carPitLaneSpeedCode).
 		WithField("hex", fmt.Sprintf("%x", toByte)).
 		Info("set car pit lane max speed")
-	// c.oxigen.sendCarCommand(c.id, carPitLaneSpeedCode, toByte)
+	c.oxigen.sendCarCommand(c.id, carPitLaneSpeedCode, toByte)
 }
 
 func percentageToByte(percent uint8) uint8 {

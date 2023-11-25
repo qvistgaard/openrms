@@ -7,10 +7,13 @@ import (
 	"errors"
 	"fmt"
 	"github.com/hashicorp/go-version"
+	"github.com/jacobsa/go-serial/serial"
 	"github.com/qvistgaard/openrms/internal/implement"
 	"github.com/qvistgaard/openrms/internal/types"
 	log "github.com/sirupsen/logrus"
-	"github.com/tarm/serial"
+
+	// "github.com/tarm/serial"
+	"go.bug.st/serial/enumerator"
 	"io"
 	"sync"
 	"time"
@@ -30,13 +33,50 @@ type Oxigen struct {
 	race       *Race
 }
 
-func CreateUSBConnection(device string) (*serial.Port, error) {
-	c := &serial.Config{
-		Name:   device,
-		Baud:   115200,
-		Parity: serial.ParityNone,
+func CreateUSBConnection(device *string) (io.ReadWriteCloser, error) {
+	var oxigenPort string
+	if device == nil {
+		ports, err := enumerator.GetDetailedPortsList()
+		if err != nil {
+			log.Fatal(err)
+		}
+		if len(ports) == 0 {
+			return nil, errors.New("no serial ports found")
+		}
+		for _, port := range ports {
+			log.WithField("port", port.Name).
+				WithField("usb", port.IsUSB).
+				WithField("name", port.Product).
+				Debug("found COM port")
+			if port.IsUSB && port.VID == "1FEE" && port.PID == "0002" {
+				oxigenPort = port.Name
+				log.WithField("port", oxigenPort).
+					WithField("vendor", port.VID).
+					WithField("product", port.PID).
+					Info("oxigen COM port identified")
+			}
+		}
+		if oxigenPort == "" {
+			return nil, errors.New("oxigen dongle not found")
+		}
+	} else {
+		oxigenPort = *device
 	}
-	return serial.OpenPort(c)
+
+	options := serial.OpenOptions{
+		PortName:        oxigenPort,
+		BaudRate:        921600,
+		DataBits:        8,
+		StopBits:        1,
+		MinimumReadSize: 4,
+	}
+
+	// Open the port.
+	port, err := serial.Open(options)
+	if err != nil {
+		return nil, err
+	}
+	return port, nil
 }
 
 func CreateImplement(serial io.ReadWriteCloser) (*Oxigen, error) {
@@ -73,6 +113,7 @@ func CreateImplement(serial io.ReadWriteCloser) (*Oxigen, error) {
 	}
 	o.version = v.Original()
 	log.WithField("version", v).Infof("Connected to oxigen dongle. Dongle version: %s", v)
+	time.Sleep(1000 * time.Millisecond)
 
 	return o, nil
 }
@@ -105,18 +146,12 @@ func (o *Oxigen) EventLoop() error {
 	// Keep-alive routine, to keep oxigen dongle sending data back
 	go o.keepAlive()
 	o.sendCommand()
-	/*
-		for {
-			o.revieveMessage()
-		}
-
-	*/
 	return nil
 }
 
-func (o *Oxigen) revieveMessage() {
+func (o *Oxigen) receiveMessage() {
 	buffer := make([]byte, 13)
-	log.Debug("Waiting for message")
+	log.Trace("Waiting for message")
 	read, err := io.ReadFull(o.buffer, buffer)
 
 	log.WithField("message", fmt.Sprintf("%x", buffer)).
@@ -154,7 +189,8 @@ func (o *Oxigen) sendCommand() {
 				log.WithFields(map[string]interface{}{
 					"bufferSize": o.bufferSize,
 					"size":       len(o.commands),
-				}).Info("Buffer size")
+				}).Trace("Buffer size")
+
 			}
 
 			b := o.command(cmd, o.timer)
@@ -175,10 +211,10 @@ func (o *Oxigen) sendCommand() {
 				"message": fmt.Sprintf("%x", b),
 				"size":    fmt.Sprintf("%d", l),
 				"buffer":  len(o.commands),
-			}).Debug("send message to oxygen dongle")
+			}).Trace("send message to oxygen dongle")
 		}
 		time.Sleep(300 * time.Millisecond)
-		o.revieveMessage()
+		o.receiveMessage()
 		o.mutex.Unlock()
 	}
 }
@@ -192,7 +228,7 @@ func (o *Oxigen) keepAlive() {
 		case <-time.After(100 * time.Millisecond):
 			if len(o.commands) == 0 {
 				o.commands <- newEmptyCommand()
-				log.Debug("oxigen: sent keep-alive")
+				log.Trace("oxigen: sent keep-alive")
 			}
 		}
 	}

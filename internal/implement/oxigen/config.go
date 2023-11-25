@@ -14,7 +14,7 @@ type Config struct {
 }
 
 func New(config Config) (implement.Implementer, error) {
-	connection, err := CreateUSBConnection(config.Implement.Oxigen.Port)
+	connection, err := CreateUSBConnection(&config.Implement.Oxigen.Port)
 	if err != nil {
 		return nil, errors.New("Failed to open connection to USB Device (" + config.Implement.Oxigen.Port + "): " + err.Error())
 	}
