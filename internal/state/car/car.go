@@ -29,6 +29,7 @@ func NewCar(implementer implement.Implementer, settings *CarSettings, defaults *
 	// Register observers
 	car.registerObservers()
 
+	car.filters()
 	return car
 }
 
@@ -60,6 +61,22 @@ func (c *Car) registerObservers() {
 	c.maxBreaking.RegisterObserver(func(u uint8, a observable.Annotations) {
 		c.implementer.Car(c.id).MaxBreaking(u)
 	})
+}
+
+func (c *Car) filters() {
+	c.maxSpeed.Filter(func(u uint8, u2 uint8) bool {
+		return u != u2
+	})
+	c.minSpeed.Filter(func(u uint8, u2 uint8) bool {
+		return u != u2
+	})
+	c.pitLaneMaxSpeed.Filter(func(u uint8, u2 uint8) bool {
+		return u != u2
+	})
+	c.maxBreaking.Filter(func(u uint8, u2 uint8) bool {
+		return u != u2
+	})
+
 }
 
 type Car struct {

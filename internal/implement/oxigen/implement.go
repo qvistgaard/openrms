@@ -104,23 +104,31 @@ func (o *Oxigen) EventLoop() error {
 
 	// Keep-alive routine, to keep oxigen dongle sending data back
 	go o.keepAlive()
-	go o.sendCommand()
-
-	for {
-		buffer := make([]byte, 13)
-		read, err := io.ReadFull(o.buffer, buffer)
-
-		log.WithField("message", fmt.Sprintf("%x", buffer)).
-			WithField("bytes", read).
-			Trace("received message from oxygen dongle")
-		if err == nil {
-			if read == 13 {
-				o.timer = buffer[9:12]
-				o.events <- o.event(buffer)
-			}
-		} else {
-			log.Error(err)
+	o.sendCommand()
+	/*
+		for {
+			o.revieveMessage()
 		}
+
+	*/
+	return nil
+}
+
+func (o *Oxigen) revieveMessage() {
+	buffer := make([]byte, 13)
+	log.Debug("Waiting for message")
+	read, err := io.ReadFull(o.buffer, buffer)
+
+	log.WithField("message", fmt.Sprintf("%x", buffer)).
+		WithField("bytes", read).
+		Debug("received message from oxygen dongle")
+	if err == nil {
+		if read == 13 {
+			o.timer = buffer[9:12]
+			o.events <- o.event(buffer)
+		}
+	} else {
+		log.Error(err)
 	}
 }
 
@@ -142,6 +150,11 @@ func (o *Oxigen) sendCommand() {
 					"bufferSize": o.bufferSize,
 					"size":       len(o.commands),
 				}).Warn("too many commands on code buffer")
+			} else {
+				log.WithFields(map[string]interface{}{
+					"bufferSize": o.bufferSize,
+					"size":       len(o.commands),
+				}).Info("Buffer size")
 			}
 
 			b := o.command(cmd, o.timer)
@@ -161,9 +174,11 @@ func (o *Oxigen) sendCommand() {
 			log.WithFields(map[string]interface{}{
 				"message": fmt.Sprintf("%x", b),
 				"size":    fmt.Sprintf("%d", l),
-			}).Trace("send message to oxygen dongle")
-			time.Sleep(10 * time.Millisecond)
+				"buffer":  len(o.commands),
+			}).Debug("send message to oxygen dongle")
 		}
+		time.Sleep(300 * time.Millisecond)
+		o.revieveMessage()
 		o.mutex.Unlock()
 	}
 }
@@ -174,10 +189,10 @@ func (o *Oxigen) keepAlive() {
 	}()
 	for {
 		select {
-		case <-time.After(1000 * time.Millisecond):
+		case <-time.After(100 * time.Millisecond):
 			if len(o.commands) == 0 {
 				o.commands <- newEmptyCommand()
-				log.Trace("oxigen: sent keep-alive")
+				log.Debug("oxigen: sent keep-alive")
 			}
 		}
 	}

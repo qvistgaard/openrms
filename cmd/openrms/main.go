@@ -104,7 +104,7 @@ func main() {
 	go rms.Create(&wg, driver, plugins, track, race, repository).Run()
 	//go c.Webserver.RunServer(&wg)
 
-	// wg.Wait()
+	wg.Wait()
 	log.SetOutput(io.Writer(logFile))
 
 	b.Run()
