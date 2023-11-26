@@ -24,6 +24,13 @@ func (p *Plugins) Race() []Race {
 	return p.race
 }
 
+func (p *Plugins) Enabled(plugin Plugin) bool {
+	if plug, ok := p.config[plugin.Name()]; ok {
+		return plug.Enabled
+	}
+	return false
+}
+
 func (p *Plugins) Append(plugin Plugin) Plugin {
 	if c, ok := p.config[plugin.Name()]; ok && c.Enabled {
 		if rule, ok := plugin.(Car); ok {

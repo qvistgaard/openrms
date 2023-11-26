@@ -9,7 +9,7 @@ implement:
   plugin: generator
 
   oxigen:
-    port: COM7
+    # port: COM7 # Leave blank for auto detection
 
   generator:
     cars: 5
@@ -138,42 +138,9 @@ plugins:
   limb-mode:
     enabled: true
 
-rules:
-  #- plugin: race
-    # Note:
-    # The race plugin have not been implemented yet, therefore
-    # this section has no effect
-    # enabled: false
-    # stages:
-      # - type: training
-      #   duration: 10m
-      # - type: qualification
-      #   laps: 10
-      # - type: competition
-      #   duration: 10m
-
-  - plugin: fuel
-    enabled: false
-
-  - plugin: limb-mode
-    enabled: true
-
-  - plugin: pit
-    enabled: true
 
 
 # Configure how the webserver works
 webserver:
   # Port for the webserver to listen on
   listen: ":8080"
-
-
-postprocessors:
-#   influxdb:
-#    url: "http://localhost:8086"
-#    batch-size: 100
-#    auth-token: ""
-#    organization: openrms
-#    bucket: openrms
-
-  leaderboard: {}
