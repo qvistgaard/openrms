@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"github.com/qvistgaard/openrms/internal/implement"
+	"github.com/qvistgaard/openrms/internal/drivers"
 	"github.com/qvistgaard/openrms/internal/plugins"
 	"github.com/qvistgaard/openrms/internal/state/car"
 	"github.com/qvistgaard/openrms/internal/state/car/names"
@@ -13,10 +13,10 @@ type InMemory struct {
 	config    map[types.Id]*car.CarSettings
 	defaults  *car.CarSettings
 	plugins   plugins.List
-	implement implement.Implementer
+	implement drivers.Driver
 }
 
-func New(config car.Config, driver implement.Implementer, plugins plugins.List) Repository {
+func New(config car.Config, driver drivers.Driver, plugins plugins.List) Repository {
 	if config.Car.Defaults.MinSpeed == nil {
 		percent := uint8(0)
 		config.Car.Defaults.MinSpeed = &percent

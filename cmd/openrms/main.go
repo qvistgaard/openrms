@@ -28,7 +28,7 @@ func main() {
 	flagLogfile := flag.String("log-file", "openrms.log", "OpenRMS log file")
 	flagLoglevel := flag.String("log-level", "debug", "Log level")
 	flagBrowser := flag.Bool("open-browser", false, "Open browser on launch")
-	flagDriver := flag.String("driver", "", "Driver")
+	flagDriver := flag.String("drivers", "", "Driver")
 	flag.Parse()
 
 	level, err := log.ParseLevel(*flagLoglevel)
@@ -103,7 +103,7 @@ func main() {
 		browser.OpenURL("http://localhost:8080")
 	}
 
-	b := tui.CreateBridge(leaderboardPlugin, racePlugin, scheduler, repository, race)
+	b := tui.CreateBridge(leaderboardPlugin, racePlugin, scheduler, track, repository, race)
 
 	wg.Add(1)
 	go rms.Create(&wg, driver, plugins, track, race, repository).Run()

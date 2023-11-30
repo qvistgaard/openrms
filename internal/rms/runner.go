@@ -1,8 +1,7 @@
 package rms
 
 import (
-	"context"
-	"github.com/qvistgaard/openrms/internal/implement"
+	"github.com/qvistgaard/openrms/internal/drivers"
 	"github.com/qvistgaard/openrms/internal/plugins"
 	"github.com/qvistgaard/openrms/internal/state/car/repository"
 	"github.com/qvistgaard/openrms/internal/state/race"
@@ -15,7 +14,7 @@ import (
 type Runner struct {
 	// context        *application.Context
 	wg        *sync.WaitGroup
-	implement implement.Implementer
+	implement drivers.Driver
 	track     *track.Track
 	race      *race.Race
 	cars      repository.Repository
@@ -31,7 +30,7 @@ func (r *Runner) Run() {
 
 }
 
-func Create(waitGroup *sync.WaitGroup, implement implement.Implementer, plugins *plugins.Plugins, track *track.Track, race *race.Race, cars repository.Repository) *Runner {
+func Create(waitGroup *sync.WaitGroup, implement drivers.Driver, plugins *plugins.Plugins, track *track.Track, race *race.Race, cars repository.Repository) *Runner {
 	return &Runner{
 		wg:        waitGroup,
 		implement: implement,
@@ -61,9 +60,8 @@ func (r *Runner) processEvents() {
 
 	log.Info("rms: started event processor.")
 
-	background := context.Background()
 	// r.postprocessors.Init(background)
-	r.track.Init(background)
+	r.track.Initialize()
 
 	for _, rule := range r.plugins.Race() {
 		rule.ConfigureRace(r.race)
@@ -72,6 +70,7 @@ func (r *Runner) processEvents() {
 		rule.InitializeRaceState(r.race, background)
 	}*/
 
+	r.race.Initialize()
 	// r.race.Init(background)
 
 	channel := r.implement.EventChannel()
@@ -79,8 +78,9 @@ func (r *Runner) processEvents() {
 		select {
 		case e := <-channel:
 			start := time.Now()
-			if e.Car.Id > 0 {
-				if c, ok, _ := r.cars.Get(e.Car.Id); ok {
+			id := e.Car().Id()
+			if id > 0 {
+				if c, ok, _ := r.cars.Get(id); ok {
 					c.UpdateFromEvent(e)
 				}
 			}

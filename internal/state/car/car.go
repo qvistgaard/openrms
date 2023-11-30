@@ -2,21 +2,15 @@ package car
 
 import (
 	"github.com/divideandconquer/go-merge/merge"
-	"github.com/qvistgaard/openrms/internal/implement"
+	"github.com/qvistgaard/openrms/internal/drivers"
 	"github.com/qvistgaard/openrms/internal/state/controller"
 	"github.com/qvistgaard/openrms/internal/state/observable"
 	"github.com/qvistgaard/openrms/internal/types"
-	"github.com/qvistgaard/openrms/internal/types/annotations"
-	"github.com/qvistgaard/openrms/internal/types/fields"
 	"time"
 )
 
-func NewCar(implementer implement.Implementer, settings *CarSettings, defaults *CarSettings, id types.Id) *Car {
+func NewCar(implementer drivers.Driver, settings *CarSettings, defaults *CarSettings, id types.Id) *Car {
 	settings = merge.Merge(defaults, settings).(*CarSettings)
-
-	annotations := []observable.Annotation{
-		{annotations.CarId, id.String()},
-	}
 
 	car := &Car{
 		implementer: implementer,
@@ -24,7 +18,7 @@ func NewCar(implementer implement.Implementer, settings *CarSettings, defaults *
 	}
 
 	// Initialize observable properties
-	car.initObservableProperties(settings, annotations)
+	car.initObservableProperties(settings)
 
 	// Register observers
 	car.registerObservers()
@@ -33,55 +27,49 @@ func NewCar(implementer implement.Implementer, settings *CarSettings, defaults *
 	return car
 }
 
-func (c *Car) initObservableProperties(settings *CarSettings, a []observable.Annotation) {
+func (c *Car) initObservableProperties(settings *CarSettings) {
 	c.maxBreaking = observable.Create(*settings.MaxBreaking)
-	c.maxSpeed = observable.Create(*settings.MaxSpeed, append(a, observable.Annotation{annotations.CarValueFieldName, fields.MaxTrackSpeed})...)
-	c.minSpeed = observable.Create(*settings.MinSpeed, append(a, observable.Annotation{annotations.CarValueFieldName, fields.MinSpeed})...)
-	c.pitLaneMaxSpeed = observable.Create(*settings.PitLane.MaxSpeed, append(a, observable.Annotation{annotations.CarValueFieldName, fields.MaxPitSpeed})...)
-	c.pit = observable.Create(false, append(a, observable.Annotation{annotations.CarValueFieldName, fields.InPit})...).Filter(observable.DistinctBooleanChange())
-	c.deslotted = observable.Create(false, append(a, observable.Annotation{annotations.CarValueFieldName, fields.Deslotted})...).Filter(observable.DistinctBooleanChange())
-	c.lastLapTime = observable.Create(0*time.Second, observable.Annotation{annotations.CarValueFieldName, fields.LapTime})
-	c.lastLap = observable.Create(types.Lap{}, append(a, observable.Annotation{annotations.CarValueFieldName, fields.LastLap})...)
-	c.laps = observable.Create(uint32(0), append(a, observable.Annotation{annotations.CarValueFieldName, fields.Laps})...)
-	c.drivers = observable.Create(*settings.Drivers, append(a, observable.Annotation{annotations.CarValueFieldName, fields.Drivers})...)
-	c.team = observable.Create(*settings.Team, append(a, observable.Annotation{annotations.CarValueFieldName, fields.Drivers})...)
-	c.controller = controller.NewController(a...)
+	c.maxSpeed = observable.Create(*settings.MaxSpeed)
+	c.minSpeed = observable.Create(*settings.MinSpeed)
+	c.pitLaneMaxSpeed = observable.Create(*settings.PitLane.MaxSpeed)
+	c.pit = observable.Create(false)
+	c.deslotted = observable.Create(false)
+	c.lastLapTime = observable.Create(0 * time.Second)
+	c.lastLap = observable.Create(types.Lap{})
+	c.laps = observable.Create(uint32(0))
+	c.drivers = observable.Create(*settings.Drivers)
+	c.team = observable.Create(*settings.Team)
+	c.controller = controller.NewController()
 }
 
 func (c *Car) registerObservers() {
 	c.maxSpeed.RegisterObserver(func(u uint8, a observable.Annotations) {
-		c.implementer.Car(c.id).MaxSpeed(u)
+		c.implementer.Car(c.id).SetMaxSpeed(u)
 	})
 	c.minSpeed.RegisterObserver(func(u uint8, a observable.Annotations) {
-		c.implementer.Car(c.id).MinSpeed(u)
+		c.implementer.Car(c.id).SetMinSpeed(u)
 	})
 	c.pitLaneMaxSpeed.RegisterObserver(func(u uint8, a observable.Annotations) {
-		c.implementer.Car(c.id).PitLaneMaxSpeed(u)
+		c.implementer.Car(c.id).SetPitLaneMaxSpeed(u)
 	})
 	c.maxBreaking.RegisterObserver(func(u uint8, a observable.Annotations) {
-		c.implementer.Car(c.id).MaxBreaking(u)
+		c.implementer.Car(c.id).SetMaxBreaking(u)
 	})
 }
 
 func (c *Car) filters() {
-	c.maxSpeed.Filter(func(u uint8, u2 uint8) bool {
-		return u != u2
-	})
-	c.minSpeed.Filter(func(u uint8, u2 uint8) bool {
-		return u != u2
-	})
-	c.pitLaneMaxSpeed.Filter(func(u uint8, u2 uint8) bool {
-		return u != u2
-	})
-	c.maxBreaking.Filter(func(u uint8, u2 uint8) bool {
-		return u != u2
-	})
-
+	c.maxSpeed.Filter(observable.DistinctPercentageChange())
+	c.minSpeed.Filter(observable.DistinctPercentageChange())
+	c.pitLaneMaxSpeed.Filter(observable.DistinctPercentageChange())
+	c.maxBreaking.Filter(observable.DistinctPercentageChange())
+	c.pit.Filter(observable.DistinctBooleanChange())
+	c.deslotted.Filter(observable.DistinctBooleanChange())
+	c.laps.Filter(observable.DistictComparableChange[uint32]())
 }
 
 type Car struct {
 	id              types.Id
-	implementer     implement.Implementer
+	implementer     drivers.Driver
 	controller      *controller.Controller
 	pit             observable.Observable[bool]
 	pitLaneMaxSpeed observable.Observable[uint8]
@@ -144,14 +132,14 @@ func (c *Car) Team() observable.Observable[string] {
 	return c.team
 }
 
-func (c *Car) UpdateFromEvent(e implement.Event) {
-	c.Pit().Set(e.Car.InPit)
-	c.Deslotted().Set(e.Car.Deslotted)
-	c.LastLapTime().Set(e.Car.Lap.LapTime)
-	c.Laps().Set(uint32(e.Car.Lap.Number))
-	c.LastLap().Set(types.Lap{e.Car.Lap.Number, e.Car.Lap.LapTime, e.RaceTimer})
-	c.Controller().ButtonTrackCall().Set(e.Car.Controller.TrackCall)
-	c.Controller().TriggerValue().Set(uint8(e.Car.Controller.TriggerValue))
+func (c *Car) UpdateFromEvent(e drivers.Event) {
+	c.Pit().Set(e.Car().InPit())
+	c.Deslotted().Set(e.Car().Deslotted())
+	c.LastLapTime().Set(e.Car().Lap().Time())
+	c.Laps().Set(uint32(e.Car().Lap().Number()))
+	c.LastLap().Set(types.Lap{e.Car().Lap().Number(), e.Car().Lap().Time(), e.Car().Lap().Recorded()})
+	c.Controller().ButtonTrackCall().Set(e.Car().Controller().TrackCall())
+	c.Controller().TriggerValue().Set(uint8(e.Car().Controller().TriggerValue()))
 }
 
 func (c *Car) Initialize() {
@@ -159,32 +147,4 @@ func (c *Car) Initialize() {
 	c.pitLaneMaxSpeed.Publish()
 	c.minSpeed.Publish()
 	c.maxBreaking.Publish()
-
-	/*	c.maxSpeed.RegisterObserver(c.maxSpeedChangeObserver)
-		c.maxSpeed.Init(ctx)
-		c.maxSpeed.Update()
-
-		c.pitLaneMaxSpeed.RegisterObserver(c.pitLaneMaxSpeedChangeObserver)
-		c.pitLaneMaxSpeed.Init(ctx)
-		c.pitLaneMaxSpeed.Update()
-
-		// c.deslotted.Init(ctx)
-		// c.lastLapTime.Init(ctx)
-		c.laps.Init(ctx)
-		c.lastLap.Init(ctx)
-
-		c.minSpeed.RegisterObserver(func(u uint8, a observable.Annotations) {
-			c.implementer.Car(c.id).MinSpeed(u)
-		})
-		c.minSpeed.Init(ctx)
-		c.minSpeed.Update()
-
-		c.maxBreaking.RegisterObserver(c.maxBreakingChangeObserver)
-		c.maxBreaking.Init(ctx)
-		c.maxBreaking.Update()
-
-		// c.pit.Init(ctx)
-		c.controller.Init(ctx)
-		c.drivers.Init(ctx)
-		c.drivers.Update()*/
 }

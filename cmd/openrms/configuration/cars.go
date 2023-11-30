@@ -3,7 +3,7 @@ package configuration
 import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
-	"github.com/qvistgaard/openrms/internal/implement"
+	"github.com/qvistgaard/openrms/internal/drivers"
 	"github.com/qvistgaard/openrms/internal/plugins"
 	"github.com/qvistgaard/openrms/internal/state/car"
 	"github.com/qvistgaard/openrms/internal/state/car/repository"
@@ -38,7 +38,7 @@ import (
 // Returns:
 //   - A `Repository` interface representing the car repository.
 //   - An error if there was an issue creating the repository.
-func CarRepository(conf Config, driver implement.Implementer, plugins plugins.List) (repository.Repository, error) {
+func CarRepository(conf Config, driver drivers.Driver, plugins plugins.List) (repository.Repository, error) {
 	c := &car.Config{}
 	err := mapstructure.Decode(conf, c)
 	if err != nil {

@@ -3,9 +3,9 @@ package configuration
 import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
-	"github.com/qvistgaard/openrms/internal/implement"
-	"github.com/qvistgaard/openrms/internal/implement/generator"
-	"github.com/qvistgaard/openrms/internal/implement/oxigen"
+	"github.com/qvistgaard/openrms/internal/drivers"
+	"github.com/qvistgaard/openrms/internal/drivers/devices/generator"
+	"github.com/qvistgaard/openrms/internal/drivers/devices/oxigen"
 )
 
 type DriverConfiguration struct {
@@ -14,38 +14,38 @@ type DriverConfiguration struct {
 	}
 }
 
-// Driver initializes and returns an implementation of the `implement.Implementer` interface based on the provided configuration.
-// It takes a `Config` map, which should contain the driver configuration, and an optional pointer to a driver name.
+// Driver initializes and returns an implementation of the `drivers.Driver` interface based on the provided configuration.
+// It takes a `Config` map, which should contain the drivers configuration, and an optional pointer to a drivers name.
 //
-// The `conf` parameter should be a `Config` map containing the driver configuration settings.
+// The `conf` parameter should be a `Config` map containing the drivers configuration settings.
 //
-// The `driver` parameter is an optional pointer to a string that represents the name of the driver to be used.
-// If `driver` is provided and not empty, it will take precedence over the driver name specified in the configuration.
+// The `drivers` parameter is an optional pointer to a string that represents the name of the drivers to be used.
+// If `drivers` is provided and not empty, it will take precedence over the drivers name specified in the configuration.
 //
 // Example usage:
 //
-//   // Load driver configuration from a previously loaded configuration map.
-//   driverConfig := configMap["driver"].(map[string]interface{})
+//	// Load drivers configuration from a previously loaded configuration map.
+//	driverConfig := configMap["drivers"].(map[string]interface{})
 //
-//   // Specify the driver name (optional).
-//   driverName := "oxigen"
+//	// Specify the drivers name (optional).
+//	driverName := "oxigen"
 //
-//   // Initialize the driver based on the configuration.
-//   driver, err := Driver(driverConfig, &driverName)
-//   if err != nil {
-//       log.Fatal("Failed to initialize the driver: ", err)
-//   }
+//	// Initialize the drivers based on the configuration.
+//	drivers, err := Driver(driverConfig, &driverName)
+//	if err != nil {
+//	    log.Fatal("Failed to initialize the drivers: ", err)
+//	}
 //
-//   // Use the 'driver' as an implementation of the 'implement.Implementer' interface.
+//	// Use the 'drivers' as an implementation of the 'drivers.Driver' interface.
 //
 // Returns:
-//   - An implementation of the 'implement.Implementer' interface corresponding to the specified driver.
-//   - An error if there was an issue initializing the driver or if the specified driver is unknown.
-func Driver(conf Config, driver *string) (implement.Implementer, error) {
+//   - An implementation of the 'drivers.Driver' interface corresponding to the specified drivers.
+//   - An error if there was an issue initializing the drivers or if the specified drivers is unknown.
+func Driver(conf Config, driver *string) (drivers.Driver, error) {
 	c := &DriverConfiguration{}
 	err := mapstructure.Decode(conf, c)
 	if err != nil {
-		return nil, errors.WithMessage(err, "failed to read driver configuration")
+		return nil, errors.WithMessage(err, "failed to read drivers configuration")
 	}
 
 	var plugin string
@@ -60,14 +60,14 @@ func Driver(conf Config, driver *string) (implement.Implementer, error) {
 		c := &oxigen.Config{}
 		err := mapstructure.Decode(conf, c)
 		if err != nil {
-			return nil, errors.WithMessage(err, "failed to read oxigen driver configuration")
+			return nil, errors.WithMessage(err, "failed to read oxigen drivers configuration")
 		}
 		return oxigen.New(*c)
 	case "generator":
 		c := &generator.Config{}
 		err := mapstructure.Decode(conf, c)
 		if err != nil {
-			return nil, errors.WithMessage(err, "failed to read generator driver configuration")
+			return nil, errors.WithMessage(err, "failed to read generator drivers configuration")
 		}
 
 		return generator.New(*c)

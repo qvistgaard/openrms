@@ -1,40 +1,41 @@
 package track
 
 import (
-	"context"
-	"github.com/qvistgaard/openrms/internal/implement"
+	"github.com/qvistgaard/openrms/internal/drivers"
 	"github.com/qvistgaard/openrms/internal/state/observable"
 )
 
 type Track struct {
-	implementer implement.Implementer
-	maxSpeed    observable.Observable[uint8]
+	driver   drivers.Driver
+	maxSpeed observable.Observable[uint8]
 }
 
-func New(c Config, driver implement.Implementer) (*Track, error) {
-	var o implement.PitLaneLapCounting
+func New(c Config, di drivers.Driver) (*Track, error) {
+	var o drivers.PitLaneLapCounting
 	if c.Track.PitLane.LapCounting.OnEntry {
-		o = implement.LapCountingOnEntry
+		o = drivers.LapCountingOnEntry
 	} else {
-		o = implement.LapCountingOnExit
+		o = drivers.LapCountingOnExit
 	}
 
-	driver.Track().PitLane().LapCounting(c.Track.PitLane.LapCounting.Enabled, o)
-	driver.Track().MaxSpeed(c.Track.MaxSpeed)
+	di.Track().PitLane().LapCounting(c.Track.PitLane.LapCounting.Enabled, o)
+	di.Track().MaxSpeed(c.Track.MaxSpeed)
 
-	return &Track{
-		implementer: driver,
-		maxSpeed:    observable.Create(uint8(0)),
-	}, nil
+	t := &Track{
+		driver:   di,
+		maxSpeed: observable.Create(c.Track.MaxSpeed),
+	}
+
+	t.maxSpeed.RegisterObserver(func(u uint8, annotations observable.Annotations) {
+		t.driver.Track().MaxSpeed(u)
+	})
+	return t, nil
 }
 
 func (t *Track) MaxSpeed() observable.Observable[uint8] {
 	return t.maxSpeed
 }
 
-func (t *Track) Init(ctx context.Context) {
-	t.maxSpeed.RegisterObserver(func(u uint8, annotations observable.Annotations) {
-		t.implementer.Track().MaxSpeed(u)
-	})
-	// t.maxSpeed.Init(ctx)
+func (t *Track) Initialize() {
+	t.maxSpeed.Publish()
 }

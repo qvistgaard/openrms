@@ -1,56 +1,48 @@
 package models
 
 import (
-	"github.com/charmbracelet/bubbles/cursor"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/qvistgaard/openrms/internal/tui/commands"
 	"github.com/qvistgaard/openrms/internal/tui/elements"
+	"github.com/qvistgaard/openrms/internal/tui/messages"
 	"github.com/qvistgaard/openrms/internal/tui/style"
+	"strconv"
 )
 
-type RaceControl struct {
+type TrackControl struct {
 	focusIndex    int
 	focusIndexMax int
 	inputs        []*textinput.Model
-	raceTime      textinput.Model
-	maxLaps       textinput.Model
+	maxSpeed      textinput.Model
 	width         int
 	height        int
 }
 
-func InitialRaceControlModel() RaceControl {
-	m := RaceControl{}
+func InitialTrackControlModel() TrackControl {
+	m := TrackControl{}
 
-	m.raceTime = textinput.New()
-	m.raceTime.Focus()
-	m.raceTime.PromptStyle = style.Form.PromptStyle.Focused.Copy().Width(18)
-	m.raceTime.Prompt = "Race timer:"
-	m.raceTime.TextStyle = style.Form.TextStyle.Focused.Copy()
-	m.raceTime.CharLimit = 64
-	m.raceTime.Placeholder = "10m"
-	m.raceTime.Cursor.SetMode(cursor.CursorBlink)
+	m.maxSpeed = textinput.New()
+	m.maxSpeed.PromptStyle = style.Form.PromptStyle.Focused.Copy().Width(18)
+	m.maxSpeed.Placeholder = "100"
+	m.maxSpeed.Prompt = "Max speed:"
+	m.maxSpeed.Focus()
+	m.maxSpeed.TextStyle = style.Form.TextStyle.Focused.Copy()
+	m.maxSpeed.CharLimit = 3
 
-	m.maxLaps = textinput.New()
-	m.maxLaps.PromptStyle = style.Form.PromptStyle.Blurred.Copy().Width(18)
-	m.maxLaps.Prompt = "Laps:"
-	m.maxLaps.TextStyle = style.Form.TextStyle.Blurred.Copy()
-	m.maxLaps.CharLimit = 4
-	m.maxLaps.Placeholder = "10"
-
-	m.inputs = []*textinput.Model{&m.raceTime, &m.maxLaps}
+	m.inputs = []*textinput.Model{&m.maxSpeed}
 	m.focusIndexMax = len(m.inputs) + 1
 	return m
 }
 
-func (r RaceControl) Init() tea.Cmd {
+func (r TrackControl) Init() tea.Cmd {
 	//TODO drivers me
 	panic("drivers me")
 }
 
-func (r RaceControl) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	r.inputs = []*textinput.Model{&r.raceTime, &r.maxLaps}
+func (r TrackControl) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	r.inputs = []*textinput.Model{&r.maxSpeed}
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -73,8 +65,8 @@ func (r RaceControl) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			if s == "enter" && r.focusIndex == len(r.inputs) {
 				return r, func() tea.Msg {
-					return commands.StartRace{
-						RaceTime: r.raceTime.Value(),
+					return commands.SaveTrackConfiguration{
+						MaxSpeed: r.maxSpeed.Value(),
 					}
 				}
 			}
@@ -112,6 +104,12 @@ func (r RaceControl) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		r.width = msg.Width
 		r.height = msg.Height - 6
 		return r, nil
+	case commands.OpenTrackConfiguration:
+		r.focusIndex = 0
+		r.maxSpeed.Focus()
+		return r, nil
+	case messages.Update:
+		r.maxSpeed.SetValue(strconv.Itoa(int(msg.TrackMaxSpeed)))
 
 	}
 
@@ -122,8 +120,8 @@ func (r RaceControl) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return r, cmd
 }
 
-func (r RaceControl) View() string {
-	ok := elements.Button("Start", r.focusIndex == len(r.inputs))
+func (r TrackControl) View() string {
+	ok := elements.Button("Save", r.focusIndex == len(r.inputs))
 	cancel := elements.Button("Cancel", r.focusIndex == r.focusIndexMax)
 
 	return lipgloss.Place(r.width, r.height,
@@ -132,9 +130,8 @@ func (r RaceControl) View() string {
 			lipgloss.JoinVertical(lipgloss.Top,
 				style.Container.Render(
 					lipgloss.JoinVertical(lipgloss.Top,
-						style.Heading.Width(72).Render("Race configuration"),
-						r.raceTime.View(),
-						r.maxLaps.View(),
+						style.Heading.Width(72).Render("Track configuration"),
+						r.maxSpeed.View(),
 					),
 				),
 				lipgloss.PlaceHorizontal(78, lipgloss.Center,

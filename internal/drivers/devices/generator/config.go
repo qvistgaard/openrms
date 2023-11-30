@@ -1,7 +1,7 @@
 package generator
 
 import (
-	"github.com/qvistgaard/openrms/internal/implement"
+	"github.com/qvistgaard/openrms/internal/drivers"
 )
 
 type Config struct {
@@ -13,11 +13,11 @@ type Config struct {
 	}
 }
 
-func New(c Config) (implement.Implementer, error) {
+func New(c Config) (drivers.Driver, error) {
 	return &Generator{
 		cars:     c.Implement.Generator.Cars,
 		interval: c.Implement.Generator.Interval,
-		events:   make(chan implement.Event, 1024),
+		events:   make(chan drivers.Event, 1024),
 		race:     NewRace(),
 	}, nil
 }

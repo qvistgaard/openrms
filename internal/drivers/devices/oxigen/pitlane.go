@@ -1,7 +1,7 @@
 package oxigen
 
 import (
-	"github.com/qvistgaard/openrms/internal/implement"
+	"github.com/qvistgaard/openrms/internal/drivers"
 )
 
 type PitLane struct {
@@ -22,16 +22,16 @@ const (
 	pitLaneLapCountingOnExitByte   = 0x40
 )
 
-func (p *PitLane) LapCounting(enabled bool, option implement.PitLaneLapCounting) {
+func (p *PitLane) LapCounting(enabled bool, option drivers.PitLaneLapCounting) {
 	if !enabled {
 		p.lapCounting = pitLaneLapCountingDisabledByte
 		p.lapCountingOption = pitLaneLapCountingOnEntryByte
 	} else {
 		p.lapCounting = pitLaneLapCountingDisabledByte
 		switch option {
-		case implement.LapCountingOnEntry:
+		case drivers.LapCountingOnEntry:
 			p.lapCountingOption = pitLaneLapCountingOnEntryByte
-		case implement.LapCountingOnExit:
+		case drivers.LapCountingOnExit:
 			p.lapCountingOption = pitLaneLapCountingOnExitByte
 		}
 	}

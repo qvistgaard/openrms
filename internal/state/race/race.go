@@ -1,10 +1,8 @@
 package race
 
 import (
-	"github.com/qvistgaard/openrms/internal/implement"
+	"github.com/qvistgaard/openrms/internal/drivers"
 	"github.com/qvistgaard/openrms/internal/state/observable"
-	"github.com/qvistgaard/openrms/internal/types/annotations"
-	"github.com/qvistgaard/openrms/internal/types/fields"
 	"time"
 )
 
@@ -18,7 +16,7 @@ const (
 )
 
 type Race struct {
-	implementer implement.Implementer
+	implementer drivers.Driver
 	status      observable.Observable[RaceStatus]
 	duration    observable.Observable[time.Duration]
 	laps        observable.Observable[uint16]
@@ -28,12 +26,12 @@ type Race struct {
 	raceStart    time.Time
 }
 
-func New(_ Config, implementer implement.Implementer) (*Race, error) {
+func New(_ Config, implementer drivers.Driver) (*Race, error) {
 	return &Race{
 		implementer: implementer,
-		status:      observable.Create(RaceStopped, observable.Annotation{annotations.RaceValueFieldName, fields.RaceStatus}).Filter(filterRaceStatusChange()),
-		duration:    observable.Create(time.Second*0, observable.Annotation{annotations.RaceValueFieldName, fields.RaceDuration}),                          // observable.Annotation{annotations.RaceValueFieldName, fields.RaceStatus},
-		laps:        observable.Create(uint16(0), observable.Annotation{annotations.RaceValueFieldName, fields.Laps}).Filter(filterTotalLapsCountChange()), // observable.Annotation{annotations.RaceValueFieldName, fields.RaceStatus},
+		status:      observable.Create(RaceStopped).Filter(filterRaceStatusChange()),
+		duration:    observable.Create(time.Second * 0),
+		laps:        observable.Create(uint16(0)).Filter(filterTotalLapsCountChange()), // observable.Annotation{annotations.RaceValueFieldName, fields.RaceStatus},
 	}, nil
 }
 
@@ -79,11 +77,15 @@ func (r *Race) Status() observable.Observable[RaceStatus] {
 	return r.status
 }
 
-func (r *Race) UpdateFromEvent(e implement.Event) {
-	r.laps.Set(e.Car.Lap.Number)
+func (r *Race) UpdateFromEvent(e drivers.Event) {
+	r.laps.Set(e.Car().Lap().Number())
 	if r.raceStatus == RaceRunning {
 		r.duration.Set(calculateRaceDuration(r.raceDuration, r.raceStart, time.Now()))
 	}
+}
+
+func (r *Race) Initialize() {
+	r.status.Publish()
 }
 
 func calculateRaceDuration(duration time.Duration, startTime time.Time, currentTime time.Time) time.Duration {

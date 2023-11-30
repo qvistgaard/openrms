@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"github.com/hashicorp/go-version"
 	"github.com/jacobsa/go-serial/serial"
-	"github.com/qvistgaard/openrms/internal/implement"
+	"github.com/qvistgaard/openrms/internal/drivers"
 	"github.com/qvistgaard/openrms/internal/types"
 	log "github.com/sirupsen/logrus"
 
@@ -23,7 +23,7 @@ type Oxigen struct {
 	serial     io.ReadWriteCloser
 	version    string
 	commands   chan Command
-	events     chan implement.Event
+	events     chan drivers.Event
 	bufferSize int
 	timer      []byte
 	buffer     *bufio.Reader
@@ -84,7 +84,7 @@ func CreateImplement(serial io.ReadWriteCloser) (*Oxigen, error) {
 	o := &Oxigen{
 		serial:     serial,
 		commands:   make(chan Command, 1024),
-		events:     make(chan implement.Event, 1024),
+		events:     make(chan drivers.Event, 1024),
 		buffer:     bufio.NewReaderSize(serial, 1024),
 		bufferSize: 1024,
 		cars:       make(map[types.Id]Car),
@@ -118,15 +118,15 @@ func CreateImplement(serial io.ReadWriteCloser) (*Oxigen, error) {
 	return o, nil
 }
 
-func (o *Oxigen) Car(car types.Id) implement.CarImplementer {
-	return NewCar(o, uint8(car))
+func (o *Oxigen) Car(car types.Id) drivers.Car {
+	return nil // NewCar(o, uint8(car))
 }
 
-func (o *Oxigen) Track() implement.TrackImplementer {
+func (o *Oxigen) Track() drivers.Track {
 	return o.track
 }
 
-func (o *Oxigen) Race() implement.RaceImplementer {
+func (o *Oxigen) Race() drivers.Race {
 	return o.race
 }
 
@@ -167,8 +167,8 @@ func (o *Oxigen) receiveMessage() {
 	}
 }
 
-func (o *Oxigen) sendCarCommand(car *uint8, code byte, value uint8) {
-	command := newCommand(car, code, value)
+func (o *Oxigen) sendCarCommand(car uint8, code byte, value uint8) {
+	command := newCommand(&car, code, value)
 	o.commands <- command
 }
 
@@ -234,32 +234,35 @@ func (o *Oxigen) keepAlive() {
 	}
 }
 
-func (o *Oxigen) EventChannel() <-chan implement.Event {
+func (o *Oxigen) EventChannel() <-chan drivers.Event {
 	return o.events
 }
 
-func (o *Oxigen) event(b []byte) implement.Event {
-	e := implement.Event{
-		RaceTimer: unpackRaceTime([4]byte{b[9], b[10], b[11], b[12]}, b[4]),
-		Car: implement.Car{
-			Id:        types.IdFromUint(b[1]),
-			Reset:     0x01&b[0] == 0x01,
-			InPit:     0x40&b[8] == 0x40,
-			Deslotted: !(0x80&b[7] == 0x80),
-			Controller: implement.Controller{
-				BatteryWarning: 0x04&b[0] == 0x04,
-				Link:           0x02&b[0] == 0x02,
-				TrackCall:      0x08&b[0] == 0x08,
-				ArrowUp:        0x20&b[0] == 0x20,
-				ArrowDown:      0x40&b[0] == 0x40,
-				TriggerValue:   float64(0x7F & b[7]),
+func (o *Oxigen) event(b []byte) drivers.Event {
+	e := drivers.GenericEvent(nil)
+	/*
+				drivers.Event{
+			RaceTimer: unpackRaceTime([4]byte{b[9], b[10], b[11], b[12]}, b[4]),
+			Car: drivers.Car{
+				Id:        types.IdFromUint(b[1]),
+				Reset:     0x01&b[0] == 0x01,
+				InPit:     0x40&b[8] == 0x40,
+				Deslotted: !(0x80&b[7] == 0x80),
+				Controller: drivers.Controller{
+					BatteryWarning: 0x04&b[0] == 0x04,
+					Link:           0x02&b[0] == 0x02,
+					TrackCall:      0x08&b[0] == 0x08,
+					ArrowUp:        0x20&b[0] == 0x20,
+					ArrowDown:      0x40&b[0] == 0x40,
+					TriggerValue:   float64(0x7F & b[7]),
+				},
+				Lap: drivers.Lap{
+					Number:  (uint16(b[6]) * 256) + uint16(b[5]),
+					LapTime: unpackLapTime(b[2], b[3]),
+				},
 			},
-			Lap: implement.Lap{
-				Number:  (uint16(b[6]) * 256) + uint16(b[5]),
-				LapTime: unpackLapTime(b[2], b[3]),
-			},
-		},
-	}
+		}
+	*/
 	return e
 }
 

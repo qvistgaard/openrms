@@ -2,28 +2,27 @@ package generator
 
 import (
 	"context"
-	"github.com/qvistgaard/openrms/internal/implement"
+	"github.com/qvistgaard/openrms/internal/drivers"
 	"github.com/qvistgaard/openrms/internal/types"
-	"math/rand"
 	"time"
 )
 
 type Generator struct {
 	cars     uint8
 	interval uint
-	events   chan implement.Event
+	events   chan drivers.Event
 	race     *Race
 }
 
-func (g *Generator) Car(car types.Id) implement.CarImplementer {
-	return NewCar(uint8(car))
+func (g *Generator) Car(car types.Id) drivers.Car {
+	return NewCar(uint8(car.ToUint()), 0)
 }
 
-func (g *Generator) Track() implement.TrackImplementer {
+func (g *Generator) Track() drivers.Track {
 	return NewTrack()
 }
 
-func (g *Generator) Race() implement.RaceImplementer {
+func (g *Generator) Race() drivers.Race {
 	return g.race
 }
 
@@ -43,23 +42,27 @@ func (g *Generator) EventLoop() error {
 	}
 }
 
-func (g *Generator) EventChannel() <-chan implement.Event {
+func (g *Generator) EventChannel() <-chan drivers.Event {
 	return g.events
 }
 
-func (g *Generator) eventGenerator(carId uint8, interval uint) implement.Event {
+func (g *Generator) eventGenerator(carId uint8, interval uint) drivers.Event {
 	g.race.laps = uint16(0)
 	for {
 		select {
 		case <-time.After(time.Duration(interval) * time.Millisecond):
-			g.events <- implement.Event{
+			car := NewCar(carId, g.race.laps)
+
+			g.events <- drivers.GenericEvent(car)
+			/*
+					drivers.Event{
 				RaceTimer: time.Now().Sub(g.race.raceStart),
-				Car: implement.Car{
+				Car: drivers.Car{
 					Id:        types.IdFromUint(carId),
 					Reset:     false,
 					InPit:     false,
 					Deslotted: false,
-					Controller: implement.Controller{
+					Controller: drivers.Controller{
 						BatteryWarning: false,
 						Link:           false,
 						TrackCall:      false,
@@ -68,14 +71,14 @@ func (g *Generator) eventGenerator(carId uint8, interval uint) implement.Event {
 						TriggerValue:   rand.Float64() * 100,
 					},
 
-					Lap: implement.Lap{
+					Lap: drivers.Lap{
 						Number:  g.race.laps,
 						LapTime: time.Duration(rand.Intn(10000)) * time.Millisecond,
 					},
 				},
-			}
+
+			*/
 
 		}
 	}
-
 }

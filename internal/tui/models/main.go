@@ -14,51 +14,21 @@ const (
 	ViewLeaderboard ActiveView = iota
 	ViewCarConfiguration
 	ViewRaceConfiguration
-)
-
-var (
-
-	// General.
-
-	subtle = lipgloss.AdaptiveColor{Light: "#D9DCCF", Dark: "#383838"}
-
-	// Tabs.
-
-	// Dialog.
-
-	dialogBoxStyle = lipgloss.NewStyle().
-			Border(lipgloss.RoundedBorder()).
-			BorderForeground(lipgloss.Color("#874BFD")).
-			Padding(1, 0).
-			BorderTop(true).
-			BorderLeft(true).
-			BorderRight(true).
-			BorderBottom(true)
-
-	buttonStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FFF7DB")).
-			Background(lipgloss.Color("#888B7E")).
-			Padding(0, 3).
-			MarginTop(1)
-
-	activeButtonStyle = buttonStyle.Copy().
-				Foreground(lipgloss.Color("#FFF7DB")).
-				Background(lipgloss.Color("#F25D94")).
-				MarginRight(2).
-				Underline(true)
+	ViewTrackConfiguration
 )
 
 type Main struct {
-	Bridge           chan<- tea.Msg
-	ActiveView       ActiveView
-	Header           tea.Model
-	StatusBar        tea.Model
-	Leaderboard      tea.Model
-	CarConfiguration tea.Model
-	RaceControl      tea.Model
-	width            int
-	height           int
-	raceStatus       race.RaceStatus
+	Bridge             chan<- tea.Msg
+	ActiveView         ActiveView
+	Header             tea.Model
+	StatusBar          tea.Model
+	Leaderboard        tea.Model
+	CarConfiguration   tea.Model
+	RaceControl        tea.Model
+	width              int
+	height             int
+	raceStatus         race.RaceStatus
+	TrackConfiguration tea.Model
 }
 
 func (m Main) Init() tea.Cmd {
@@ -77,7 +47,7 @@ func (m Main) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.(tea.KeyMsg).String() {
 		case "ctrl+c":
 			return m, tea.Quit
-		case "s":
+		case "r":
 			if m.raceStatus == race.RaceStopped {
 				m.ActiveView = ViewRaceConfiguration
 				return m, nil
@@ -88,8 +58,12 @@ func (m Main) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.Bridge <- commands.PauseRace{}
 		case "f":
 			m.Bridge <- commands.FlagRace{}
-		case "e":
+		case "s":
 			m.Bridge <- commands.StopRace{}
+		case "t":
+			return m, func() tea.Msg {
+				return commands.OpenTrackConfiguration{}
+			}
 		}
 		if m.ActiveView == ViewLeaderboard {
 			m.Leaderboard, cmd = m.Leaderboard.Update(msg)
@@ -100,12 +74,16 @@ func (m Main) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.ActiveView == ViewRaceConfiguration {
 			m.RaceControl, cmd = m.RaceControl.Update(msg)
 		}
+		if m.ActiveView == ViewTrackConfiguration {
+			m.TrackConfiguration, cmd = m.TrackConfiguration.Update(msg)
+		}
 	case messages.Update:
 		if m.ActiveView == ViewLeaderboard {
 			m.Leaderboard, cmd = m.Leaderboard.Update(msg)
 		}
 		m.raceStatus = msg.(messages.Update).RaceStatus
 		m.StatusBar, _ = m.StatusBar.Update(msg)
+		m.TrackConfiguration, _ = m.TrackConfiguration.Update(msg)
 
 	case tea.WindowSizeMsg:
 		width := msg.(tea.WindowSizeMsg).Width
@@ -121,11 +99,20 @@ func (m Main) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.width = width
 		m.StatusBar, _ = m.StatusBar.Update(updatedMsg)
 		m.Header, _ = m.Header.Update(updatedMsg)
+		m.CarConfiguration, _ = m.CarConfiguration.Update(updatedMsg)
+		m.RaceControl, _ = m.RaceControl.Update(updatedMsg)
+		m.TrackConfiguration, _ = m.TrackConfiguration.Update(updatedMsg)
 
 	case commands.OpenCarConfiguration:
 		m.ActiveView = ViewCarConfiguration
 		m.CarConfiguration, cmd = m.CarConfiguration.Update(msg)
+	case commands.OpenTrackConfiguration:
+		m.ActiveView = ViewTrackConfiguration
+		m.TrackConfiguration, cmd = m.TrackConfiguration.Update(msg)
 	case commands.SaveCarConfiguration:
+		m.ActiveView = ViewLeaderboard
+		m.Bridge <- msg
+	case commands.SaveTrackConfiguration:
 		m.ActiveView = ViewLeaderboard
 		m.Bridge <- msg
 	case commands.StartRace:
@@ -138,10 +125,7 @@ func (m Main) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Main) View() string {
-
-	// physicalWidth, physicalHeight, _ := term.GetSize(int(os.Stdout.Fd()))
-
-	docStyle := lipgloss.NewStyle().Padding(1, 2, 1, 2)
+	docStyle := lipgloss.NewStyle().Padding(0, 2, 1, 2)
 	if m.width > 0 {
 		docStyle = docStyle.Width(m.width)
 	}
@@ -164,6 +148,8 @@ func (m Main) activeView() string {
 		return m.CarConfiguration.View()
 	case ViewRaceConfiguration:
 		return m.RaceControl.View()
+	case ViewTrackConfiguration:
+		return m.TrackConfiguration.View()
 	}
 	return "No view"
 }

@@ -1,14 +1,13 @@
 package models
 
 import (
-	"fmt"
 	"github.com/charmbracelet/bubbles/cursor"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/qvistgaard/openrms/internal/tui/commands"
+	"github.com/qvistgaard/openrms/internal/tui/elements"
 	"github.com/qvistgaard/openrms/internal/tui/style"
-	"strconv"
 )
 
 type CarDetails struct {
@@ -22,54 +21,45 @@ type CarConfiguration struct {
 	inputs        []*textinput.Model
 	onTrackSpeed  textinput.Model
 	inPitSpeed    textinput.Model
-	driverName    textinput.Model
+	teamName      textinput.Model
 	minSpeed      textinput.Model
+	width         int
+	height        int
 }
-
-var (
-	focusedStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("205")).PaddingLeft(1).PaddingRight(2)
-	blurredStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("240")).PaddingLeft(1).PaddingRight(2)
-	cursorStyle         = focusedStyle.Copy()
-	noStyle             = lipgloss.NewStyle()
-	cursorModeHelpStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("244"))
-
-	focusedButton = focusedStyle.Copy().Render("[ Submit ]")
-	blurredButton = fmt.Sprintf("[ %s ]", blurredStyle.Render("Submit"))
-)
 
 func InitialCarConfigurationModel() CarConfiguration {
 	m := CarConfiguration{}
 
-	m.driverName = textinput.New()
-	m.driverName.Focus()
-	m.driverName.PromptStyle = focusedStyle.Copy().Width(18)
-	m.driverName.Prompt = "Driver name:"
-	m.driverName.TextStyle = focusedStyle
-	m.driverName.CharLimit = 64
-	m.driverName.Cursor.SetMode(cursor.CursorBlink)
+	m.teamName = textinput.New()
+	m.teamName.Focus()
+	m.teamName.PromptStyle = style.Form.PromptStyle.Focused.Copy().Width(18)
+	m.teamName.Prompt = "Team name:"
+	m.teamName.TextStyle = style.Form.TextStyle.Focused.Copy()
+	m.teamName.CharLimit = 64
+	m.teamName.Cursor.SetMode(cursor.CursorBlink)
 
 	m.onTrackSpeed = textinput.New()
-	m.onTrackSpeed.PromptStyle = blurredStyle.Copy().Width(18)
+	m.onTrackSpeed.PromptStyle = style.Form.PromptStyle.Blurred.Copy().Width(18)
 	m.onTrackSpeed.Placeholder = "100"
 	m.onTrackSpeed.Prompt = "On track:"
-	m.onTrackSpeed.TextStyle = focusedStyle.Copy().Underline(true)
+	m.onTrackSpeed.TextStyle = style.Form.TextStyle.Blurred.Copy()
 	m.onTrackSpeed.CharLimit = 3
 
 	m.inPitSpeed = textinput.New()
 	m.inPitSpeed.Placeholder = "75"
-	m.inPitSpeed.PromptStyle = blurredStyle.Copy().Width(18)
+	m.inPitSpeed.PromptStyle = style.Form.PromptStyle.Blurred.Copy().Width(18)
 	m.inPitSpeed.Prompt = "In pit lane:"
-	m.inPitSpeed.TextStyle = focusedStyle
+	m.inPitSpeed.TextStyle = style.Form.TextStyle.Blurred.Copy()
 	m.inPitSpeed.CharLimit = 3
 
 	m.minSpeed = textinput.New()
 	m.minSpeed.Placeholder = "75"
-	m.minSpeed.PromptStyle = blurredStyle.Copy().Width(18)
+	m.minSpeed.PromptStyle = style.Form.PromptStyle.Blurred.Copy().Width(18)
 	m.minSpeed.Prompt = "Min speed:"
-	m.minSpeed.TextStyle = focusedStyle
+	m.minSpeed.TextStyle = style.Form.TextStyle.Blurred.Copy()
 	m.minSpeed.CharLimit = 3
 
-	m.inputs = []*textinput.Model{&m.driverName, &m.onTrackSpeed, &m.inPitSpeed, &m.minSpeed}
+	m.inputs = []*textinput.Model{&m.teamName, &m.onTrackSpeed, &m.inPitSpeed, &m.minSpeed}
 	m.focusIndexMax = len(m.inputs) + 1
 	return m
 }
@@ -79,7 +69,7 @@ func (c CarConfiguration) Init() tea.Cmd {
 }
 
 func (c CarConfiguration) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	c.inputs = []*textinput.Model{&c.driverName, &c.onTrackSpeed, &c.inPitSpeed, &c.minSpeed}
+	c.inputs = []*textinput.Model{&c.teamName, &c.onTrackSpeed, &c.inPitSpeed, &c.minSpeed}
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -107,7 +97,7 @@ func (c CarConfiguration) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						MaxSpeed:    c.onTrackSpeed.Value(),
 						MinSpeed:    c.minSpeed.Value(),
 						MaxPitSpeed: c.inPitSpeed.Value(),
-						DriverName:  c.driverName.Value(),
+						DriverName:  c.teamName.Value(),
 					}
 				}
 			}
@@ -129,23 +119,31 @@ func (c CarConfiguration) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			for _, input := range c.inputs {
 				(*input).Blur()
-				(*input).PromptStyle = blurredStyle.Copy().Width(18)
+				(*input).PromptStyle = style.Form.PromptStyle.Blurred.Copy().Width(18)
+				(*input).TextStyle = style.Form.TextStyle.Blurred.Copy()
 			}
 
 			if c.focusIndex >= 0 && c.focusIndex < len(c.inputs) {
-				(c.inputs[c.focusIndex]).PromptStyle = focusedStyle.Copy().Width(18)
+				(c.inputs[c.focusIndex]).PromptStyle = style.Form.PromptStyle.Focused.Copy().Width(18)
+				(c.inputs[c.focusIndex]).TextStyle = style.Form.TextStyle.Focused.Copy()
 				cmds[c.focusIndex] = (c.inputs[c.focusIndex]).Focus()
 			}
 			return c, tea.Batch(cmds...)
 		}
+
+	case tea.WindowSizeMsg:
+		c.width = msg.Width
+		c.height = msg.Height - 6
+		return c, nil
+
 	case commands.OpenCarConfiguration:
 		c.focusIndex = 0
 		c.car = msg.CarId
-		c.driverName.SetValue(msg.DriverName)
+		c.teamName.SetValue(msg.DriverName)
 		c.inPitSpeed.SetValue(msg.MaxPitSpeed)
 		c.onTrackSpeed.SetValue(msg.MaxSpeed)
 		c.minSpeed.SetValue(msg.MinSpeed)
-		c.driverName.Focus()
+		c.teamName.Focus()
 		return c, nil
 	}
 
@@ -157,30 +155,17 @@ func (c CarConfiguration) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (c CarConfiguration) View() string {
-	var ok string
-	if c.focusIndex == len(c.inputs) {
-		ok = focusedStyle.Copy().Render("[ Save ]")
-	} else {
-		ok = blurredStyle.Copy().Render("[ Save ]")
-	}
+	ok := elements.Button("Start", c.focusIndex == len(c.inputs))
+	cancel := elements.Button("Cancel", c.focusIndex == c.focusIndexMax)
 
-	var cancel string
-
-	if c.focusIndex == len(c.inputs)+1 {
-		cancel = focusedStyle.Copy().Render("[ Cancel ]")
-	} else {
-		cancel = blurredStyle.Copy().Render("[ Cancel ]")
-	}
-
-	return lipgloss.PlaceHorizontal(200,
-		lipgloss.Center,
-
+	return lipgloss.Place(c.width, c.height,
+		lipgloss.Center, lipgloss.Center,
 		style.DialogBox.Width(77).Height(14).Render(
 			lipgloss.JoinVertical(lipgloss.Top,
 				style.Container.Render(
 					lipgloss.JoinVertical(lipgloss.Top,
 						style.Heading.Width(72).Render("Car configuration (Car #"+c.car+")"),
-						c.driverName.View(),
+						c.teamName.View(),
 					),
 				),
 				style.Container.Render(
@@ -191,12 +176,12 @@ func (c CarConfiguration) View() string {
 						c.minSpeed.View(),
 					),
 				),
+
 				lipgloss.PlaceHorizontal(78, lipgloss.Center,
-					lipgloss.JoinHorizontal(lipgloss.Center, ok, cancel, strconv.Itoa(c.focusIndex)),
+					lipgloss.JoinHorizontal(lipgloss.Center, ok, cancel),
 				),
 			),
 		),
-		lipgloss.WithWhitespaceForeground(subtle),
 	)
 
 	// return b.String()

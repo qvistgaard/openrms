@@ -1,7 +1,7 @@
 package generator
 
 import (
-	"github.com/qvistgaard/openrms/internal/implement"
+	"github.com/qvistgaard/openrms/internal/drivers"
 )
 
 type Track struct {
@@ -18,6 +18,6 @@ func (t *Track) MaxSpeed(percent uint8) {
 
 }
 
-func (t *Track) PitLane() implement.PitLaneImplementer {
+func (t *Track) PitLane() drivers.PitLane {
 	return t.pitLane
 }

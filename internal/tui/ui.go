@@ -14,13 +14,14 @@ type UI struct {
 func Create(bridge chan<- tea.Msg) *UI {
 	return &UI{
 		program: tea.NewProgram(models.Main{
-			Bridge:           bridge,
-			Header:           models.Header{},
-			StatusBar:        models.StatusBar{},
-			ActiveView:       models.ViewLeaderboard,
-			Leaderboard:      models.InitialLeaderboardModel(),
-			CarConfiguration: models.InitialCarConfigurationModel(),
-			RaceControl:      models.InitialRaceControlModel(),
+			Bridge:             bridge,
+			Header:             models.Header{},
+			StatusBar:          models.StatusBar{},
+			ActiveView:         models.ViewLeaderboard,
+			Leaderboard:        models.InitialLeaderboardModel(),
+			CarConfiguration:   models.InitialCarConfigurationModel(),
+			RaceControl:        models.InitialRaceControlModel(),
+			TrackConfiguration: models.InitialTrackControlModel(),
 		}, tea.WithAltScreen()),
 	}
 }

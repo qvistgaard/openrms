@@ -102,8 +102,9 @@ func (l Leaderboard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		columns[1] = table.Column{Title: "Name", Width: l.width - 71}
 
 		l.table.SetWidth(l.width)
-		l.table.SetHeight(msg.(tea.WindowSizeMsg).Height - 7)
+		l.table.SetHeight(msg.(tea.WindowSizeMsg).Height - 9)
 		l.table.SetColumns(columns)
+
 	case messages.Update:
 		l.rows = make([]table.Row, 0)
 		telemetry := msg.(messages.Update).RaceTelemetry

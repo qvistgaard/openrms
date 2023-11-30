@@ -1,21 +1,31 @@
 package controller
 
 import (
-	"context"
 	"github.com/qvistgaard/openrms/internal/state/observable"
-	annotations2 "github.com/qvistgaard/openrms/internal/types/annotations"
 )
+
+func NewController() *Controller {
+	controller := &Controller{}
+
+	controller.initObservableProperties()
+
+	controller.filters()
+
+	return controller
+}
+
+func (c *Controller) initObservableProperties() {
+	c.triggerValue = observable.Create(uint8(0))
+	c.buttonTrackCall = observable.Create(false)
+}
+
+func (c *Controller) filters() {
+	c.buttonTrackCall.Filter(observable.DistinctBooleanChange())
+}
 
 type Controller struct {
 	buttonTrackCall *observable.Value[bool]
 	triggerValue    *observable.Value[uint8]
-}
-
-func NewController(annotations ...observable.Annotation) *Controller {
-	return &Controller{
-		triggerValue:    observable.Create(uint8(0), append(annotations, observable.Annotation{annotations2.CarValueFieldName, "trigger-value"})...),
-		buttonTrackCall: observable.Create(false, annotations...),
-	}
 }
 
 func (c *Controller) TriggerValue() *observable.Value[uint8] {
@@ -24,9 +34,4 @@ func (c *Controller) TriggerValue() *observable.Value[uint8] {
 
 func (c *Controller) ButtonTrackCall() *observable.Value[bool] {
 	return c.buttonTrackCall
-}
-
-func (c *Controller) Init(ctx context.Context) {
-	// c.buttonTrackCall.Init(ctx)
-	// c.triggerValue.Init(ctx)
 }

@@ -12,4 +12,5 @@ type Update struct {
 	RaceTelemetry types.RaceTelemetry
 	RaceStatus    race.RaceStatus
 	RaceDuration  time.Duration
+	TrackMaxSpeed uint8
 }

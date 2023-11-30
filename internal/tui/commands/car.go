@@ -16,7 +16,7 @@ type SaveCarConfiguration OpenCarConfiguration
 func OpenCarConfiguration(id string, maxSpeed string, maxPitSpeed string, driverName string) tea.Msg {
 	return CarConfigurationCommand{
 		CarId:       id,
-		MaxSpeed:    maxSpeed,
+		SetMaxSpeed:    maxSpeed,
 		MaxPitSpeed: maxPitSpeed,
 		DriverName:  driverName,
 	}

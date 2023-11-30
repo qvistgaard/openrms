@@ -25,6 +25,43 @@ var (
 		BorderStyle(lipgloss.NormalBorder()).
 		BorderBottom(true)
 
+	Form = formField{
+		TextStyle: focusable{
+			Focused: lipgloss.NewStyle().Foreground(lipgloss.Color("15")).PaddingLeft(1).PaddingRight(2),
+			Blurred: lipgloss.NewStyle().Foreground(lipgloss.Color("15")).PaddingLeft(1).PaddingRight(2),
+		},
+		PromptStyle: focusable{
+			Focused: lipgloss.NewStyle().Foreground(lipgloss.Color("205")).PaddingLeft(1).PaddingRight(2),
+			Blurred: lipgloss.NewStyle().Foreground(lipgloss.Color("240")).PaddingLeft(1).PaddingRight(2),
+		},
+	}
+
+	/*
+					struct {
+			Caption struct {
+				Focused lipgloss.Style
+				Blurred lipgloss.Style
+			}
+			TextStyle struct {
+				Focused lipgloss.Style
+				Blurred lipgloss.Style
+			}
+		}{
+			Caption: struct {
+				Focused lipgloss.Style
+				Blurred lipgloss.Style
+			}{
+				Blurred: lipgloss.NewStyle().Foreground(lipgloss.Color("240")).PaddingLeft(1).PaddingRight(2),
+				Focused: lipgloss.NewStyle().Foreground(lipgloss.Color("205")).PaddingLeft(1).PaddingRight(2),
+			},
+			TextStyle: struct {
+				Focused lipgloss.Style
+				Blurred lipgloss.Style
+			}{},
+		}
+
+	*/
+
 	Button = struct {
 		Focused lipgloss.Style
 		Blurred lipgloss.Style
@@ -44,3 +81,13 @@ var (
 		},
 	}
 )
+
+type formField struct {
+	TextStyle   focusable
+	PromptStyle focusable
+}
+
+type focusable struct {
+	Focused lipgloss.Style
+	Blurred lipgloss.Style
+}

@@ -22,7 +22,7 @@ func NewRace() *Race {
 }
 
 func (r *Race) Start() {
-	log.WithField("implement", "oxigen").
+	log.WithField("drivers", "oxigen").
 		WithField("race-status", "start").
 		Info("Race status changed")
 	r.status = RaceRunningByte
@@ -33,14 +33,14 @@ func (r *Race) Flag() {
 }
 
 func (r *Race) Pause() {
-	log.WithField("implement", "oxigen").
+	log.WithField("drivers", "oxigen").
 		WithField("race-status", "pause").
 		Info("Race status changed")
 	r.status = RacePausedByte
 }
 
 func (r *Race) Stop() {
-	log.WithField("implement", "oxigen").
+	log.WithField("drivers", "oxigen").
 		WithField("race-status", "stopepd").
 		Info("Race status changed")
 	r.status = RaceStoppedByte

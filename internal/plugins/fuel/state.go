@@ -65,7 +65,7 @@ func handleUpdateFuelLevel(carState *state, size uint8, rate float32) func(ctx c
 
 				// TODO: make weight penalty configurable
 				// c.maxSpeed[carId].Subtract = types.Percent(math.Round(float64(c.fuel[carId].Get() / 10)))
-				// car.MaxSpeed().Update()
+				// car.SetMaxSpeed().Update()
 
 				/*				log.WithField("car", carId).
 								WithField("fuel", c.fuel[carId].Get()).
