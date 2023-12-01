@@ -1,31 +1,36 @@
 package events
 
 import (
+	"github.com/qvistgaard/openrms/internal/drivers"
 	"time"
 )
 
 type Lap interface {
-	Event
-	Number() uint16
+	drivers.Event
+	Number() uint32
 	Time() time.Duration
 	Recorded() time.Duration
 }
 
 type GenericLap struct {
-	GenericEvent
+	drivers.Event
+	number   uint32
+	time     time.Duration
+	recorded time.Duration
 }
 
-func (g GenericLap) Number() uint16 {
-	//TODO implement me
-	panic("implement me")
+func NewLap(car drivers.Car, number uint32, time time.Duration, recorded time.Duration) Lap {
+	return &GenericLap{Event: NewGenericEvent(car), number: number, time: time, recorded: recorded}
+}
+
+func (g GenericLap) Number() uint32 {
+	return g.number
 }
 
 func (g GenericLap) Time() time.Duration {
-	//TODO implement me
-	panic("implement me")
+	return g.time
 }
 
 func (g GenericLap) Recorded() time.Duration {
-	//TODO implement me
-	panic("implement me")
+	return g.recorded
 }

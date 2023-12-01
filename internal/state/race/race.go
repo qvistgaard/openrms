@@ -78,7 +78,7 @@ func (r *Race) Status() observable.Observable[RaceStatus] {
 }
 
 func (r *Race) UpdateFromEvent(e drivers.Event) {
-	r.laps.Set(e.Car().Lap().Number())
+	// r.laps.Set(e.Car().Lap().Number()) TOOD  fix this
 	if r.raceStatus == RaceRunning {
 		r.duration.Set(calculateRaceDuration(r.raceDuration, r.raceStart, time.Now()))
 	}

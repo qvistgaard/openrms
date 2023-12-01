@@ -5,7 +5,7 @@ import (
 )
 
 type Lap struct {
-	Number    uint16
+	Number    uint32
 	Time      time.Duration
 	RaceTimer time.Duration
 }

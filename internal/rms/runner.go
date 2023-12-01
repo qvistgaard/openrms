@@ -22,12 +22,10 @@ type Runner struct {
 }
 
 func (r *Runner) Run() {
-	r.wg.Add(1)
-	go r.eventLoop()
-
-	r.wg.Add(1)
-	r.processEvents()
-
+	err := r.processEvents()
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func Create(waitGroup *sync.WaitGroup, implement drivers.Driver, plugins *plugins.Plugins, track *track.Track, race *race.Race, cars repository.Repository) *Runner {
@@ -41,7 +39,7 @@ func Create(waitGroup *sync.WaitGroup, implement drivers.Driver, plugins *plugin
 	}
 }
 
-func (r *Runner) eventLoop() error {
+/*func (r *Runner) eventLoop() error {
 	defer func() {
 		r.wg.Done()
 		log.Fatal("rms: Eventloop died")
@@ -50,14 +48,9 @@ func (r *Runner) eventLoop() error {
 	err := r.implement.EventLoop()
 	log.Println(err)
 	return err
-}
+}*/
 
-func (r *Runner) processEvents() {
-	defer func() {
-		panic("rms: process events died")
-	}()
-	defer r.wg.Done()
-
+func (r *Runner) processEvents() error {
 	log.Info("rms: started event processor.")
 
 	// r.postprocessors.Init(background)
@@ -73,15 +66,23 @@ func (r *Runner) processEvents() {
 	r.race.Initialize()
 	// r.race.Init(background)
 
-	channel := r.implement.EventChannel()
+	ec := make(chan drivers.Event, 1024)
+	err := r.implement.Start(ec)
+	if err != nil {
+		return err
+	}
+	defer r.implement.Stop()
+
 	for {
 		select {
-		case e := <-channel:
+		case e := <-ec:
 			start := time.Now()
-			id := e.Car().Id()
-			if id > 0 {
-				if c, ok, _ := r.cars.Get(id); ok {
-					c.UpdateFromEvent(e)
+			if e.Car() != nil {
+				id := e.Car().Id()
+				if id > 0 {
+					if c, ok, _ := r.cars.Get(id); ok {
+						c.UpdateFromEvent(e)
+					}
 				}
 			}
 			r.race.UpdateFromEvent(e)

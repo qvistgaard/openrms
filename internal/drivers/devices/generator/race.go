@@ -8,7 +8,7 @@ import (
 
 type Race struct {
 	raceStatus race.RaceStatus
-	laps       uint16
+	laps       uint32
 	raceStart  time.Time
 }
 

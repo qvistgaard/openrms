@@ -22,39 +22,17 @@ const (
 	carMaxBreakingCode  = 0x05
 )
 
-func NewCar(implement *Oxigen, b []byte) drivers.Car {
-	return Car{b, Controller(b), implement}
+func NewCar(oxigen *Oxigen, id types.Id) drivers.Car {
+	return Car{id, oxigen}
 }
 
 type Car struct {
-	data       []byte
-	controller drivers.Controller
-	oxigen     *Oxigen
+	id     types.Id
+	oxigen *Oxigen
 }
 
 func (c Car) Id() types.Id {
-	return types.IdFromUint(c.data[1])
-}
-
-func (c Car) Reset() bool {
-	return 0x01&c.data[0] == 0x01
-}
-
-func (c Car) InPit() bool {
-	return 0x40&c.data[8] == 0x40
-}
-
-func (c Car) Deslotted() bool {
-	return !(0x80&c.data[7] == 0x80)
-}
-
-func (c Car) Controller() drivers.Controller {
-	return c.controller
-}
-
-func (c Car) Lap() drivers.Lap {
-	//TODO implement me
-	panic("implement me")
+	return c.id
 }
 
 func (c Car) SetMaxBreaking(percent uint8) {

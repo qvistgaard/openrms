@@ -3,10 +3,12 @@ package car
 import (
 	"github.com/divideandconquer/go-merge/merge"
 	"github.com/qvistgaard/openrms/internal/drivers"
+	"github.com/qvistgaard/openrms/internal/drivers/events"
 	"github.com/qvistgaard/openrms/internal/state/controller"
 	"github.com/qvistgaard/openrms/internal/state/observable"
 	"github.com/qvistgaard/openrms/internal/types"
-	"time"
+	log "github.com/sirupsen/logrus"
+	"reflect"
 )
 
 func NewCar(implementer drivers.Driver, settings *CarSettings, defaults *CarSettings, id types.Id) *Car {
@@ -34,7 +36,6 @@ func (c *Car) initObservableProperties(settings *CarSettings) {
 	c.pitLaneMaxSpeed = observable.Create(*settings.PitLane.MaxSpeed)
 	c.pit = observable.Create(false)
 	c.deslotted = observable.Create(false)
-	c.lastLapTime = observable.Create(0 * time.Second)
 	c.lastLap = observable.Create(types.Lap{})
 	c.laps = observable.Create(uint32(0))
 	c.drivers = observable.Create(*settings.Drivers)
@@ -77,7 +78,6 @@ type Car struct {
 	minSpeed        observable.Observable[uint8]
 	maxBreaking     observable.Observable[uint8]
 	deslotted       observable.Observable[bool]
-	lastLapTime     observable.Observable[time.Duration]
 	laps            observable.Observable[uint32]
 	lastLap         observable.Observable[types.Lap]
 	drivers         observable.Observable[types.Drivers]
@@ -116,10 +116,6 @@ func (c *Car) Deslotted() observable.Observable[bool] {
 	return c.deslotted
 }
 
-func (c *Car) LastLapTime() observable.Observable[time.Duration] {
-	return c.lastLapTime
-}
-
 func (c *Car) Laps() observable.Observable[uint32] {
 	return c.laps
 }
@@ -132,14 +128,27 @@ func (c *Car) Team() observable.Observable[string] {
 	return c.team
 }
 
-func (c *Car) UpdateFromEvent(e drivers.Event) {
-	c.Pit().Set(e.Car().InPit())
-	c.Deslotted().Set(e.Car().Deslotted())
-	c.LastLapTime().Set(e.Car().Lap().Time())
-	c.Laps().Set(uint32(e.Car().Lap().Number()))
-	c.LastLap().Set(types.Lap{e.Car().Lap().Number(), e.Car().Lap().Time(), e.Car().Lap().Recorded()})
-	c.Controller().ButtonTrackCall().Set(e.Car().Controller().TrackCall())
-	c.Controller().TriggerValue().Set(uint8(e.Car().Controller().TriggerValue()))
+func (c *Car) UpdateFromEvent(event drivers.Event) {
+	switch e := event.(type) {
+	case events.ControllerTriggerValueEvent:
+		c.Controller().TriggerValue().Set(uint8(e.TriggerValue()))
+	case events.Lap:
+		c.Laps().Set(e.Number()) // get rid of this
+		c.LastLap().Set(types.Lap{e.Number(), e.Time(), e.Recorded()})
+		break
+	case events.ControllerLinkEvent:
+	case events.OnTrack:
+	case events.ControllerTrackCallButton:
+		c.Controller().ButtonTrackCall().Set(e.Pressed())
+	case events.InPit:
+		c.Pit().Set(e.InPit())
+	case events.Deslotted:
+		c.Deslotted().Set(e.Deslotted())
+	default:
+		log.WithField("package", reflect.TypeOf(e).Elem().PkgPath()).
+			WithField("event", reflect.TypeOf(e).Elem().Name()).
+			WithField("car", e.Car().Id()).Warn("Received unhandled event")
+	}
 }
 
 func (c *Car) Initialize() {

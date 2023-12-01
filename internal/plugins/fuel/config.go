@@ -31,5 +31,5 @@ type FuelConfig struct {
 	BurnRate float32 `mapstructure:"burn-rate"`
 
 	// FlowRate is the rate at which fuel flows into the car's fuel tank when refuelling.
-	FlowRate types.LiterPerSecond `mapstructure:"flow-rate"`
+	FlowRate float32 `mapstructure:"flow-rate"`
 }

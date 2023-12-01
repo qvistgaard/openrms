@@ -65,7 +65,7 @@ func (bridge *Bridge) Run() {
 	})
 
 	bridge.Scheduler.Add(&tasks.Task{
-		Interval: 1 * time.Second,
+		Interval: 1000 * time.Millisecond,
 		TaskFunc: func() error {
 			if bridge.RaceTelemetry != nil && bridge.UI != nil {
 				bridge.UI.Send(messages.Update{

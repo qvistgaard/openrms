@@ -17,7 +17,6 @@ func New(c Config) (drivers.Driver, error) {
 	return &Generator{
 		cars:     c.Implement.Generator.Cars,
 		interval: c.Implement.Generator.Interval,
-		events:   make(chan drivers.Event, 1024),
 		race:     NewRace(),
 	}, nil
 }

@@ -1,18 +1,15 @@
 package oxigen
 
 import (
-	"bufio"
-	"context"
 	"encoding/hex"
 	"errors"
 	"fmt"
 	"github.com/hashicorp/go-version"
 	"github.com/jacobsa/go-serial/serial"
 	"github.com/qvistgaard/openrms/internal/drivers"
+	"github.com/qvistgaard/openrms/internal/drivers/events"
 	"github.com/qvistgaard/openrms/internal/types"
 	log "github.com/sirupsen/logrus"
-
-	// "github.com/tarm/serial"
 	"go.bug.st/serial/enumerator"
 	"io"
 	"sync"
@@ -20,22 +17,22 @@ import (
 )
 
 type Oxigen struct {
+	waitGroup sync.WaitGroup
+
 	serial     io.ReadWriteCloser
 	version    string
 	commands   chan Command
-	events     chan drivers.Event
 	bufferSize int
-	timer      []byte
-	buffer     *bufio.Reader
 	mutex      sync.Mutex
 	cars       map[types.Id]Car
 	track      *Track
 	race       *Race
+	running    bool
 }
 
 func CreateUSBConnection(device *string) (io.ReadWriteCloser, error) {
 	var oxigenPort string
-	if device == nil {
+	if device == nil || *device == "" {
 		ports, err := enumerator.GetDetailedPortsList()
 		if err != nil {
 			log.Fatal(err)
@@ -64,11 +61,12 @@ func CreateUSBConnection(device *string) (io.ReadWriteCloser, error) {
 	}
 
 	options := serial.OpenOptions{
-		PortName:        oxigenPort,
-		BaudRate:        921600,
-		DataBits:        8,
-		StopBits:        1,
-		MinimumReadSize: 4,
+		PortName:              oxigenPort,
+		BaudRate:              921600,
+		DataBits:              8,
+		StopBits:              1,
+		InterCharacterTimeout: 5,
+		MinimumReadSize:       1,
 	}
 
 	// Open the port.
@@ -84,8 +82,6 @@ func CreateImplement(serial io.ReadWriteCloser) (*Oxigen, error) {
 	o := &Oxigen{
 		serial:     serial,
 		commands:   make(chan Command, 1024),
-		events:     make(chan drivers.Event, 1024),
-		buffer:     bufio.NewReaderSize(serial, 1024),
 		bufferSize: 1024,
 		cars:       make(map[types.Id]Car),
 		track:      NewTrack(),
@@ -95,12 +91,15 @@ func CreateImplement(serial io.ReadWriteCloser) (*Oxigen, error) {
 	versionRequest := []byte{0x06, 0x06, 0x06, 0x06, 0x00, 0x00, 0x00} // Get dongle version bytecode
 	_, err = o.serial.Write(versionRequest)
 	if err != nil {
-		o.serial.Close()
+		err := o.serial.Close()
+		if err != nil {
+			return nil, err
+		}
 		return nil, err
 	}
 
 	versionResponse := make([]byte, 5)
-	_, err = io.ReadFull(o.buffer, versionResponse)
+	_, err = io.ReadFull(o.serial, versionResponse)
 	v, _ := version.NewVersion(fmt.Sprintf("%d.%d", versionResponse[0], versionResponse[1]))
 	constraint, _ := version.NewConstraint(">= 3.10")
 
@@ -119,7 +118,7 @@ func CreateImplement(serial io.ReadWriteCloser) (*Oxigen, error) {
 }
 
 func (o *Oxigen) Car(car types.Id) drivers.Car {
-	return nil // NewCar(o, uint8(car))
+	return NewCar(o, car)
 }
 
 func (o *Oxigen) Track() drivers.Track {
@@ -130,41 +129,71 @@ func (o *Oxigen) Race() drivers.Race {
 	return o.race
 }
 
-func (o *Oxigen) Init(ctx context.Context) {
-	//	o.track.Init(ctx, processor)
-	//	o.race.Init(ctx, processor)
-}
-
-func (o *Oxigen) EventLoop() error {
-	defer func() {
-		o.serial.Close()
-		panic("oxigen: keep-alive routine failed.")
-	}()
-
-	o.timer = []byte{0x00, 0x00, 0x00}
-
-	// Keep-alive routine, to keep oxigen dongle sending data back
-	go o.keepAlive()
-	o.sendCommand()
+func (o *Oxigen) Start(c chan<- drivers.Event) error {
+	o.running = true
+	go o.dataExchangeLoop(c)
+	go o.heartbeat()
 	return nil
 }
 
-func (o *Oxigen) receiveMessage() {
-	buffer := make([]byte, 13)
-	log.Trace("Waiting for message")
-	read, err := io.ReadFull(o.buffer, buffer)
-
-	log.WithField("message", fmt.Sprintf("%x", buffer)).
-		WithField("bytes", read).
-		Trace("received message from oxygen dongle")
-	if err == nil {
-		if read == 13 {
-			o.timer = buffer[9:12]
-			o.events <- o.event(buffer)
-		}
-	} else {
-		log.Error(err)
+func (o *Oxigen) Stop() error {
+	if !o.running {
+		return errors.New("driver not running")
 	}
+	o.running = false
+	o.waitGroup.Wait()
+	return nil
+}
+
+func (o *Oxigen) dataExchangeLoop(c chan<- drivers.Event) {
+	o.waitGroup.Add(1)
+
+	defer o.cleanup()
+	defer o.waitGroup.Done()
+
+	timer := []byte{0x00, 0x00, 0x00}
+
+	for o.running {
+		err := o.tx(timer)
+		if err != nil {
+			log.Error(err)
+		}
+
+		t, err := o.rx(c)
+		if err != nil {
+			log.Error(err)
+		}
+		if t != nil {
+			timer = t
+		}
+	}
+
+}
+
+func (o *Oxigen) cleanup() {
+	err := o.serial.Close()
+	if err != nil {
+		return
+	}
+	log.Error(err)
+}
+
+func (o *Oxigen) rx(c chan<- drivers.Event) ([]byte, error) {
+	buffer := make([]byte, 13)
+
+	r := io.LimitReader(o.serial, 13)
+	n, err := r.Read(buffer)
+
+	if err == nil {
+		if n == 13 {
+			log.WithField("message", fmt.Sprintf("%x", buffer)).
+				WithField("bytes", n).
+				Debug("received message from oxygen dongle")
+			o.event(c, buffer)
+			return buffer[9:12], nil
+		}
+	}
+	return nil, err
 }
 
 func (o *Oxigen) sendCarCommand(car uint8, code byte, value uint8) {
@@ -172,58 +201,59 @@ func (o *Oxigen) sendCarCommand(car uint8, code byte, value uint8) {
 	o.commands <- command
 }
 
-func (o *Oxigen) sendCommand() {
-	defer func() {
-		panic("oxigen: keep-alive routine failed.")
-	}()
-	for {
-		o.mutex.Lock()
-		select {
-		case cmd := <-o.commands:
-			if float32(len(o.commands)) > (float32(o.bufferSize) * 0.9) {
-				log.WithFields(map[string]interface{}{
-					"bufferSize": o.bufferSize,
-					"size":       len(o.commands),
-				}).Warn("too many commands on code buffer")
-			} else {
-				log.WithFields(map[string]interface{}{
-					"bufferSize": o.bufferSize,
-					"size":       len(o.commands),
-				}).Trace("Buffer size")
+func (o *Oxigen) tx(timer []byte) error {
+	select {
+	case cmd := <-o.commands:
+		if float32(len(o.commands)) > (float32(o.bufferSize) * 0.9) {
+			log.WithFields(map[string]interface{}{
+				"bufferSize": o.bufferSize,
+				"size":       len(o.commands),
+			}).Warn("too many commands on code buffer")
+		} else {
+			log.WithFields(map[string]interface{}{
+				"bufferSize": o.bufferSize,
+				"size":       len(o.commands),
+			}).Trace("Buffer size")
 
-			}
+		}
 
-			b := o.command(cmd, o.timer)
-			if cmd.id != nil {
-				log.WithFields(map[string]interface{}{
-					"message": fmt.Sprintf("%x", b),
-					"car":     fmt.Sprintf("%x", *cmd.id),
-					"value":   fmt.Sprintf("%x", cmd.value),
-					"cmd":     fmt.Sprintf("%x", cmd.code),
-					"hex":     fmt.Sprintf("%s", hex.Dump(b)),
-				}).Debug("sending message to oxygen dongle")
-			}
-			l, err := o.serial.Write(b)
-			if err != nil {
-				panic(err)
-			}
+		b := o.packCommand(cmd, timer)
+		if cmd.id != nil {
 			log.WithFields(map[string]interface{}{
 				"message": fmt.Sprintf("%x", b),
-				"size":    fmt.Sprintf("%d", l),
-				"buffer":  len(o.commands),
-			}).Trace("send message to oxygen dongle")
+				"car":     fmt.Sprintf("%x", *cmd.id),
+				"value":   fmt.Sprintf("%x", cmd.value),
+				"cmd":     fmt.Sprintf("%x", cmd.code),
+				"hex":     fmt.Sprintf("%s", hex.Dump(b)),
+			}).Debug("sending message to oxygen dongle")
 		}
-		time.Sleep(300 * time.Millisecond)
-		o.receiveMessage()
-		o.mutex.Unlock()
+
+		l, err := o.serial.Write(b)
+		if err != nil {
+			panic(err)
+		}
+		log.WithFields(map[string]interface{}{
+			"message": fmt.Sprintf("%x", b),
+			"size":    fmt.Sprintf("%d", l),
+			"buffer":  len(o.commands),
+		}).Trace("send message to oxygen dongle")
+		if err != nil {
+			return err
+		}
+		//time.Sleep(300 * time.Millisecond)
+	case <-time.After(5000 * time.Millisecond):
+		if !o.running {
+			return nil
+		}
 	}
+	return nil
 }
 
-func (o *Oxigen) keepAlive() {
-	defer func() {
-		panic("oxigen: keep-alive routine failed.")
-	}()
-	for {
+func (o *Oxigen) heartbeat() {
+	o.waitGroup.Add(1)
+	defer o.waitGroup.Done()
+
+	for o.running {
 		select {
 		case <-time.After(100 * time.Millisecond):
 			if len(o.commands) == 0 {
@@ -234,39 +264,49 @@ func (o *Oxigen) keepAlive() {
 	}
 }
 
-func (o *Oxigen) EventChannel() <-chan drivers.Event {
-	return o.events
-}
+func (o *Oxigen) event(c chan<- drivers.Event, b []byte) {
+	rt := unpackRaceTime([4]byte{b[9], b[10], b[11], b[12]}, b[4])
+	lt := unpackLapTime(b[2], b[3])
+	ln := (uint32(b[6]) * 256) + uint32(b[5])
 
-func (o *Oxigen) event(b []byte) drivers.Event {
-	e := drivers.GenericEvent(nil)
+	car := NewCar(o, types.IdFromUint(b[1]))
+	c <- events.NewControllerTriggerValueEvent(car, float64(0x7F&b[7]))
+	c <- events.NewControllerTrackCallButton(car, 0x08&b[0] == 0x08)
+	c <- events.NewLap(car, ln, lt, rt)
+	c <- events.NewInPit(car, 0x40&b[8] == 0x40)
+	c <- events.NewDeslotted(car, !(0x80&b[7] == 0x80))
+	c <- events.NewOnTrack(car, 0x80&b[7] == 0x80)
+
+	// e := drivers.GenericEvent(nil)
 	/*
-				drivers.Event{
-			RaceTimer: unpackRaceTime([4]byte{b[9], b[10], b[11], b[12]}, b[4]),
-			Car: drivers.Car{
-				Id:        types.IdFromUint(b[1]),
-				Reset:     0x01&b[0] == 0x01,
-				InPit:     0x40&b[8] == 0x40,
-				Deslotted: !(0x80&b[7] == 0x80),
-				Controller: drivers.Controller{
-					BatteryWarning: 0x04&b[0] == 0x04,
-					Link:           0x02&b[0] == 0x02,
-					TrackCall:      0x08&b[0] == 0x08,
-					ArrowUp:        0x20&b[0] == 0x20,
-					ArrowDown:      0x40&b[0] == 0x40,
-					TriggerValue:   float64(0x7F & b[7]),
+		NOTE: Keep this here for future reference
+
+					drivers.Event{
+				RaceTimer: unpackRaceTime([4]byte{b[9], b[10], b[11], b[12]}, b[4]),
+				Car: drivers.Car{
+					Id:        types.IdFromUint(b[1]),
+					Reset:     0x01&b[0] == 0x01,
+					InPit:     0x40&b[8] == 0x40,
+					Deslotted: !(0x80&b[7] == 0x80),
+					Controller: drivers.Controller{
+						BatteryWarning: 0x04&b[0] == 0x04,
+						Link:           0x02&b[0] == 0x02,
+						TrackCall:      0x08&b[0] == 0x08,
+						ArrowUp:        0x20&b[0] == 0x20,
+						ArrowDown:      0x40&b[0] == 0x40,
+						TriggerValue:   float64(0x7F & b[7]),
+					},
+					Lap: drivers.Lap{
+						Number:  (uint16(b[6]) * 256) + uint16(b[5]),
+						LapTime: unpackLapTime(b[2], b[3]),
+					},
 				},
-				Lap: drivers.Lap{
-					Number:  (uint16(b[6]) * 256) + uint16(b[5]),
-					LapTime: unpackLapTime(b[2], b[3]),
-				},
-			},
-		}
+			}
 	*/
-	return e
+	// return e
 }
 
-func (o *Oxigen) command(c Command, timer []byte) []byte {
+func (o *Oxigen) packCommand(c Command, timer []byte) []byte {
 	var cmd byte = 0x00
 	var parameter byte = 0x00
 	var controller byte = 0x00

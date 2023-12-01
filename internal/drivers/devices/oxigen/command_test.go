@@ -184,7 +184,7 @@ func TestCarCommandSetPitLaneSpeed(t *testing.T) {
 
 	assert.True(t, b)
 	assert.Equal(t, uint8(0xFF), c.car.value)
-	assert.Equal(t, uint8(0x81), c.car.command)
+	assert.Equal(t, uint8(0x81), c.car.packCommand)
 }
 
 func TestRaceStatusChangeFromRaceStateStop(t *testing.T) {
