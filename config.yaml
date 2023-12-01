@@ -137,6 +137,8 @@ plugins:
     enabled: true
   limb-mode:
     enabled: true
+  pit:
+    enabled: true
 
 
 

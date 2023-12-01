@@ -4,9 +4,12 @@ import (
 	"github.com/qvistgaard/openrms/internal/types"
 )
 
-type Stop interface {
+type SequencePlugin interface {
+	ConfigurePitSequence(types.CarId) Sequence
+}
+
+type Sequence interface {
 	Start() error
-	ConfigurePitStop(car Car)
 }
 
 type Car interface {

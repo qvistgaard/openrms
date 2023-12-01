@@ -4,6 +4,7 @@ package fuel
 import (
 	"github.com/qmuntal/stateless"
 	"github.com/qvistgaard/openrms/internal/plugins/limbmode"
+	"github.com/qvistgaard/openrms/internal/plugins/pit"
 	"github.com/qvistgaard/openrms/internal/state/car"
 	"github.com/qvistgaard/openrms/internal/state/observable"
 	"github.com/qvistgaard/openrms/internal/state/race"
@@ -26,6 +27,7 @@ type state struct {
 	consumed float32
 	machine  *stateless.StateMachine
 	fuel     observable.Observable[float32]
+	config   FuelConfig
 }
 
 // New creates a new instance of the fuel plugin.
@@ -64,6 +66,7 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 	if config == nil {
 		config = p.config.Car.Defaults.FuelConfig
 	}
+	carState.config = *config
 
 	carState.machine = machine(handleUpdateFuelLevel(carState, config.TankSize, config.BurnRate))
 	carState.fuel = observable.Create(float32(config.TankSize))
@@ -126,4 +129,8 @@ func (p *Plugin) ConfigureRace(r *race.Race) {
 	r.Status().RegisterObserver(func(status race.Status, a observable.Annotations) {
 		p.status = status
 	})
+}
+
+func (p *Plugin) ConfigurePitSequence(carId types.CarId) pit.Sequence {
+	return NewSequence(p.state[carId])
 }

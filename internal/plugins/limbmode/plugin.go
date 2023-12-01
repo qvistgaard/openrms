@@ -1,6 +1,7 @@
 package limbmode
 
 import (
+	"github.com/qvistgaard/openrms/internal/plugins/pit"
 	"github.com/qvistgaard/openrms/internal/state/car"
 	"github.com/qvistgaard/openrms/internal/state/observable"
 	"github.com/qvistgaard/openrms/internal/state/race"
@@ -47,10 +48,6 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 	car.MaxSpeed().Modifier(func(u uint8) (uint8, bool) {
 		return *p.carConfig[carId].MaxSpeed, p.state[carId].Get()
 	}, 1)
-
-	car.Pit().RegisterObserver(func(b bool, a observable.Annotations) {
-		p.state[carId].Set(false)
-	})
 }
 
 func (p *Plugin) InitializeCar(_ *car.Car) {
@@ -73,4 +70,8 @@ func (p *Plugin) Priority() int {
 
 func (p *Plugin) Name() string {
 	return "limb-mode"
+}
+
+func (p *Plugin) ConfigurePitSequence(carId types.CarId) pit.Sequence {
+	return NewSequence(p.state[carId])
 }

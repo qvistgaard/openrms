@@ -1,16 +1,21 @@
 package pit
 
 import (
+	"github.com/pkg/errors"
 	"github.com/qvistgaard/openrms/internal/state/car"
+	"github.com/qvistgaard/openrms/internal/state/observable"
 	"github.com/qvistgaard/openrms/internal/types"
 	log "github.com/sirupsen/logrus"
 	"time"
 )
 
 type DefaultHandler struct {
-	cancel  chan bool
-	car     *car.Car
-	actions []*Stop
+	cancel    chan bool
+	car       *car.Car
+	sequences []Sequence
+	current   uint8
+	active    bool
+	maxSpeed  observable.Observable[uint8]
 }
 
 func (p *DefaultHandler) OnComplete() error {
@@ -52,7 +57,22 @@ func (p *DefaultHandler) OnCarStop(trigger MachineTriggerFunc) error {
 }
 
 func (p *DefaultHandler) Start(trigger MachineTriggerFunc) error {
-	log.Info("PIT RUNNING")
-
-	return trigger(triggerCarPitStopComplete)
+	go func() {
+		p.active = true
+		p.maxSpeed.Update()
+		for i, sequence := range p.sequences {
+			p.current = uint8(i + 1)
+			err := sequence.Start()
+			if err != nil {
+				log.Error(err, "pit stop sequence failed")
+			}
+		}
+		p.active = false
+		err := trigger(triggerCarPitStopComplete)
+		if err != nil {
+			log.Error(errors.WithMessage(err, "pit stop completion failed"))
+			return
+		}
+	}()
+	return nil
 }

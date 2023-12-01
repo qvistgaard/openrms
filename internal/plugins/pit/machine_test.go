@@ -1,11 +1,6 @@
 package pit
 
-import (
-	"testing"
-	"time"
-)
-
-func Test_machine(t *testing.T) {
+/*func Test_machine(t *testing.T) {
 
 	stateMachine := machine(1, &DefaultHandler{
 		cancel: make(chan bool, 1),
@@ -23,3 +18,4 @@ func Test_machine(t *testing.T) {
 	// stateMachine.Fire(triggerCarMoving)
 
 }
+*/

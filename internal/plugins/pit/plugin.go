@@ -10,10 +10,10 @@ import (
 
 type Plugin struct {
 	state    map[types.CarId]*state
-	pitstops []Stop
+	pitstops []SequencePlugin
 }
 
-func New(stops ...Stop) *Plugin {
+func New(stops ...SequencePlugin) *Plugin {
 	return &Plugin{
 		state:    make(map[types.CarId]*state),
 		pitstops: stops,
@@ -22,20 +22,25 @@ func New(stops ...Stop) *Plugin {
 
 type state struct {
 	machine *stateless.StateMachine
+	handler Handler
 }
 
 func (p *Plugin) ConfigureCar(car *car.Car) {
 	carId := car.Id()
-	handler := &DefaultHandler{car: car}
+	handler := &DefaultHandler{car: car, active: false, maxSpeed: car.PitLaneMaxSpeed()}
 	p.state[carId] = &state{
+		handler: handler,
 		machine: machine(handler),
 	}
 	carState := p.state[carId]
 
 	for _, ps := range p.pitstops {
-		ps.ConfigurePitStop(car)
+		handler.sequences = append(handler.sequences, ps.ConfigurePitSequence(car.Id()))
 	}
 
+	car.PitLaneMaxSpeed().Modifier(func(u uint8) (uint8, bool) {
+		return 0, handler.active
+	}, 10000)
 	car.Pit().RegisterObserver(func(b bool, annotations observable.Annotations) {
 		var err error
 		if !b {
