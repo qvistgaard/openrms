@@ -4,14 +4,19 @@ import (
 	"github.com/qvistgaard/openrms/internal/types"
 )
 
-type PitStop interface {
+type Stop interface {
 	Start() error
+	ConfigurePitStop(car Car)
+}
+
+type Car interface {
+	Id() types.CarId
 }
 
 type Handler interface {
-	PitStop
 	Id() types.CarId
 	OnCarStop(MachineTriggerFunc) error
 	OnCarStart() error
 	OnComplete() error
+	Start(MachineTriggerFunc) error
 }

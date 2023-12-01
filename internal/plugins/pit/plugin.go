@@ -9,22 +9,32 @@ import (
 )
 
 type Plugin struct {
-	state map[types.CarId]*state
+	state    map[types.CarId]*state
+	pitstops []Stop
+}
+
+func New(stops ...Stop) *Plugin {
+	return &Plugin{
+		state:    make(map[types.CarId]*state),
+		pitstops: stops,
+	}
 }
 
 type state struct {
 	machine *stateless.StateMachine
-	handler Handler
 }
 
-func (p Plugin) ConfigureCar(car *car.Car) {
+func (p *Plugin) ConfigureCar(car *car.Car) {
 	carId := car.Id()
 	handler := &DefaultHandler{car: car}
 	p.state[carId] = &state{
-		handler: handler,
 		machine: machine(handler),
 	}
 	carState := p.state[carId]
+
+	for _, ps := range p.pitstops {
+		ps.ConfigurePitStop(car)
+	}
 
 	car.Pit().RegisterObserver(func(b bool, annotations observable.Annotations) {
 		var err error
@@ -61,14 +71,14 @@ func (p Plugin) ConfigureCar(car *car.Car) {
 
 }
 
-func (p Plugin) InitializeCar(_ *car.Car) {
+func (p *Plugin) InitializeCar(_ *car.Car) {
 	// NOOP
 }
 
-func (p Plugin) Priority() int {
+func (p *Plugin) Priority() int {
 	return 100
 }
 
-func (p Plugin) Name() string {
+func (p *Plugin) Name() string {
 	return "pit"
 }

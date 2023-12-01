@@ -8,8 +8,9 @@ import (
 )
 
 type DefaultHandler struct {
-	cancel chan bool
-	car    *car.Car
+	cancel  chan bool
+	car     *car.Car
+	actions []*Stop
 }
 
 func (p *DefaultHandler) OnComplete() error {
@@ -50,7 +51,8 @@ func (p *DefaultHandler) OnCarStop(trigger MachineTriggerFunc) error {
 	return nil
 }
 
-func (p *DefaultHandler) Start() error {
+func (p *DefaultHandler) Start(trigger MachineTriggerFunc) error {
 	log.Info("PIT RUNNING")
-	return nil
+
+	return trigger(triggerCarPitStopComplete)
 }

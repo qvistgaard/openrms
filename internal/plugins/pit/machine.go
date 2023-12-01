@@ -111,11 +111,9 @@ func machine(h Handler) *stateless.StateMachine {
 
 func startPitStop(m *stateless.StateMachine, h Handler) func(ctx context.Context, args ...any) error {
 	return func(ctx context.Context, args ...any) error {
-		err := h.Start()
-		if err != nil {
-			return err
-		}
-		return m.Fire(triggerCarPitStopComplete)
+		return h.Start(func(trigger MachineTrigger) error {
+			return m.Fire(trigger)
+		})
 	}
 }
 
