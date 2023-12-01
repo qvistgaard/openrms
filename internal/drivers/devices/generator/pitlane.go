@@ -11,6 +11,6 @@ func NewPitLane() *PitLane {
 	return &PitLane{}
 }
 
-func (p *PitLane) LapCounting(enabled bool, option drivers.PitLaneLapCounting) {
+func (p *PitLane) LapCounting(_ bool, _ drivers.PitLaneLapCounting) {
 
 }

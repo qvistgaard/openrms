@@ -133,7 +133,7 @@ plugins:
     enabled: true
   race:
     enabled: false
-  leaderboard:
+  telemetry:
     enabled: true
   limb-mode:
     enabled: true

@@ -27,7 +27,7 @@ type Car interface {
 
 	// Id returns the unique identifier for the car, crucial for tracking and management
 	// in the OpenRMS.
-	Id() types.Id
+	Id() types.CarId
 }
 
 // PitLaneLapCounting enum provides modes for lap counting within the pit lane in OpenRMS.
@@ -91,9 +91,9 @@ type Driver interface {
 	// in OpenRMS.
 	Stop() error
 
-	// Car retrieves the Car interface for a specified car by its Id, key for
+	// Car retrieves the Car interface for a specified car by its CarId, key for
 	// driver-car interaction in OpenRMS.
-	Car(car types.Id) Car
+	Car(car types.CarId) Car
 
 	// Track provides access to the Track interface, essential for navigating
 	// and interacting with the race environment in OpenRMS.

@@ -11,8 +11,8 @@ import (
 	"reflect"
 )
 
-func NewCar(implementer drivers.Driver, settings *CarSettings, defaults *CarSettings, id types.Id) *Car {
-	settings = merge.Merge(defaults, settings).(*CarSettings)
+func NewCar(implementer drivers.Driver, settings *Settings, defaults *Settings, id types.CarId) *Car {
+	settings = merge.Merge(defaults, settings).(*Settings)
 
 	car := &Car{
 		implementer: implementer,
@@ -29,7 +29,7 @@ func NewCar(implementer drivers.Driver, settings *CarSettings, defaults *CarSett
 	return car
 }
 
-func (c *Car) initObservableProperties(settings *CarSettings) {
+func (c *Car) initObservableProperties(settings *Settings) {
 	c.maxBreaking = observable.Create(*settings.MaxBreaking)
 	c.maxSpeed = observable.Create(*settings.MaxSpeed)
 	c.minSpeed = observable.Create(*settings.MinSpeed)
@@ -69,7 +69,7 @@ func (c *Car) filters() {
 }
 
 type Car struct {
-	id              types.Id
+	id              types.CarId
 	implementer     drivers.Driver
 	controller      *controller.Controller
 	pit             observable.Observable[bool]
@@ -104,7 +104,7 @@ func (c *Car) Controller() *controller.Controller {
 	return c.controller
 }
 
-func (c *Car) Id() types.Id {
+func (c *Car) Id() types.CarId {
 	return c.id
 }
 

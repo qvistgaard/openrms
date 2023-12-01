@@ -6,7 +6,7 @@ import (
 )
 
 type RaceTelemetryEntry struct {
-	Car         Id
+	Car         CarId
 	Laps        Lap
 	Delta       time.Duration
 	Best        time.Duration
@@ -21,7 +21,7 @@ type RaceTelemetryEntry struct {
 	Name        string
 }
 
-type RaceTelemetry map[Id]*RaceTelemetryEntry
+type RaceTelemetry map[CarId]*RaceTelemetryEntry
 
 func (r RaceTelemetry) Sort() []RaceTelemetryEntry {
 	sorted := make([]RaceTelemetryEntry, 0, len(r))

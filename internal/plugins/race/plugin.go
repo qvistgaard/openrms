@@ -9,7 +9,7 @@ import (
 type Plugin struct {
 	Duration *time.Duration
 	Laps     *uint16
-	status   race.RaceStatus
+	status   race.Status
 }
 
 func New() (*Plugin, error) {
@@ -18,16 +18,16 @@ func New() (*Plugin, error) {
 
 func (p *Plugin) ConfigureRace(r *race.Race) {
 	r.Duration().RegisterObserver(func(duration time.Duration, annotations observable.Annotations) {
-		if p.Duration != nil && *p.Duration <= duration && p.status == race.RaceRunning {
+		if p.Duration != nil && *p.Duration <= duration && p.status == race.Running {
 			r.Stop()
 		}
 	})
 	r.Laps().RegisterObserver(func(laps uint16, annotations observable.Annotations) {
-		if p.Laps != nil && *p.Laps <= laps && p.status == race.RaceRunning {
+		if p.Laps != nil && *p.Laps <= laps && p.status == race.Running {
 			r.Stop()
 		}
 	})
-	r.Status().RegisterObserver(func(status race.RaceStatus, annotations observable.Annotations) {
+	r.Status().RegisterObserver(func(status race.Status, annotations observable.Annotations) {
 		p.status = status
 	})
 }

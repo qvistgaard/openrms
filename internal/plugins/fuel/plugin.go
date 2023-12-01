@@ -14,9 +14,9 @@ import (
 // It provides functionality for monitoring and managing fuel levels in cars during a race.
 type Plugin struct {
 	config    Config
-	carConfig map[types.Id]CarSettings
-	state     map[types.Id]*state
-	status    race.RaceStatus
+	carConfig map[types.CarId]CarSettings
+	state     map[types.CarId]*state
+	status    race.Status
 	limbMode  *limbmode.Plugin
 }
 
@@ -33,7 +33,7 @@ func New(config Config, limbMode *limbmode.Plugin) (*Plugin, error) {
 	return &Plugin{
 		config:   config,
 		limbMode: limbMode,
-		state:    make(map[types.Id]*state),
+		state:    make(map[types.CarId]*state),
 	}, nil
 }
 
@@ -102,7 +102,7 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 
 }
 
-func (p *Plugin) InitializeCar(c *car.Car) {
+func (p *Plugin) InitializeCar(_ *car.Car) {
 
 }
 
@@ -116,14 +116,14 @@ func (p *Plugin) Name() string {
 }
 
 // Fuel returns the observable fuel level for a given car.
-func (p *Plugin) Fuel(car types.Id) observable.Observable[float32] {
+func (p *Plugin) Fuel(car types.CarId) observable.Observable[float32] {
 	return p.state[car].fuel
 }
 
 // ConfigureRace configures the fuel plugin for a race.
 // It registers an observer for monitoring the race status.
 func (p *Plugin) ConfigureRace(r *race.Race) {
-	r.Status().RegisterObserver(func(status race.RaceStatus, a observable.Annotations) {
+	r.Status().RegisterObserver(func(status race.Status, a observable.Annotations) {
 		p.status = status
 	})
 }

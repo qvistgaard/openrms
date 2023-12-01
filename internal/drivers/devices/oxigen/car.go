@@ -22,16 +22,16 @@ const (
 	carMaxBreakingCode  = 0x05
 )
 
-func NewCar(oxigen *Oxigen, id types.Id) drivers.Car {
+func NewCar(oxigen *Oxigen, id types.CarId) drivers.Car {
 	return Car{id, oxigen}
 }
 
 type Car struct {
-	id     types.Id
+	id     types.CarId
 	oxigen *Oxigen
 }
 
-func (c Car) Id() types.Id {
+func (c Car) Id() types.CarId {
 	return c.id
 }
 

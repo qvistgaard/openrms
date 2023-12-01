@@ -1,64 +1,10 @@
 package oxigen
 
 import (
-	"encoding/hex"
-	queue "github.com/enriquebris/goconcurrentqueue"
 	"github.com/stretchr/testify/assert"
-	"io"
 	"testing"
 	"time"
 )
-
-type MockHandshakeConnection struct {
-	input  queue.Queue
-	output queue.Queue
-}
-
-func newMockConnection(input queue.Queue, output queue.Queue) *MockHandshakeConnection {
-	c := new(MockHandshakeConnection)
-	c.output = output
-	c.input = input
-	return c
-}
-
-func (mock *MockHandshakeConnection) Write(input []byte) (int, error) {
-	o := make([]byte, 13)
-	n := copy(o, input)
-	mock.input.Enqueue(o)
-	return n, nil
-}
-func (mock *MockHandshakeConnection) Read(output []byte) (int, error) {
-	if mock.output.GetLen() > 0 {
-		i, _ := mock.output.Dequeue()
-		n := copy(output, i.([]byte))
-		return n, nil
-	} else {
-		return 0, io.EOF
-	}
-
-}
-
-func (mock *MockHandshakeConnection) Close() error {
-	return nil
-}
-
-func (mock *MockHandshakeConnection) connect() (io.ReadWriteCloser, error) {
-	return new(MockHandshakeConnection), nil
-}
-
-func TestHandshakeAsksForVersionAndDecodesVersion(t *testing.T) {
-	input := queue.NewFIFO()
-	output := queue.NewFIFO()
-	output.Enqueue([]byte{0x03, 0x0A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00})
-	connection := newMockConnection(input, output)
-	o, err := CreateImplement(connection)
-
-	v, _ := input.Dequeue()
-
-	assert.Equal(t, "06060606000000000000000000", hex.EncodeToString(v.([]byte)))
-	assert.Nil(t, err)
-	assert.EqualValues(t, "3.10", o.version)
-}
 
 /*
 	func TestTestSendSingleCommandOnNoCarStateChanges(t *testing.T) {

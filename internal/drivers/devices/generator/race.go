@@ -7,7 +7,7 @@ import (
 )
 
 type Race struct {
-	raceStatus race.RaceStatus
+	raceStatus race.Status
 	laps       uint32
 	raceStart  time.Time
 }
@@ -18,24 +18,24 @@ func NewRace() *Race {
 
 func (r *Race) Start() {
 	log.Info("Race started")
-	r.raceStatus = race.RaceRunning
+	r.raceStatus = race.Running
 	r.raceStart = time.Now()
 	r.laps = 0
 }
 
 func (r *Race) Flag() {
 	log.Info("Race Flagged")
-	r.raceStatus = race.RaceFlagged
+	r.raceStatus = race.Flagged
 
 }
 
 func (r *Race) Pause() {
 	log.Info("Race paused")
-	r.raceStatus = race.RacePaused
+	r.raceStatus = race.Paused
 
 }
 
 func (r *Race) Stop() {
 	log.Info("Race stopped")
-	r.raceStatus = race.RaceStopped
+	r.raceStatus = race.Stopped
 }

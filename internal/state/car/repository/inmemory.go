@@ -9,9 +9,9 @@ import (
 )
 
 type InMemory struct {
-	cars      map[types.Id]*car.Car
-	config    map[types.Id]*car.CarSettings
-	defaults  *car.CarSettings
+	cars      map[types.CarId]*car.Car
+	config    map[types.CarId]*car.Settings
+	defaults  *car.Settings
 	plugins   plugins.List
 	implement drivers.Driver
 }
@@ -37,8 +37,8 @@ func New(config car.Config, driver drivers.Driver, plugins plugins.List) Reposit
 	}
 
 	ccr := new(InMemory)
-	ccr.cars = make(map[types.Id]*car.Car)
-	ccr.config = make(map[types.Id]*car.CarSettings)
+	ccr.cars = make(map[types.CarId]*car.Car)
+	ccr.config = make(map[types.CarId]*car.Settings)
 	ccr.defaults = config.Car.Defaults
 	ccr.plugins = plugins
 	ccr.implement = driver
@@ -49,11 +49,11 @@ func New(config car.Config, driver drivers.Driver, plugins plugins.List) Reposit
 	return ccr
 }
 
-func (c *InMemory) Get(id types.Id) (*car.Car, bool, bool) {
+func (c *InMemory) Get(id types.CarId) (*car.Car, bool, bool) {
 	carCreated := false
 	if _, ok := c.cars[id]; !ok {
 		if _, ok := c.config[id]; !ok {
-			c.config[id] = &car.CarSettings{}
+			c.config[id] = &car.Settings{}
 		}
 
 		if c.config[id].Drivers == nil {

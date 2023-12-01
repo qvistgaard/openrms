@@ -12,7 +12,7 @@ import (
 var names embed.FS
 
 func RandomDriver() string {
-	name, err := getRandomLine("drivers.txt")
+	name, err := getRandomLine("report.gohtml")
 	if err != nil {
 		log.Error(err)
 		return err.Error()

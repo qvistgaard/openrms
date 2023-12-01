@@ -8,13 +8,13 @@ import (
 )
 
 type Plugin struct {
-	state     map[types.Id]observable.Observable[bool]
-	carConfig map[types.Id]*LimbModeConfig
+	state     map[types.CarId]observable.Observable[bool]
+	carConfig map[types.CarId]*LimbModeConfig
 	config    *Config
 }
 
 func New(config *Config) (*Plugin, error) {
-	carConfig := map[types.Id]*LimbModeConfig{}
+	carConfig := map[types.CarId]*LimbModeConfig{}
 	for _, v := range config.Car.Cars {
 		if v.LimbMode == nil {
 			v.LimbMode = &LimbModeConfig{}
@@ -28,7 +28,7 @@ func New(config *Config) (*Plugin, error) {
 	return &Plugin{
 		config:    config,
 		carConfig: carConfig,
-		state:     make(map[types.Id]observable.Observable[bool]),
+		state:     make(map[types.CarId]observable.Observable[bool]),
 	}, nil
 }
 
@@ -53,17 +53,17 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 	})
 }
 
-func (p *Plugin) InitializeCar(c *car.Car) {
+func (p *Plugin) InitializeCar(_ *car.Car) {
 
 }
 
 func (p *Plugin) ConfigureRace(r *race.Race) {
-	r.Status().RegisterObserver(func(status race.RaceStatus, annotations observable.Annotations) {
+	r.Status().RegisterObserver(func(status race.Status, annotations observable.Annotations) {
 
 	})
 }
 
-func (p *Plugin) LimbMode(carId types.Id) observable.Observable[bool] {
+func (p *Plugin) LimbMode(carId types.CarId) observable.Observable[bool] {
 	return p.state[carId]
 }
 

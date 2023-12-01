@@ -5,6 +5,7 @@ import (
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/qvistgaard/openrms/internal/plugins/telemetry"
 	"github.com/qvistgaard/openrms/internal/tui/commands"
 	"github.com/qvistgaard/openrms/internal/tui/messages"
 	"github.com/qvistgaard/openrms/internal/types"
@@ -18,7 +19,7 @@ type Leaderboard struct {
 	table         table.Model
 	width         int
 	rows          []table.Row
-	raceTelemetry types.RaceTelemetry
+	raceTelemetry telemetry.Race
 }
 
 var (
@@ -130,13 +131,13 @@ func (l Leaderboard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			l.rows = append(l.rows, table.Row{
 				alignRight.Width(3).Render(strconv.Itoa(k + 1)),
-				v.Name,
-				alignRight.Width(3).Render(strconv.Itoa(int(v.Car))),
+				v.Team,
+				alignRight.Width(3).Render(strconv.Itoa(int(v.Id))),
 				alignRight.Width(4).Render(fmt.Sprintf("%.f", v.Fuel)),
-				alignRight.Width(7).Render(formatDurationSecondsMilliseconds(v.Last)),
+				alignRight.Width(7).Render(formatDurationSecondsMilliseconds(v.Last.Time)),
 				alignRight.Width(7).Render(formatDurationSecondsMilliseconds(v.Delta)),
 				alignRight.Width(7).Render(formatDurationSecondsMilliseconds(v.Best)),
-				alignRight.Width(4).Render(strconv.Itoa(int(v.Laps.Number))),
+				alignRight.Width(4).Render(strconv.Itoa(int(v.Last.Number))),
 				alignRight.Width(3).AlignHorizontal(lipgloss.Center).Render(inPitString),
 				alignRight.Width(2).AlignHorizontal(lipgloss.Right).Render(lmMode),
 				alignRight.Width(2).AlignHorizontal(lipgloss.Right).Render(deslotted),

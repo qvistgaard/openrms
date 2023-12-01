@@ -3,7 +3,7 @@ package configuration
 import (
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v3"
-	"io/ioutil"
+	"os"
 )
 
 type Config map[string]interface{}
@@ -15,20 +15,20 @@ type Config map[string]interface{}
 //
 // Example usage:
 //
-//   filePath := "path/to/your/config.yaml"
+//	filePath := "path/to/your/config.yaml"
 //
-//   config, err := FromFile(&filePath)
-//   if err != nil {
-//       log.Fatal("Failed to load configuration from file: ", err)
-//   }
+//	config, err := FromFile(&filePath)
+//	if err != nil {
+//	    log.Fatal("Failed to load configuration from file: ", err)
+//	}
 //
-//   // Use the 'config' map for accessing configuration settings.
+//	// Use the 'config' map for accessing configuration settings.
 //
 // Returns:
 //   - A `Config` map representing the parsed configuration settings.
 //   - An error if there was an issue reading or parsing the configuration file.
 func FromFile(file *string) (Config, error) {
-	b, err := ioutil.ReadFile(*file)
+	b, err := os.ReadFile(*file)
 	if err != nil {
 		return nil, errors.WithMessage(err, "failed to configuration from file")
 	}

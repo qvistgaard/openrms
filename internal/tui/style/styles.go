@@ -62,24 +62,6 @@ var (
 
 	*/
 
-	Button = struct {
-		Focused lipgloss.Style
-		Blurred lipgloss.Style
-		Caption struct {
-			Focused lipgloss.Style
-			Blurred lipgloss.Style
-		}
-	}{
-		Focused: lipgloss.NewStyle().Foreground(lipgloss.Color("205")).PaddingLeft(1).PaddingRight(2),
-		Blurred: lipgloss.NewStyle().Foreground(lipgloss.Color("240")).PaddingLeft(1).PaddingRight(2),
-		Caption: struct {
-			Focused lipgloss.Style
-			Blurred lipgloss.Style
-		}{
-			Focused: lipgloss.NewStyle().Foreground(lipgloss.Color("205")).PaddingLeft(1).PaddingRight(2),
-			Blurred: lipgloss.NewStyle().Foreground(lipgloss.Color("240")).PaddingLeft(1).PaddingRight(2),
-		},
-	}
 )
 
 type formField struct {

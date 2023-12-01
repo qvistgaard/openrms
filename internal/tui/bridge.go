@@ -3,8 +3,8 @@ package tui
 import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/madflojo/tasks"
-	"github.com/qvistgaard/openrms/internal/plugins/leaderboard"
 	race2 "github.com/qvistgaard/openrms/internal/plugins/race"
+	"github.com/qvistgaard/openrms/internal/plugins/telemetry"
 	"github.com/qvistgaard/openrms/internal/state/car/repository"
 	"github.com/qvistgaard/openrms/internal/state/observable"
 	"github.com/qvistgaard/openrms/internal/state/race"
@@ -17,9 +17,9 @@ import (
 )
 
 type Bridge struct {
-	Leaderboard   *leaderboard.Plugin
+	Leaderboard   *telemetry.Plugin
 	Scheduler     *tasks.Scheduler
-	RaceTelemetry types.RaceTelemetry
+	RaceTelemetry telemetry.Race
 	Program       *tea.Program
 	Race          *race.Race
 	Track         *track.Track
@@ -27,12 +27,12 @@ type Bridge struct {
 	messages      <-chan tea.Msg
 	Cars          repository.Repository
 	duration      time.Duration
-	status        race.RaceStatus
+	status        race.Status
 	racePlugin    *race2.Plugin
 	trackMaxSpeed uint8
 }
 
-func CreateBridge(leaderboard *leaderboard.Plugin, plugin *race2.Plugin, scheduler *tasks.Scheduler, track *track.Track, cars repository.Repository, race *race.Race) *Bridge {
+func CreateBridge(leaderboard *telemetry.Plugin, plugin *race2.Plugin, scheduler *tasks.Scheduler, track *track.Track, cars repository.Repository, race *race.Race) *Bridge {
 	bridgeChannel := make(chan tea.Msg)
 
 	return &Bridge{
@@ -54,10 +54,10 @@ func (bridge *Bridge) Run() {
 	bridge.Race.Duration().RegisterObserver(func(duration time.Duration, annotations observable.Annotations) {
 		bridge.duration = duration
 	})
-	bridge.Race.Status().RegisterObserver(func(status race.RaceStatus, annotations observable.Annotations) {
+	bridge.Race.Status().RegisterObserver(func(status race.Status, annotations observable.Annotations) {
 		bridge.status = status
 	})
-	bridge.Leaderboard.RegisterObserver(func(telemetry types.RaceTelemetry, annotations observable.Annotations) {
+	bridge.Leaderboard.RegisterObserver(func(telemetry telemetry.Race, annotations observable.Annotations) {
 		bridge.RaceTelemetry = telemetry
 	})
 	bridge.Track.MaxSpeed().RegisterObserver(func(maxSpeed uint8, annotations observable.Annotations) {

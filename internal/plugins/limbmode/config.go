@@ -9,7 +9,7 @@ type LimbModeConfig struct {
 }
 
 type CarSettings struct {
-	Id       *types.Id       `mapstructure:"id"`
+	Id       *types.CarId    `mapstructure:"id"`
 	LimbMode *LimbModeConfig `mapstructure:"limb-mode"`
 }
 

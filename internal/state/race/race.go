@@ -6,22 +6,22 @@ import (
 	"time"
 )
 
-type RaceStatus int
+type Status int
 
 const (
-	RaceStopped RaceStatus = iota
-	RacePaused
-	RaceRunning
-	RaceFlagged
+	Stopped Status = iota
+	Paused
+	Running
+	Flagged
 )
 
 type Race struct {
 	implementer drivers.Driver
-	status      observable.Observable[RaceStatus]
+	status      observable.Observable[Status]
 	duration    observable.Observable[time.Duration]
 	laps        observable.Observable[uint16]
 
-	raceStatus   RaceStatus
+	raceStatus   Status
 	raceDuration time.Duration
 	raceStart    time.Time
 }
@@ -29,16 +29,16 @@ type Race struct {
 func New(_ Config, implementer drivers.Driver) (*Race, error) {
 	return &Race{
 		implementer: implementer,
-		status:      observable.Create(RaceStopped).Filter(filterRaceStatusChange()),
+		status:      observable.Create(Stopped).Filter(filterRaceStatusChange()),
 		duration:    observable.Create(time.Second * 0),
 		laps:        observable.Create(uint16(0)).Filter(filterTotalLapsCountChange()), // observable.Annotation{annotations.RaceValueFieldName, fields.RaceStatus},
 	}, nil
 }
 
 func (r *Race) Start() {
-	r.raceStatus = RaceRunning
+	r.raceStatus = Running
 	r.raceStart = time.Now()
-	if r.raceStatus == RaceStopped {
+	if r.raceStatus == Stopped {
 		r.raceDuration = time.Second * 0
 	}
 	r.implementer.Race().Start()
@@ -47,21 +47,21 @@ func (r *Race) Start() {
 
 func (r *Race) Flag() {
 	r.implementer.Race().Flag()
-	r.raceStatus = RaceFlagged
+	r.raceStatus = Flagged
 	r.status.Set(r.raceStatus)
 }
 
 func (r *Race) Stop() {
 	r.raceDuration = calculateRaceDuration(r.raceDuration, r.raceStart, time.Now())
 	r.implementer.Race().Stop()
-	r.raceStatus = RaceStopped
+	r.raceStatus = Stopped
 	r.status.Set(r.raceStatus)
 }
 
 func (r *Race) Pause() {
 	r.raceDuration = calculateRaceDuration(r.raceDuration, r.raceStart, time.Now())
 	r.implementer.Race().Pause()
-	r.raceStatus = RacePaused
+	r.raceStatus = Paused
 	r.status.Set(r.raceStatus)
 }
 
@@ -73,13 +73,13 @@ func (r *Race) Laps() observable.Observable[uint16] {
 	return r.laps
 }
 
-func (r *Race) Status() observable.Observable[RaceStatus] {
+func (r *Race) Status() observable.Observable[Status] {
 	return r.status
 }
 
-func (r *Race) UpdateFromEvent(e drivers.Event) {
+func (r *Race) UpdateFromEvent(_ drivers.Event) {
 	// r.laps.Set(e.Car().Lap().Number()) TOOD  fix this
-	if r.raceStatus == RaceRunning {
+	if r.raceStatus == Running {
 		r.duration.Set(calculateRaceDuration(r.raceDuration, r.raceStart, time.Now()))
 	}
 }

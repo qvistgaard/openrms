@@ -24,7 +24,7 @@ type Oxigen struct {
 	commands   chan Command
 	bufferSize int
 	mutex      sync.Mutex
-	cars       map[types.Id]Car
+	cars       map[types.CarId]Car
 	track      *Track
 	race       *Race
 	running    bool
@@ -83,7 +83,7 @@ func CreateImplement(serial io.ReadWriteCloser) (*Oxigen, error) {
 		serial:     serial,
 		commands:   make(chan Command, 1024),
 		bufferSize: 1024,
-		cars:       make(map[types.Id]Car),
+		cars:       make(map[types.CarId]Car),
 		track:      NewTrack(),
 		race:       NewRace(),
 	}
@@ -117,7 +117,7 @@ func CreateImplement(serial io.ReadWriteCloser) (*Oxigen, error) {
 	return o, nil
 }
 
-func (o *Oxigen) Car(car types.Id) drivers.Car {
+func (o *Oxigen) Car(car types.CarId) drivers.Car {
 	return NewCar(o, car)
 }
 
@@ -284,7 +284,7 @@ func (o *Oxigen) event(c chan<- drivers.Event, b []byte) {
 					drivers.Event{
 				RaceTimer: unpackRaceTime([4]byte{b[9], b[10], b[11], b[12]}, b[4]),
 				Car: drivers.Car{
-					Id:        types.IdFromUint(b[1]),
+					CarId:        types.IdFromUint(b[1]),
 					Reset:     0x01&b[0] == 0x01,
 					InPit:     0x40&b[8] == 0x40,
 					Deslotted: !(0x80&b[7] == 0x80),

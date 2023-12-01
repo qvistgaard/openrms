@@ -15,8 +15,8 @@ type Config struct {
 
 // CarSettings represents the configuration settings for an individual car.
 type CarSettings struct {
-	Id         *types.Id   `mapstructure:"id"`
-	FuelConfig *FuelConfig `mapstructure:"fuel"`
+	Id         *types.CarId `mapstructure:"id"`
+	FuelConfig *FuelConfig  `mapstructure:"fuel"`
 }
 
 // FuelConfig represents the fuel-related configuration settings for a car.

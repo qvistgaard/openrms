@@ -11,5 +11,5 @@ type Settings struct {
 }
 
 type Repository interface {
-	Get(id types.Id) (*car.Car, bool, bool)
+	Get(id types.CarId) (*car.Car, bool, bool)
 }

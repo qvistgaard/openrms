@@ -6,17 +6,17 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func NewCar(id uint8, lap uint32) drivers.Car {
+func NewCar(id types.CarId, lap uint32) drivers.Car {
 	return &Car{id, lap}
 }
 
 type Car struct {
-	id  byte
+	id  types.CarId
 	lap uint32
 }
 
-func (c Car) Id() types.Id {
-	return types.IdFromUint(c.id)
+func (c Car) Id() types.CarId {
+	return c.id
 }
 
 func (c Car) SetMaxSpeed(percent uint8) {

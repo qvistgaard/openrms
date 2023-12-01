@@ -16,15 +16,6 @@ var groupStyle = lipgloss.NewStyle().
 	Foreground(lipgloss.Color("250")).
 	Width(7)
 
-var helpStyle = lipgloss.NewStyle().
-	Width(20)
-
-var headingStyle = lipgloss.NewStyle().
-	Width(20).
-	BorderForeground(lipgloss.Color("240")).
-	BorderStyle(lipgloss.NormalBorder()).
-	BorderBottom(true)
-
 type Header struct {
 	width int
 }

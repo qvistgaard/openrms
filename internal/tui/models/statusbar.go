@@ -12,7 +12,7 @@ import (
 type StatusBar struct {
 	width      int
 	raceTime   time.Duration
-	raceStatus race.RaceStatus
+	raceStatus race.Status
 }
 
 func (s StatusBar) Init() tea.Cmd {
@@ -49,15 +49,15 @@ func formatDuration(d time.Duration) string {
 	return fmt.Sprintf("%02d:%02d:%02d", hours, minutes, seconds)
 }
 
-func formatRaceStatus(status race.RaceStatus) string {
+func formatRaceStatus(status race.Status) string {
 	switch status {
-	case race.RaceRunning:
+	case race.Running:
 		return "Running"
-	case race.RaceStopped:
+	case race.Stopped:
 		return "Stopped"
-	case race.RaceFlagged:
+	case race.Flagged:
 		return "Flagged"
-	case race.RacePaused:
+	case race.Paused:
 		return "Paused"
 	}
 	return "N/A"

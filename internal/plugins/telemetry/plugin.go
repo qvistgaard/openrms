@@ -1,25 +1,29 @@
-package leaderboard
+package telemetry
 
 import (
+	"github.com/pkg/errors"
 	"github.com/qvistgaard/openrms/internal/plugins/fuel"
 	"github.com/qvistgaard/openrms/internal/plugins/limbmode"
 	"github.com/qvistgaard/openrms/internal/state/car"
 	"github.com/qvistgaard/openrms/internal/state/observable"
+	"github.com/qvistgaard/openrms/internal/state/race"
 	"github.com/qvistgaard/openrms/internal/types"
+	log "github.com/sirupsen/logrus"
 	"time"
 )
 
 type Plugin struct {
-	listener       observable.Observable[types.RaceTelemetry]
-	telemetry      types.RaceTelemetry
+	listener       observable.Observable[Race]
+	telemetry      Race
 	fuelPlugin     *fuel.Plugin
 	limbModePlugin *limbmode.Plugin
+	status         race.Status
 }
 
 func New(fuelPlugin *fuel.Plugin, limbModePlugin *limbmode.Plugin) *Plugin {
 	return &Plugin{
-		listener:       observable.Create(make(types.RaceTelemetry)),
-		telemetry:      make(types.RaceTelemetry),
+		listener:       observable.Create(make(Race)),
+		telemetry:      make(Race),
 		fuelPlugin:     fuelPlugin,
 		limbModePlugin: limbModePlugin,
 	}
@@ -30,15 +34,15 @@ func (p *Plugin) Priority() int {
 }
 
 func (p *Plugin) Name() string {
-	return "leaderboard"
+	return "telemetry"
 }
 
 func (p *Plugin) ConfigureCar(car *car.Car) {
 
 	id := car.Id()
 	if entry, ok := p.telemetry[id]; !ok {
-		entry = &types.RaceTelemetryEntry{
-			Car: id,
+		entry = &Entry{
+			Id: id,
 		}
 		p.telemetry[id] = entry
 	}
@@ -69,22 +73,42 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 	})
 
 	car.LastLap().RegisterObserver(func(lap types.Lap, a observable.Annotations) {
-		p.telemetry[id].Laps = lap
-		p.telemetry[id].Delta = time.Duration(lap.Time.Nanoseconds() - p.telemetry[id].Last.Nanoseconds())
-		p.telemetry[id].Last = lap.Time
-		if p.telemetry[id].Best == 0 || p.telemetry[id].Last < p.telemetry[id].Best {
-			p.telemetry[id].Best = p.telemetry[id].Last
+		p.telemetry[id].Laps = append(p.telemetry[id].Laps, lap)
+		p.telemetry[id].Delta = time.Duration(lap.Time.Nanoseconds() - p.telemetry[id].Last.Time.Nanoseconds())
+		p.telemetry[id].Last = lap
+		if p.telemetry[id].Best == 0 || p.telemetry[id].Last.Time < p.telemetry[id].Best {
+			p.telemetry[id].Best = p.telemetry[id].Last.Time
 		}
-		p.telemetry[id].Name = car.Team().Get()
+		p.telemetry[id].Team = car.Team().Get()
 		p.updateLeaderboard()
 	})
 }
 
-func (p *Plugin) InitializeCar(c *car.Car) {
-
+func (p *Plugin) ConfigureRace(r *race.Race) {
+	r.Status().RegisterObserver(func(status race.Status, annotations observable.Annotations) {
+		if status == race.Running && p.status == race.Stopped {
+			for carId := range p.telemetry {
+				p.telemetry[carId] = &Entry{
+					Id: carId,
+				}
+			}
+			p.status = race.Running
+		}
+		if status == race.Stopped {
+			p.status = status
+			err := report(p.telemetry)
+			if err != nil {
+				log.Error(errors.WithMessage(err, "failed to write race report"))
+			}
+		}
+	})
 }
 
-func (p *Plugin) RegisterObserver(observer observable.Observer[types.RaceTelemetry]) {
+func (p *Plugin) InitializeCar(_ *car.Car) {
+	// NOOP
+}
+
+func (p *Plugin) RegisterObserver(observer observable.Observer[Race]) {
 	p.listener.RegisterObserver(observer)
 }
 

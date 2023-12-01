@@ -5,7 +5,7 @@ import (
 	"github.com/madflojo/tasks"
 	"github.com/pkg/browser"
 	"github.com/qvistgaard/openrms/cmd/openrms/configuration"
-	"github.com/qvistgaard/openrms/internal/plugins/leaderboard"
+	"github.com/qvistgaard/openrms/internal/plugins/telemetry"
 	"github.com/qvistgaard/openrms/internal/rms"
 	"github.com/qvistgaard/openrms/internal/tui"
 	log "github.com/sirupsen/logrus"
@@ -75,7 +75,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	leaderboardPlugin := leaderboard.New(fuelPlugin, limpModePlugin)
+	leaderboardPlugin := telemetry.New(fuelPlugin, limpModePlugin)
 
 	plugins, err := configuration.Plugins(cfg)
 	if err != nil {

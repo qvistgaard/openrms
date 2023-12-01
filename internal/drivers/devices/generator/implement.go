@@ -22,7 +22,7 @@ func (g *Generator) Start(c chan<- drivers.Event) error {
 	g.started = true
 
 	for i := 1; i <= int(g.cars); i++ {
-		go g.eventGenerator(uint8(i), c, g.interval)
+		go g.eventGenerator(types.CarId(i), c, g.interval)
 		time.Sleep(250 * time.Millisecond)
 	}
 	go g.updateLapCounter()
@@ -38,8 +38,8 @@ func (g *Generator) Stop() error {
 	return nil
 }
 
-func (g *Generator) Car(car types.Id) drivers.Car {
-	return NewCar(uint8(car.ToUint()), 0)
+func (g *Generator) Car(car types.CarId) drivers.Car {
+	return NewCar(car, 0)
 }
 
 func (g *Generator) Track() drivers.Track {
@@ -50,7 +50,7 @@ func (g *Generator) Race() drivers.Race {
 	return g.race
 }
 
-func (g *Generator) eventGenerator(carId uint8, c chan<- drivers.Event, interval uint) {
+func (g *Generator) eventGenerator(carId types.CarId, c chan<- drivers.Event, interval uint) {
 	g.waitGroup.Add(1)
 	g.race.laps = uint32(0)
 

@@ -14,7 +14,7 @@ func NewTrack() *Track {
 	}
 }
 
-func (t *Track) MaxSpeed(percent uint8) {
+func (t *Track) MaxSpeed(_ uint8) {
 
 }
 

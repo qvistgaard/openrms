@@ -27,7 +27,7 @@ type Main struct {
 	RaceControl        tea.Model
 	width              int
 	height             int
-	raceStatus         race.RaceStatus
+	raceStatus         race.Status
 	TrackConfiguration tea.Model
 }
 
@@ -48,7 +48,7 @@ func (m Main) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+c":
 			return m, tea.Quit
 		case "r":
-			if m.raceStatus == race.RaceStopped {
+			if m.raceStatus == race.Stopped {
 				m.ActiveView = ViewRaceConfiguration
 				return m, nil
 			} else {
