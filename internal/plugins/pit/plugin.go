@@ -46,7 +46,7 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 	car.PitLaneMaxSpeed().Modifier(func(u uint8) (uint8, bool) {
 		return 0, handler.active.Get()
 	}, 10000)
-	car.Pit().RegisterObserver(func(b bool, annotations observable.Annotations) {
+	car.Pit().RegisterObserver(func(b bool) {
 		var err error
 		if !b {
 			err = carState.machine.Fire(triggerCarExitedPitLane)
@@ -58,14 +58,14 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 		}
 	})
 
-	car.Controller().ButtonTrackCall().RegisterObserver(func(b bool, annotations observable.Annotations) {
+	car.Controller().ButtonTrackCall().RegisterObserver(func(b bool) {
 		if b {
 			inState, err := carState.machine.IsInState(triggerCarStopped)
 			if err != nil {
 				log.Error(err)
 			}
 			if inState {
-				err := carState.machine.Fire(triggerCarPitStopConfirmed)
+				err = carState.machine.Fire(triggerCarPitStopConfirmed)
 				if err != nil {
 					log.Error(err)
 				}
@@ -73,7 +73,7 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 		}
 	})
 
-	car.Controller().TriggerValue().RegisterObserver(func(u uint8, annotations observable.Annotations) {
+	car.Controller().TriggerValue().RegisterObserver(func(u uint8) {
 		inState, err := carState.machine.IsInState(stateCarInPitLane)
 		if err != nil {
 			log.Error(err)

@@ -44,16 +44,16 @@ func (c *Car) initObservableProperties(settings *Settings) {
 }
 
 func (c *Car) registerObservers() {
-	c.maxSpeed.RegisterObserver(func(u uint8, a observable.Annotations) {
+	c.maxSpeed.RegisterObserver(func(u uint8) {
 		c.implementer.Car(c.id).SetMaxSpeed(u)
 	})
-	c.minSpeed.RegisterObserver(func(u uint8, a observable.Annotations) {
+	c.minSpeed.RegisterObserver(func(u uint8) {
 		c.implementer.Car(c.id).SetMinSpeed(u)
 	})
-	c.pitLaneMaxSpeed.RegisterObserver(func(u uint8, a observable.Annotations) {
+	c.pitLaneMaxSpeed.RegisterObserver(func(u uint8) {
 		c.implementer.Car(c.id).SetPitLaneMaxSpeed(u)
 	})
-	c.maxBreaking.RegisterObserver(func(u uint8, a observable.Annotations) {
+	c.maxBreaking.RegisterObserver(func(u uint8) {
 		c.implementer.Car(c.id).SetMaxBreaking(u)
 	})
 }

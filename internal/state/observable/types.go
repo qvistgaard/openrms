@@ -4,12 +4,11 @@ import "sort"
 
 // Value is a data structure that allows observing and modifying a value.
 type Value[T any] struct {
-	baseValue   T
-	value       T
-	modifiers   []modifier[T]
-	observers   []Observer[T]
-	annotations Annotations
-	filters     []Filter[T]
+	baseValue T
+	value     T
+	modifiers []modifier[T]
+	observers []Observer[T]
+	filters   []Filter[T]
 }
 
 // Create creates a new Value with the specified initial value and annotations.
@@ -21,12 +20,11 @@ func Create[T any](initialValue T, annotations ...Annotation) *Value[T] {
 	}
 
 	return &Value[T]{
-		baseValue:   initialValue,
-		value:       initialValue,
-		modifiers:   make([]modifier[T], 0),
-		observers:   make([]Observer[T], 0),
-		filters:     make([]Filter[T], 0),
-		annotations: mergedAnnotations,
+		baseValue: initialValue,
+		value:     initialValue,
+		modifiers: make([]modifier[T], 0),
+		observers: make([]Observer[T], 0),
+		filters:   make([]Filter[T], 0),
 	}
 }
 
@@ -100,7 +98,7 @@ func (o *Value[T]) Get() T {
 // It triggers the execution of observer functions with the current value and associated annotations.
 func (o *Value[T]) Publish() {
 	for _, observer := range o.observers {
-		observer(o.value, o.annotations)
+		observer(o.value)
 	}
 }
 
