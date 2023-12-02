@@ -48,22 +48,35 @@ func Test_machine(t *testing.T) {
 	stateMachine := machine(&NoopHandler{})
 
 	print(stateMachine.ToGraph())
+	var err error
 
-	stateMachine.Fire(triggerCarStopped)
-
-	stateMachine.Fire(triggerCarEnteredPitLane)
-	stateMachine.Fire(triggerCarExitedPitLane)
-
-	stateMachine.Fire(triggerCarEnteredPitLane)
-
-	stateMachine.Fire(triggerCarMoving)
-	inState, err := stateMachine.IsInState(stateCarInPitLane)
-	print(inState)
+	err = stateMachine.Fire(triggerCarEnteredPitLane)
 	if err != nil {
-		log.Error(err)
-		return
+		t.Errorf("Expected no error, but got: %v", err)
 	}
-	stateMachine.Fire(triggerCarStopped)
+
+	err = stateMachine.Fire(triggerCarExitedPitLane)
+	if err != nil {
+		t.Errorf("Expected no error, but got: %v", err)
+	}
+
+	err = stateMachine.Fire(triggerCarEnteredPitLane)
+	if err != nil {
+		t.Errorf("Expected no error, but got: %v", err)
+	}
+
+	err = stateMachine.Fire(triggerCarMoving)
+	if err != nil {
+		t.Errorf("Expected no error, but got: %v", err)
+	}
+
+	err = stateMachine.Fire(triggerCarStopped)
+	if err != nil {
+		t.Errorf("Expected no error, but got: %v", err)
+	}
+
+	log.Info(stateMachine.String())
+
 	// time.Sleep(15 * time.Second)
 
 	// stateMachine.Fire(triggerCarPitStopConfirmed)

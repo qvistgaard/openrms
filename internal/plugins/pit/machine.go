@@ -8,7 +8,7 @@ import (
 )
 
 type MachineTrigger string
-type MachineTriggerFunc func(trigger MachineTrigger) error
+type MachineState string
 type StartPitStop func() error
 type CancelPitStop func() error
 type CompletePitStop func() error
@@ -24,33 +24,19 @@ const (
 )
 
 const (
-	stateCarNotInPitLane    = "CarNotInPit"
-	stateCarInPitLane       = "CarInPit"
-	stateCarStopped         = "CarStopped"
-	stateCarMoving          = "CarMoving"
-	stateCarPitStopActive   = "CarPitStopActive"
-	stateCarPitStopComplete = "CarPitStopComplete"
+	stateCarNotInPitLane    = MachineState("CarNotInPit")
+	stateCarInPitLane       = MachineState("CarInPit")
+	stateCarStopped         = MachineState("CarStopped")
+	stateCarMoving          = MachineState("CarMoving")
+	stateCarPitStopActive   = MachineState("CarPitStopActive")
+	stateCarPitStopComplete = MachineState("CarPitStopComplete")
 )
 
-type CarPitState uint8
-
-const (
-	PitStateNotInPitLane CarPitState = iota
-	PitStateEntered
-	PitStateWaiting
-	PitStateActive
-	PitStateComplete
-)
-
-func alwaysIgnoreTrigger(context.Context, ...interface{}) bool {
-	return true
-}
-
-func logPitStateChange(carId types.CarId, state string, logline string) {
+func logPitStateChange(carId types.CarId, state MachineState, logline string) {
 	log.WithField("car", carId).WithField("state", state).Info(logline)
 }
 
-func logPitStateChangeAction(carId types.CarId, state string, logline string) stateless.ActionFunc {
+func logPitStateChangeAction(carId types.CarId, state MachineState, logline string) stateless.ActionFunc {
 	return func(ctx context.Context, args ...interface{}) error {
 		logPitStateChange(carId, state, logline)
 		return nil
@@ -66,13 +52,15 @@ func machine(h Handler) *stateless.StateMachine {
 
 	m.Configure(stateCarInPitLane).
 		OnEntry(logPitStateChangeAction(carId, stateCarInPitLane, "car entered pit lane")).
-		Permit(triggerCarMoving, stateCarMoving)
+		Permit(triggerCarMoving, stateCarMoving).
+		Permit(triggerCarExitedPitLane, stateCarNotInPitLane)
 
 	m.Configure(stateCarMoving).
 		SubstateOf(stateCarInPitLane).
 		OnEntry(logPitStateChangeAction(carId, stateCarMoving, "car is moving inside the pit lane")).
 		Permit(triggerCarExitedPitLane, stateCarNotInPitLane).
-		Permit(triggerCarStopped, stateCarStopped)
+		Permit(triggerCarStopped, stateCarStopped).
+		Ignore(triggerCarMoving)
 
 	m.Configure(stateCarStopped).
 		SubstateOf(stateCarInPitLane).
@@ -91,7 +79,6 @@ func machine(h Handler) *stateless.StateMachine {
 		OnEntry(startPitStop(m, h))
 
 	m.Configure(stateCarPitStopComplete).
-		SubstateOf(stateCarInPitLane).
 		OnEntry(logPitStateChangeAction(carId, stateCarPitStopActive, "Pit stop complete")).
 		OnEntry(handleOnOnComplete(h)).
 		Permit(triggerCarExitedPitLane, stateCarNotInPitLane)

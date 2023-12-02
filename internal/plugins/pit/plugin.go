@@ -46,6 +46,7 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 	car.PitLaneMaxSpeed().Modifier(func(u uint8) (uint8, bool) {
 		return 0, handler.active.Get()
 	}, 10000)
+
 	car.Pit().RegisterObserver(func(b bool) {
 		var err error
 		if !b {
