@@ -27,7 +27,12 @@ type state struct {
 
 func (p *Plugin) ConfigureCar(car *car.Car) {
 	carId := car.Id()
-	handler := &DefaultHandler{car: car, active: false, maxSpeed: car.PitLaneMaxSpeed()}
+	handler := &DefaultHandler{
+		car:      car,
+		active:   observable.Create(false),
+		current:  observable.Create(uint8(0)),
+		maxSpeed: car.PitLaneMaxSpeed(),
+	}
 	p.state[carId] = &state{
 		handler: handler,
 		machine: machine(handler),
@@ -39,7 +44,7 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 	}
 
 	car.PitLaneMaxSpeed().Modifier(func(u uint8) (uint8, bool) {
-		return 0, handler.active
+		return 0, handler.active.Get()
 	}, 10000)
 	car.Pit().RegisterObserver(func(b bool, annotations observable.Annotations) {
 		var err error
@@ -86,4 +91,12 @@ func (p *Plugin) Priority() int {
 
 func (p *Plugin) Name() string {
 	return "pit"
+}
+
+func (p *Plugin) Active(car types.CarId) observable.Observable[bool] {
+	return p.state[car].handler.Active()
+}
+
+func (p *Plugin) Current(car types.CarId) observable.Observable[uint8] {
+	return p.state[car].handler.Current()
 }

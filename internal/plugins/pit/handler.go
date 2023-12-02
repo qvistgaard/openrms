@@ -13,9 +13,17 @@ type DefaultHandler struct {
 	cancel    chan bool
 	car       *car.Car
 	sequences []Sequence
-	current   uint8
-	active    bool
+	current   observable.Observable[uint8]
+	active    observable.Observable[bool]
 	maxSpeed  observable.Observable[uint8]
+}
+
+func (p *DefaultHandler) Active() observable.Observable[bool] {
+	return p.active
+}
+
+func (p *DefaultHandler) Current() observable.Observable[uint8] {
+	return p.current
 }
 
 func (p *DefaultHandler) OnComplete() error {
@@ -58,16 +66,16 @@ func (p *DefaultHandler) OnCarStop(trigger MachineTriggerFunc) error {
 
 func (p *DefaultHandler) Start(trigger MachineTriggerFunc) error {
 	go func() {
-		p.active = true
+		p.active.Set(true)
 		p.maxSpeed.Update()
 		for i, sequence := range p.sequences {
-			p.current = uint8(i + 1)
+			p.current.Set(uint8(i + 1))
 			err := sequence.Start()
 			if err != nil {
 				log.Error(err, "pit stop sequence failed")
 			}
 		}
-		p.active = false
+		p.active.Set(false)
 		err := trigger(triggerCarPitStopComplete)
 		if err != nil {
 			log.Error(errors.WithMessage(err, "pit stop completion failed"))

@@ -1,6 +1,7 @@
 package pit
 
 import (
+	"github.com/qvistgaard/openrms/internal/state/observable"
 	"github.com/qvistgaard/openrms/internal/types"
 )
 
@@ -22,4 +23,6 @@ type Handler interface {
 	OnCarStart() error
 	OnComplete() error
 	Start(MachineTriggerFunc) error
+	Active() observable.Observable[bool]
+	Current() observable.Observable[uint8]
 }

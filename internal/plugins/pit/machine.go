@@ -59,52 +59,54 @@ func machine(h Handler) *stateless.StateMachine {
 	m := stateless.NewStateMachineWithMode(stateCarNotInPitLane, stateless.FiringImmediate)
 	m.Configure(stateCarNotInPitLane).
 		OnEntry(logPitStateChangeAction(carId, stateCarNotInPitLane, "car exited pit lane")).
-		Permit(triggerCarEnteredPitLane, stateCarInPitLane).
-		Ignore(triggerCarMoving, alwaysIgnoreTrigger).
-		Ignore(triggerCarStopped, alwaysIgnoreTrigger).
-		Ignore(triggerCarPitStopConfirmed, alwaysIgnoreTrigger).
-		Ignore(triggerCarExitedPitLane, alwaysIgnoreTrigger)
+		Permit(triggerCarEnteredPitLane, stateCarInPitLane)
+	// Ignore(triggerCarMoving, alwaysIgnoreTrigger).
+	// Ignore(triggerCarStopped, alwaysIgnoreTrigger).
+	// Ignore(triggerCarPitStopConfirmed, alwaysIgnoreTrigger).
+	// Ignore(triggerCarExitedPitLane, alwaysIgnoreTrigger)
 
 	m.Configure(stateCarInPitLane).
 		OnEntry(logPitStateChangeAction(carId, stateCarInPitLane, "car entered pit lane")).
-		Permit(triggerCarExitedPitLane, stateCarNotInPitLane).
-		Permit(triggerCarMoving, stateCarMoving).
-		Permit(triggerCarStopped, stateCarStopped)
+		// Permit(triggerCarExitedPitLane, stateCarNotInPitLane).
+		Permit(triggerCarMoving, stateCarMoving)
+	// Permit(triggerCarStopped, stateCarStopped)
 
 	m.Configure(stateCarMoving).
 		SubstateOf(stateCarInPitLane).
-		OnEntry(logPitStateChangeAction(carId, stateCarStopped, "car is moving inside the pit lane")).
-		Ignore(triggerCarPitStopConfirmed, alwaysIgnoreTrigger).
-		Ignore(triggerCarMoving, alwaysIgnoreTrigger).
+		OnEntry(logPitStateChangeAction(carId, stateCarMoving, "car is moving inside the pit lane")).
+		// Ignore(triggerCarPitStopConfirmed, alwaysIgnoreTrigger).
+		// Ignore(triggerCarMoving, alwaysIgnoreTrigger).
 		Permit(triggerCarExitedPitLane, stateCarNotInPitLane).
 		Permit(triggerCarStopped, stateCarStopped)
 
 	m.Configure(stateCarStopped).
 		SubstateOf(stateCarInPitLane).
+		OnEntry(logPitStateChangeAction(carId, stateCarStopped, "car stopped inside the pit lane")).
 		OnEntry(handleOnCarStop(m, h)).
 		OnExit(handleOnCarStart(m, h)).
-		Ignore(triggerCarStopped, alwaysIgnoreTrigger).
+		//	Ignore(triggerCarStopped, alwaysIgnoreTrigger)
 		Permit(triggerCarMoving, stateCarMoving).
 		Permit(triggerCarPitStopConfirmed, stateCarPitStopActive).
-		Permit(triggerCarExitedPitLane, stateCarNotInPitLane).
+		// Permit(triggerCarExitedPitLane, stateCarNotInPitLane).
 		Permit(triggerCarPitStopAutoConfirmed, stateCarPitStopActive)
 
 	m.Configure(stateCarPitStopActive).
-		SubstateOf(stateCarInPitLane).
+		SubstateOf(stateCarStopped).
 		Permit(triggerCarPitStopComplete, stateCarPitStopComplete).
-		Ignore(triggerCarPitStopConfirmed, alwaysIgnoreTrigger).
-		Ignore(triggerCarStopped, alwaysIgnoreTrigger).
-		Ignore(triggerCarPitStopAutoConfirmed, alwaysIgnoreTrigger).
-		Ignore(triggerCarMoving, alwaysIgnoreTrigger).
+		// Ignore(triggerCarPitStopConfirmed, alwaysIgnoreTrigger).
+		// Ignore(triggerCarStopped, alwaysIgnoreTrigger).
+		// Ignore(triggerCarPitStopAutoConfirmed, alwaysIgnoreTrigger).
+		// Ignore(triggerCarMoving, alwaysIgnoreTrigger).
 		OnEntry(logPitStateChangeAction(carId, stateCarPitStopActive, "entering active pit state")).
 		OnEntry(startPitStop(m, h))
 
 	m.Configure(stateCarPitStopComplete).
-		SubstateOf(stateCarInPitLane).
+		SubstateOf(stateCarPitStopActive).
+		OnEntry(logPitStateChangeAction(carId, stateCarPitStopActive, "Pit stop complete")).
 		OnEntry(handleOnOnComplete(h)).
-		Permit(triggerCarMoving, stateCarMoving).
-		Permit(triggerCarExitedPitLane, stateCarNotInPitLane).
-		Permit(triggerCarStopped, stateCarStopped)
+		Permit(triggerCarMoving, stateCarMoving)
+	// Permit(triggerCarExitedPitLane, stateCarNotInPitLane).
+	// Permit(triggerCarStopped, stateCarStopped)
 
 	return m
 }
