@@ -1,7 +1,6 @@
 package race
 
 import (
-	"github.com/qvistgaard/openrms/internal/state/observable"
 	"github.com/qvistgaard/openrms/internal/state/race"
 	"time"
 )
@@ -17,17 +16,17 @@ func New() (*Plugin, error) {
 }
 
 func (p *Plugin) ConfigureRace(r *race.Race) {
-	r.Duration().RegisterObserver(func(duration time.Duration, annotations observable.Annotations) {
+	r.Duration().RegisterObserver(func(duration time.Duration) {
 		if p.Duration != nil && *p.Duration <= duration && p.status == race.Running {
 			r.Stop()
 		}
 	})
-	r.Laps().RegisterObserver(func(laps uint16, annotations observable.Annotations) {
+	r.Laps().RegisterObserver(func(laps uint16) {
 		if p.Laps != nil && *p.Laps <= laps && p.status == race.Running {
 			r.Stop()
 		}
 	})
-	r.Status().RegisterObserver(func(status race.Status, annotations observable.Annotations) {
+	r.Status().RegisterObserver(func(status race.Status) {
 		p.status = status
 	})
 }

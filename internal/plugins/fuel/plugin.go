@@ -71,11 +71,11 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 	carState.machine = machine(handleUpdateFuelLevel(carState, config.TankSize, config.BurnRate))
 	carState.fuel = observable.Create(float32(config.TankSize))
 
-	car.Controller().TriggerValue().RegisterObserver(func(v uint8, annotations observable.Annotations) {
+	car.Controller().TriggerValue().RegisterObserver(func(v uint8) {
 		carState.machine.Fire(triggerUpdateFuelLevel, v)
 	})
 
-	car.Deslotted().RegisterObserver(func(b bool, annotations observable.Annotations) {
+	car.Deslotted().RegisterObserver(func(b bool) {
 		if b {
 			carState.machine.Fire(triggerCarDeslotted)
 		} else {
@@ -83,7 +83,7 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 		}
 	})
 
-	car.Pit().RegisterObserver(func(b bool, a observable.Annotations) {
+	car.Pit().RegisterObserver(func(b bool) {
 		carState.consumed = 0
 		carState.fuel.Set(float32(config.TankSize))
 	})
@@ -97,7 +97,7 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 
 	// Register an observer to check if the fuel level drops to or below zero.
 	// When this happens, it signals a limb mode activation for the car.
-	carState.fuel.RegisterObserver(func(f float32, a observable.Annotations) {
+	carState.fuel.RegisterObserver(func(f float32) {
 		if f <= 0 {
 			p.limbMode.LimbMode(carId).Set(true)
 		}
@@ -126,7 +126,7 @@ func (p *Plugin) Fuel(car types.CarId) observable.Observable[float32] {
 // ConfigureRace configures the fuel plugin for a race.
 // It registers an observer for monitoring the race status.
 func (p *Plugin) ConfigureRace(r *race.Race) {
-	r.Status().RegisterObserver(func(status race.Status, a observable.Annotations) {
+	r.Status().RegisterObserver(func(status race.Status) {
 		p.status = status
 	})
 }

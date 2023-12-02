@@ -188,7 +188,7 @@ func (o *Oxigen) rx(c chan<- drivers.Event) ([]byte, error) {
 		if n == 13 {
 			log.WithField("message", fmt.Sprintf("%x", buffer)).
 				WithField("bytes", n).
-				Debug("received message from oxygen dongle")
+				Trace("received message from oxygen dongle")
 			o.event(c, buffer)
 			return buffer[9:12], nil
 		}

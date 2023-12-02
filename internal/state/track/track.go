@@ -26,7 +26,7 @@ func New(c Config, di drivers.Driver) (*Track, error) {
 		maxSpeed: observable.Create(c.Track.MaxSpeed),
 	}
 
-	t.maxSpeed.RegisterObserver(func(u uint8, annotations observable.Annotations) {
+	t.maxSpeed.RegisterObserver(func(u uint8) {
 		t.driver.Track().MaxSpeed(u)
 	})
 	return t, nil

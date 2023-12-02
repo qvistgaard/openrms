@@ -41,7 +41,7 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 	}
 
 	p.state[carId] = observable.Create(false)
-	p.state[carId].RegisterObserver(func(b bool, annotations observable.Annotations) {
+	p.state[carId].RegisterObserver(func(b bool) {
 		car.MaxSpeed().Update()
 	})
 
@@ -55,7 +55,7 @@ func (p *Plugin) InitializeCar(_ *car.Car) {
 }
 
 func (p *Plugin) ConfigureRace(r *race.Race) {
-	r.Status().RegisterObserver(func(status race.Status, annotations observable.Annotations) {
+	r.Status().RegisterObserver(func(status race.Status) {
 
 	})
 }

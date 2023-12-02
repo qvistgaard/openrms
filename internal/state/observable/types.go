@@ -106,7 +106,7 @@ func (o *Value[T]) Publish() {
 // It returns true if the change is allowed by all filters; otherwise, it returns false.
 func (o *Value[T]) isValueChanged(after T) bool {
 	for _, filter := range o.filters {
-		if !filter(o.baseValue, after) {
+		if !filter(o.value, after) {
 			return false
 		}
 	}

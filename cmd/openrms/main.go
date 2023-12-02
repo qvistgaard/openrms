@@ -76,8 +76,8 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	leaderboardPlugin := telemetry.New(fuelPlugin, limpModePlugin)
 	pitPlugin := pit.New(fuelPlugin, limpModePlugin)
+	leaderboardPlugin := telemetry.New(fuelPlugin, limpModePlugin, pitPlugin)
 
 	plugins, err := configuration.Plugins(cfg)
 	if err != nil {

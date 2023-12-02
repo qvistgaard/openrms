@@ -19,10 +19,10 @@ type Plugin struct {
 	fuelPlugin     *fuel.Plugin
 	limbModePlugin *limbmode.Plugin
 	status         race.Status
-	pitPlugin      pit.Plugin
+	pitPlugin      *pit.Plugin
 }
 
-func New(fuelPlugin *fuel.Plugin, limbModePlugin *limbmode.Plugin, pitPlugin pit.Plugin) *Plugin {
+func New(fuelPlugin *fuel.Plugin, limbModePlugin *limbmode.Plugin, pitPlugin *pit.Plugin) *Plugin {
 	return &Plugin{
 		listener:       observable.Create(make(Race)),
 		telemetry:      make(Race),

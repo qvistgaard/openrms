@@ -76,7 +76,7 @@ func (p *DefaultHandler) Start(completePitStop CompletePitStop, _ CancelPitStop)
 			}
 		}
 		p.active.Set(false)
-		p.Active().Update()
+		p.maxSpeed.Update()
 		err := completePitStop()
 		if err != nil {
 			log.Error(errors.WithMessage(err, "pit stop completion failed"))

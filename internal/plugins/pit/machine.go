@@ -81,7 +81,8 @@ func machine(h Handler) *stateless.StateMachine {
 		OnExit(handleOnCarStart(m, h)).
 		Permit(triggerCarMoving, stateCarMoving).
 		Permit(triggerCarPitStopConfirmed, stateCarPitStopActive).
-		Permit(triggerCarPitStopAutoConfirmed, stateCarPitStopActive)
+		Permit(triggerCarPitStopAutoConfirmed, stateCarPitStopActive).
+		Ignore(triggerCarStopped)
 
 	m.Configure(stateCarPitStopActive).
 		SubstateOf(stateCarStopped).
@@ -90,7 +91,7 @@ func machine(h Handler) *stateless.StateMachine {
 		OnEntry(startPitStop(m, h))
 
 	m.Configure(stateCarPitStopComplete).
-		SubstateOf(stateCarPitStopActive).
+		SubstateOf(stateCarInPitLane).
 		OnEntry(logPitStateChangeAction(carId, stateCarPitStopActive, "Pit stop complete")).
 		OnEntry(handleOnOnComplete(h)).
 		Permit(triggerCarExitedPitLane, stateCarNotInPitLane)
