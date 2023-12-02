@@ -3,7 +3,7 @@ package observable
 // Filter represents a function type used for filtering observable value changes.
 
 // Observer represents a function type used for observing changes in an observable value along with associated annotations.
-type Observer[T any] func(T, Annotations)
+type Observer[T any] func(T)
 
 // Observable is an interface that represents an observable value, which can be observed, modified, and filtered.
 // It allows for registering observers, applying filters, and modifying the value it holds.

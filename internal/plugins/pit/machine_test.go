@@ -5,19 +5,23 @@ import (
 	"github.com/qvistgaard/openrms/internal/types"
 	log "github.com/sirupsen/logrus"
 	"testing"
-	"time"
 )
 
 type NoopHandler struct {
 }
 
-func (n NoopHandler) Id() types.CarId {
-	return 1
+func (n NoopHandler) OnCarStop(stop StartPitStop) error {
+	log.Info("OnCarStop called")
+	return stop()
 }
 
-func (n NoopHandler) OnCarStop(triggerFunc MachineTriggerFunc) error {
-	log.Info("OnCarStop called")
-	return triggerFunc(triggerCarPitStopAutoConfirmed)
+func (n NoopHandler) Start(complete CompletePitStop, cancel CancelPitStop) error {
+	log.Info("Start")
+	return complete()
+}
+
+func (n NoopHandler) Id() types.CarId {
+	return 1
 }
 
 func (n NoopHandler) OnCarStart() error {
@@ -28,11 +32,6 @@ func (n NoopHandler) OnCarStart() error {
 func (n NoopHandler) OnComplete() error {
 	log.Info("OnComplete")
 	return nil
-}
-
-func (n NoopHandler) Start(triggerFunc MachineTriggerFunc) error {
-	log.Info("Start")
-	return triggerFunc(triggerCarPitStopComplete)
 }
 
 func (n NoopHandler) Active() observable.Observable[bool] {
@@ -50,15 +49,22 @@ func Test_machine(t *testing.T) {
 
 	print(stateMachine.ToGraph())
 
-	return
+	stateMachine.Fire(triggerCarStopped)
 
 	stateMachine.Fire(triggerCarEnteredPitLane)
 	stateMachine.Fire(triggerCarExitedPitLane)
 
 	stateMachine.Fire(triggerCarEnteredPitLane)
+
 	stateMachine.Fire(triggerCarMoving)
+	inState, err := stateMachine.IsInState(stateCarInPitLane)
+	print(inState)
+	if err != nil {
+		log.Error(err)
+		return
+	}
 	stateMachine.Fire(triggerCarStopped)
-	time.Sleep(15 * time.Second)
+	// time.Sleep(15 * time.Second)
 
 	// stateMachine.Fire(triggerCarPitStopConfirmed)
 	// stateMachine.Fire(triggerCarMoving)

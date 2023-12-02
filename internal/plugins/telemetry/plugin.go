@@ -4,6 +4,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/qvistgaard/openrms/internal/plugins/fuel"
 	"github.com/qvistgaard/openrms/internal/plugins/limbmode"
+	"github.com/qvistgaard/openrms/internal/plugins/pit"
 	"github.com/qvistgaard/openrms/internal/state/car"
 	"github.com/qvistgaard/openrms/internal/state/observable"
 	"github.com/qvistgaard/openrms/internal/state/race"
@@ -18,14 +19,16 @@ type Plugin struct {
 	fuelPlugin     *fuel.Plugin
 	limbModePlugin *limbmode.Plugin
 	status         race.Status
+	pitPlugin      pit.Plugin
 }
 
-func New(fuelPlugin *fuel.Plugin, limbModePlugin *limbmode.Plugin) *Plugin {
+func New(fuelPlugin *fuel.Plugin, limbModePlugin *limbmode.Plugin, pitPlugin pit.Plugin) *Plugin {
 	return &Plugin{
 		listener:       observable.Create(make(Race)),
 		telemetry:      make(Race),
 		fuelPlugin:     fuelPlugin,
 		limbModePlugin: limbModePlugin,
+		pitPlugin:      pitPlugin,
 	}
 }
 
@@ -47,32 +50,32 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 		p.telemetry[id] = entry
 	}
 
-	p.fuelPlugin.Fuel(id).RegisterObserver(func(f float32, annotations observable.Annotations) {
+	p.fuelPlugin.Fuel(id).RegisterObserver(func(f float32) {
 		p.telemetry[id].Fuel = f
 	})
 
-	car.Deslotted().RegisterObserver(func(b bool, annotations observable.Annotations) {
+	car.Deslotted().RegisterObserver(func(b bool) {
 		p.telemetry[id].Deslotted = b
 	})
 
-	car.Pit().RegisterObserver(func(b bool, annotations observable.Annotations) {
+	car.Pit().RegisterObserver(func(b bool) {
 		p.telemetry[id].InPit = b
 	})
 
-	car.MaxSpeed().RegisterObserver(func(u uint8, annotations observable.Annotations) {
+	car.MaxSpeed().RegisterObserver(func(u uint8) {
 		p.telemetry[id].MaxSpeed = u
 	})
-	car.MinSpeed().RegisterObserver(func(u uint8, annotations observable.Annotations) {
+	car.MinSpeed().RegisterObserver(func(u uint8) {
 		p.telemetry[id].MinSpeed = u
 	})
-	car.PitLaneMaxSpeed().RegisterObserver(func(u uint8, annotations observable.Annotations) {
+	car.PitLaneMaxSpeed().RegisterObserver(func(u uint8) {
 		p.telemetry[id].MaxPitSpeed = u
 	})
-	p.limbModePlugin.LimbMode(id).RegisterObserver(func(b bool, annotations observable.Annotations) {
+	p.limbModePlugin.LimbMode(id).RegisterObserver(func(b bool) {
 		p.telemetry[id].LimbMode = b
 	})
 
-	car.LastLap().RegisterObserver(func(lap types.Lap, a observable.Annotations) {
+	car.LastLap().RegisterObserver(func(lap types.Lap) {
 		p.telemetry[id].Laps = append(p.telemetry[id].Laps, lap)
 		p.telemetry[id].Delta = time.Duration(lap.Time.Nanoseconds() - p.telemetry[id].Last.Time.Nanoseconds())
 		p.telemetry[id].Last = lap
@@ -82,10 +85,18 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 		p.telemetry[id].Team = car.Team().Get()
 		p.updateLeaderboard()
 	})
+
+	p.pitPlugin.Active(id).RegisterObserver(func(b bool) {
+		p.telemetry[id].PitStopActive = b
+	})
+	p.pitPlugin.Current(id).RegisterObserver(func(u uint8) {
+		p.telemetry[id].PitStopSequence = u
+	})
+
 }
 
 func (p *Plugin) ConfigureRace(r *race.Race) {
-	r.Status().RegisterObserver(func(status race.Status, annotations observable.Annotations) {
+	r.Status().RegisterObserver(func(status race.Status) {
 		if status == race.Running && p.status == race.Stopped {
 			for carId := range p.telemetry {
 				p.telemetry[carId] = &Entry{

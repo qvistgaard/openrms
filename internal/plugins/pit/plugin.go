@@ -60,22 +60,33 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 
 	car.Controller().ButtonTrackCall().RegisterObserver(func(b bool, annotations observable.Annotations) {
 		if b {
-			err := carState.machine.Fire(triggerCarPitStopConfirmed)
+			inState, err := carState.machine.IsInState(triggerCarStopped)
 			if err != nil {
 				log.Error(err)
+			}
+			if inState {
+				err := carState.machine.Fire(triggerCarPitStopConfirmed)
+				if err != nil {
+					log.Error(err)
+				}
 			}
 		}
 	})
 
 	car.Controller().TriggerValue().RegisterObserver(func(u uint8, annotations observable.Annotations) {
-		var err error
-		if u == 0 {
-			err = carState.machine.Fire(triggerCarStopped)
-		} else {
-			err = carState.machine.Fire(triggerCarMoving)
-		}
+		inState, err := carState.machine.IsInState(stateCarInPitLane)
 		if err != nil {
 			log.Error(err)
+		}
+		if inState {
+			if u == 0 {
+				err = carState.machine.Fire(triggerCarStopped)
+			} else {
+				err = carState.machine.Fire(triggerCarMoving)
+			}
+			if err != nil {
+				log.Error(err)
+			}
 		}
 	})
 

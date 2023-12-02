@@ -114,7 +114,11 @@ func (l Leaderboard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			var lmMode string
 			var deslotted string
 			if v.InPit {
-				inPitString = "X"
+				if v.PitStopActive {
+					inPitString = strconv.Itoa(int(v.PitStopSequence))
+				} else {
+					inPitString = "X"
+				}
 			} else {
 				inPitString = ""
 			}

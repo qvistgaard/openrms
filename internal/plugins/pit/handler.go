@@ -42,7 +42,7 @@ func (p *DefaultHandler) Id() types.CarId {
 	return types.CarId(1)
 }
 
-func (p *DefaultHandler) OnCarStop(trigger MachineTriggerFunc) error {
+func (p *DefaultHandler) OnCarStop(startPitStop StartPitStop) error {
 	log.WithField("car", p.Id()).Info("car stopped inside pit lane")
 
 	p.cancel = make(chan bool, 1)
@@ -51,7 +51,7 @@ func (p *DefaultHandler) OnCarStop(trigger MachineTriggerFunc) error {
 		select {
 		case <-time.After(5 * time.Second):
 			log.WithField("car", p.Id()).Info("pit stop automatically confirmed")
-			err := trigger(triggerCarPitStopAutoConfirmed)
+			err := startPitStop()
 			if err != nil {
 				log.Error(err)
 			}
@@ -64,7 +64,7 @@ func (p *DefaultHandler) OnCarStop(trigger MachineTriggerFunc) error {
 	return nil
 }
 
-func (p *DefaultHandler) Start(trigger MachineTriggerFunc) error {
+func (p *DefaultHandler) Start(completePitStop CompletePitStop, _ CancelPitStop) error {
 	go func() {
 		p.active.Set(true)
 		p.maxSpeed.Update()
@@ -76,7 +76,8 @@ func (p *DefaultHandler) Start(trigger MachineTriggerFunc) error {
 			}
 		}
 		p.active.Set(false)
-		err := trigger(triggerCarPitStopComplete)
+		p.Active().Update()
+		err := completePitStop()
 		if err != nil {
 			log.Error(errors.WithMessage(err, "pit stop completion failed"))
 			return

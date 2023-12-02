@@ -19,10 +19,10 @@ type Car interface {
 
 type Handler interface {
 	Id() types.CarId
-	OnCarStop(MachineTriggerFunc) error
+	OnCarStop(StartPitStop) error
 	OnCarStart() error
 	OnComplete() error
-	Start(MachineTriggerFunc) error
+	Start(CompletePitStop, CancelPitStop) error
 	Active() observable.Observable[bool]
 	Current() observable.Observable[uint8]
 }

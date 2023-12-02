@@ -7,41 +7,24 @@ import (
 )
 
 type Entry struct {
-	Id          types.CarId
-	Team        string
-	Last        types.Lap
-	Laps        []types.Lap
-	Delta       time.Duration
-	Best        time.Duration
-	Deslotted   bool
-	OnTrack     bool
-	MinSpeed    uint8
-	MaxSpeed    uint8
-	MaxPitSpeed uint8
-	InPit       bool
-	LimbMode    bool
-	Fuel        float32
+	Id              types.CarId
+	Team            string
+	Last            types.Lap
+	PitStopActive   bool
+	Laps            []types.Lap
+	Delta           time.Duration
+	Best            time.Duration
+	Deslotted       bool
+	OnTrack         bool
+	MinSpeed        uint8
+	MaxSpeed        uint8
+	MaxPitSpeed     uint8
+	InPit           bool
+	LimbMode        bool
+	Fuel            float32
+	PitStopSequence uint8
 }
 
-/*
-	type RaceEntry struct {
-		Car         CarId
-		Laps        Lap
-		Delta       time.Duration
-		Best        time.Duration
-		Last        time.Duration
-		Deslotted   bool
-		MinSpeed    uint8
-		MaxSpeed    uint8
-		MaxPitSpeed uint8
-		InPit       bool
-		LimbMode    bool
-		Fuel        float32
-		Name        string
-	}
-
-type RaceTelemetry map[uint8]*RaceEntry
-*/
 type Race map[types.CarId]*Entry
 
 func (r Race) Sort() []Entry {

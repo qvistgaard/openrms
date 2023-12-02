@@ -6,7 +6,6 @@ import (
 	race2 "github.com/qvistgaard/openrms/internal/plugins/race"
 	"github.com/qvistgaard/openrms/internal/plugins/telemetry"
 	"github.com/qvistgaard/openrms/internal/state/car/repository"
-	"github.com/qvistgaard/openrms/internal/state/observable"
 	"github.com/qvistgaard/openrms/internal/state/race"
 	"github.com/qvistgaard/openrms/internal/state/track"
 	"github.com/qvistgaard/openrms/internal/tui/commands"
@@ -51,16 +50,16 @@ func CreateBridge(leaderboard *telemetry.Plugin, plugin *race2.Plugin, scheduler
 func (bridge *Bridge) Run() {
 	go bridge.messageHandler()
 
-	bridge.Race.Duration().RegisterObserver(func(duration time.Duration, annotations observable.Annotations) {
+	bridge.Race.Duration().RegisterObserver(func(duration time.Duration) {
 		bridge.duration = duration
 	})
-	bridge.Race.Status().RegisterObserver(func(status race.Status, annotations observable.Annotations) {
+	bridge.Race.Status().RegisterObserver(func(status race.Status) {
 		bridge.status = status
 	})
-	bridge.Leaderboard.RegisterObserver(func(telemetry telemetry.Race, annotations observable.Annotations) {
+	bridge.Leaderboard.RegisterObserver(func(telemetry telemetry.Race) {
 		bridge.RaceTelemetry = telemetry
 	})
-	bridge.Track.MaxSpeed().RegisterObserver(func(maxSpeed uint8, annotations observable.Annotations) {
+	bridge.Track.MaxSpeed().RegisterObserver(func(maxSpeed uint8) {
 		bridge.trackMaxSpeed = maxSpeed
 	})
 
