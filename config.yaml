@@ -22,7 +22,7 @@ track:
   # format: percentage
   # type: integer
   # allowed range: 0-100
-  max-speed: 100
+  max-speed: 40
 
   # Track length is used to calculate average speed of the cars
   # format: meter
@@ -52,7 +52,7 @@ car:
     # format: percentage
     # type: integer
     # allowed range: 0-100
-    max-speed: 100
+    max-speed: 60
 
     # Default minimum speed of cars
     # this defines the minimum speed of cars, this can be used to create
@@ -110,7 +110,7 @@ car:
 
   cars:
     - id: 3
-      # max-speed: 100
+      # max-speedrs: 100
       drivers:
         - name: John Doe
     - id: 7
@@ -138,6 +138,8 @@ plugins:
   limb-mode:
     enabled: true
   pit:
+    enabled: true
+  yellow-flag:
     enabled: true
 
 

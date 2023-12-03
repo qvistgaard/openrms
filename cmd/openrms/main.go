@@ -51,8 +51,17 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	driver, err := configuration.Driver(cfg, flagDriver)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	track, err := configuration.Track(cfg, driver)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	race, err := configuration.Race(cfg, driver)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -78,6 +87,7 @@ func main() {
 	}
 	pitPlugin := pit.New(fuelPlugin, limpModePlugin)
 	leaderboardPlugin := telemetry.New(fuelPlugin, limpModePlugin, pitPlugin)
+	// yellowFlagPlugin := yellowflag.New(race)
 
 	plugins, err := configuration.Plugins(cfg)
 	if err != nil {
@@ -88,17 +98,9 @@ func main() {
 	plugins.Append(leaderboardPlugin)
 	plugins.Append(limpModePlugin)
 	plugins.Append(fuelPlugin)
+	// plugins.Append(yellowFlagPlugin)
 
 	repository, err := configuration.CarRepository(cfg, driver, plugins)
-	if err != nil {
-		log.Fatal(err)
-	}
-	track, err := configuration.Track(cfg, driver)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	race, err := configuration.Race(cfg, driver)
 	if err != nil {
 		log.Fatal(err)
 	}
