@@ -6,9 +6,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/qvistgaard/openrms/internal/tui/commands"
 	"github.com/qvistgaard/openrms/internal/tui/elements"
-	"github.com/qvistgaard/openrms/internal/tui/messages"
 	"github.com/qvistgaard/openrms/internal/tui/style"
-	"strconv"
 )
 
 type TrackControl struct {
@@ -107,10 +105,9 @@ func (r TrackControl) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case commands.OpenTrackConfiguration:
 		r.focusIndex = 0
 		r.maxSpeed.Focus()
-		return r, nil
-	case messages.Update:
-		r.maxSpeed.SetValue(strconv.Itoa(int(msg.TrackMaxSpeed)))
+		r.maxSpeed.SetValue(msg.MaxSpeed)
 
+		return r, nil
 	}
 
 	var cmd tea.Cmd

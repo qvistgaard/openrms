@@ -2,6 +2,7 @@
 package fuel
 
 import (
+	"errors"
 	"github.com/qmuntal/stateless"
 	"github.com/qvistgaard/openrms/internal/plugins/limbmode"
 	"github.com/qvistgaard/openrms/internal/plugins/pit"
@@ -9,6 +10,7 @@ import (
 	"github.com/qvistgaard/openrms/internal/state/observable"
 	"github.com/qvistgaard/openrms/internal/state/race"
 	"github.com/qvistgaard/openrms/internal/types"
+	log "github.com/sirupsen/logrus"
 )
 
 // Plugin represents the fuel management plugin.
@@ -72,14 +74,23 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 	carState.fuel = observable.Create(float32(config.TankSize))
 
 	car.Controller().TriggerValue().RegisterObserver(func(v uint8) {
-		carState.machine.Fire(triggerUpdateFuelLevel, v)
+		err := carState.machine.Fire(triggerUpdateFuelLevel, v)
+		if err != nil {
+			log.Error(err)
+		}
 	})
 
 	car.Deslotted().RegisterObserver(func(b bool) {
 		if b {
-			carState.machine.Fire(triggerCarDeslotted)
+			err := carState.machine.Fire(triggerCarDeslotted)
+			if err != nil {
+				log.Error(err)
+			}
 		} else {
-			carState.machine.Fire(triggerCarOnTrack)
+			err := carState.machine.Fire(triggerCarOnTrack)
+			if err != nil {
+				log.Error(err)
+			}
 		}
 	})
 
@@ -119,8 +130,11 @@ func (p *Plugin) Name() string {
 }
 
 // Fuel returns the observable fuel level for a given car.
-func (p *Plugin) Fuel(car types.CarId) observable.Observable[float32] {
-	return p.state[car].fuel
+func (p *Plugin) Fuel(car types.CarId) (observable.Observable[float32], error) {
+	if f, ok := p.state[car]; ok {
+		return f.fuel, nil
+	}
+	return nil, errors.New("car not found")
 }
 
 // ConfigureRace configures the fuel plugin for a race.

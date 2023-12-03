@@ -16,7 +16,7 @@ func NewController() *Controller {
 
 func (c *Controller) initObservableProperties() {
 	c.triggerValue = observable.Create(uint8(0))
-	c.buttonTrackCall = observable.Create(false)
+	c.buttonTrackCall = observable.Create(false).Filter(observable.DistinctBooleanChange())
 }
 
 func (c *Controller) filters() {
@@ -24,14 +24,14 @@ func (c *Controller) filters() {
 }
 
 type Controller struct {
-	buttonTrackCall *observable.Value[bool]
-	triggerValue    *observable.Value[uint8]
+	buttonTrackCall observable.Observable[bool]
+	triggerValue    observable.Observable[uint8]
 }
 
-func (c *Controller) TriggerValue() *observable.Value[uint8] {
+func (c *Controller) TriggerValue() observable.Observable[uint8] {
 	return c.triggerValue
 }
 
-func (c *Controller) ButtonTrackCall() *observable.Value[bool] {
+func (c *Controller) ButtonTrackCall() observable.Observable[bool] {
 	return c.buttonTrackCall
 }

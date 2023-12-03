@@ -6,6 +6,7 @@ import (
 	"github.com/qvistgaard/openrms/internal/state/race"
 	"github.com/qvistgaard/openrms/internal/tui/commands"
 	"github.com/qvistgaard/openrms/internal/tui/messages"
+	"strconv"
 )
 
 type ActiveView int
@@ -27,6 +28,7 @@ type Main struct {
 	RaceControl        tea.Model
 	width              int
 	height             int
+	trackMaxSpeed      uint8
 	raceStatus         race.Status
 	TrackConfiguration tea.Model
 }
@@ -62,7 +64,9 @@ func (m Main) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.Bridge <- commands.StopRace{}
 		case "t":
 			return m, func() tea.Msg {
-				return commands.OpenTrackConfiguration{}
+				return commands.OpenTrackConfiguration{
+					MaxSpeed: strconv.Itoa(int(m.trackMaxSpeed)),
+				}
 			}
 		}
 		if m.ActiveView == ViewLeaderboard {
@@ -83,7 +87,7 @@ func (m Main) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		m.raceStatus = msg.(messages.Update).RaceStatus
 		m.StatusBar, _ = m.StatusBar.Update(msg)
-		m.TrackConfiguration, _ = m.TrackConfiguration.Update(msg)
+		m.trackMaxSpeed = msg.(messages.Update).TrackMaxSpeed
 
 	case tea.WindowSizeMsg:
 		width := msg.(tea.WindowSizeMsg).Width

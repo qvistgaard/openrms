@@ -155,7 +155,7 @@ func (c CarConfiguration) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (c CarConfiguration) View() string {
-	ok := elements.Button("Start", c.focusIndex == len(c.inputs))
+	ok := elements.Button("Save", c.focusIndex == len(c.inputs))
 	cancel := elements.Button("Cancel", c.focusIndex == c.focusIndexMax)
 
 	return lipgloss.Place(c.width, c.height,

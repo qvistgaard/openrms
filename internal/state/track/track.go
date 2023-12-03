@@ -23,7 +23,7 @@ func New(c Config, di drivers.Driver) (*Track, error) {
 
 	t := &Track{
 		driver:   di,
-		maxSpeed: observable.Create(c.Track.MaxSpeed),
+		maxSpeed: observable.Create(c.Track.MaxSpeed).Filter(observable.DistinctComparableChange[uint8]()),
 	}
 
 	t.maxSpeed.RegisterObserver(func(u uint8) {

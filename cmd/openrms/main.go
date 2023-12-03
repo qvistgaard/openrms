@@ -7,6 +7,7 @@ import (
 	"github.com/qvistgaard/openrms/cmd/openrms/configuration"
 	"github.com/qvistgaard/openrms/internal/plugins/pit"
 	"github.com/qvistgaard/openrms/internal/plugins/telemetry"
+	"github.com/qvistgaard/openrms/internal/plugins/yellowflag"
 	"github.com/qvistgaard/openrms/internal/rms"
 	"github.com/qvistgaard/openrms/internal/tui"
 	log "github.com/sirupsen/logrus"
@@ -87,7 +88,7 @@ func main() {
 	}
 	pitPlugin := pit.New(fuelPlugin, limpModePlugin)
 	leaderboardPlugin := telemetry.New(fuelPlugin, limpModePlugin, pitPlugin)
-	// yellowFlagPlugin := yellowflag.New(race)
+	yellowFlagPlugin := yellowflag.New()
 
 	plugins, err := configuration.Plugins(cfg)
 	if err != nil {
@@ -98,7 +99,7 @@ func main() {
 	plugins.Append(leaderboardPlugin)
 	plugins.Append(limpModePlugin)
 	plugins.Append(fuelPlugin)
-	// plugins.Append(yellowFlagPlugin)
+	plugins.Append(yellowFlagPlugin)
 
 	repository, err := configuration.CarRepository(cfg, driver, plugins)
 	if err != nil {

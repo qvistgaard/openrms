@@ -30,16 +30,16 @@ func NewCar(implementer drivers.Driver, settings *Settings, defaults *Settings, 
 }
 
 func (c *Car) initObservableProperties(settings *Settings) {
-	c.maxBreaking = observable.Create(*settings.MaxBreaking)
-	c.maxSpeed = observable.Create(*settings.MaxSpeed)
-	c.minSpeed = observable.Create(*settings.MinSpeed)
-	c.pitLaneMaxSpeed = observable.Create(*settings.PitLane.MaxSpeed)
-	c.pit = observable.Create(false)
-	c.deslotted = observable.Create(false)
+	c.maxBreaking = observable.Create(*settings.MaxBreaking).Filter(observable.DistinctComparableChange[uint8]())
+	c.maxSpeed = observable.Create(*settings.MaxSpeed).Filter(observable.DistinctComparableChange[uint8]())
+	c.minSpeed = observable.Create(*settings.MinSpeed).Filter(observable.DistinctComparableChange[uint8]())
+	c.pitLaneMaxSpeed = observable.Create(*settings.PitLane.MaxSpeed).Filter(observable.DistinctComparableChange[uint8]())
+	c.pit = observable.Create(false).Filter(observable.DistinctBooleanChange())
+	c.deslotted = observable.Create(false).Filter(observable.DistinctBooleanChange())
 	c.lastLap = observable.Create(types.Lap{})
-	c.laps = observable.Create(uint32(0))
+	c.laps = observable.Create(uint32(0)).Filter(observable.DistinctComparableChange[uint32]())
 	c.drivers = observable.Create(*settings.Drivers)
-	c.team = observable.Create(*settings.Team)
+	c.team = observable.Create(*settings.Team).Filter(observable.DistinctComparableChange[string]())
 	c.controller = controller.NewController()
 }
 
@@ -65,7 +65,7 @@ func (c *Car) filters() {
 	c.maxBreaking.Filter(observable.DistinctPercentageChange())
 	c.pit.Filter(observable.DistinctBooleanChange())
 	c.deslotted.Filter(observable.DistinctBooleanChange())
-	c.laps.Filter(observable.DistictComparableChange[uint32]())
+	c.laps.Filter(observable.DistinctComparableChange[uint32]())
 }
 
 type Car struct {
@@ -133,8 +133,9 @@ func (c *Car) UpdateFromEvent(event drivers.Event) {
 	case events.ControllerTriggerValueEvent:
 		c.Controller().TriggerValue().Set(uint8(e.TriggerValue()))
 	case events.Lap:
-		c.Laps().Set(e.Number()) // get rid of this
-		c.LastLap().Set(types.Lap{e.Number(), e.Time(), e.Recorded()})
+		if c.Laps().Set(e.Number()) {
+			c.LastLap().Set(types.Lap{e.Number(), e.Time(), e.Recorded()})
+		}
 		break
 	case events.ControllerLinkEvent:
 	case events.OnTrack:

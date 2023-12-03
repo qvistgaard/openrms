@@ -40,7 +40,7 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 		p.carConfig[carId] = p.config.Car.Defaults.LimbMode
 	}
 
-	p.state[carId] = observable.Create(false)
+	p.state[carId] = observable.Create(false).Filter(observable.DistinctBooleanChange())
 	p.state[carId].RegisterObserver(func(b bool) {
 		car.MaxSpeed().Update()
 	})

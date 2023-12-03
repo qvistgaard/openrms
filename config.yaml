@@ -130,7 +130,7 @@ car:
 
 plugins:
   fuel:
-    enabled: true
+    enabled: false
   race:
     enabled: false
   telemetry:

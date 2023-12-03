@@ -66,11 +66,12 @@ func (o *Value[T]) Modifier(fn Modifier[T], priority int) Observable[T] {
 
 // Set sets a new value for the Value. It applies all registered modifiers
 // updates the current value, and notifies observers if the change is verified by filters.
-func (o *Value[T]) Set(value T) {
-	o.applyModifiersAndUpdate(value)
+// Returns true if value was changed
+func (o *Value[T]) Set(value T) bool {
+	return o.applyModifiersAndUpdate(value)
 }
 
-func (o *Value[T]) applyModifiersAndUpdate(value T) {
+func (o *Value[T]) applyModifiersAndUpdate(value T) bool {
 	baseValue := value
 	for _, modifier := range o.modifiers {
 		if v, enabled := modifier.modifier(value); enabled {
@@ -81,7 +82,9 @@ func (o *Value[T]) applyModifiersAndUpdate(value T) {
 		o.baseValue = baseValue
 		o.value = value
 		o.Publish()
+		return true
 	}
+	return false
 }
 
 func (o *Value[T]) Update() {

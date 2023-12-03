@@ -50,10 +50,11 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 		p.telemetry[id] = entry
 	}
 
-	p.fuelPlugin.Fuel(id).RegisterObserver(func(f float32) {
-		p.telemetry[id].Fuel = f
-	})
-
+	if f, err := p.fuelPlugin.Fuel(id); err == nil {
+		f.RegisterObserver(func(f float32) {
+			p.telemetry[id].Fuel = f
+		})
+	}
 	car.Deslotted().RegisterObserver(func(b bool) {
 		p.telemetry[id].Deslotted = b
 	})

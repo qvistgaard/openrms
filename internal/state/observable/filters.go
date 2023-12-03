@@ -35,10 +35,10 @@ func DistinctPercentageChange() Filter[uint8] {
 // Returns:
 //   - bool: true if the change is distinct, false if the values are the same.
 func DistinctBooleanChange() Filter[bool] {
-	return DistictComparableChange[bool]()
+	return DistinctComparableChange[bool]()
 }
 
-func DistictComparableChange[T comparable]() Filter[T] {
+func DistinctComparableChange[T comparable]() Filter[T] {
 	return func(current T, new T) bool {
 		return current != new
 	}

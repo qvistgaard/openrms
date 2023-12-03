@@ -32,7 +32,7 @@ type Observable[T any] interface {
 	// Set sets a new value for the Observable. It applies all registered modifiers,
 	// updates the current value, and notifies observers.
 	// It takes a value of type T.
-	Set(value T)
+	Set(value T) bool
 
 	// Get retrieves the current value of the Observable.
 	// It returns the current value of type T.

@@ -29,8 +29,8 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 	carId := car.Id()
 	handler := &DefaultHandler{
 		car:      car,
-		active:   observable.Create(false),
-		current:  observable.Create(uint8(0)),
+		active:   observable.Create(false).Filter(observable.DistinctBooleanChange()),
+		current:  observable.Create(uint8(0)).Filter(observable.DistinctComparableChange[uint8]()),
 		maxSpeed: car.PitLaneMaxSpeed(),
 	}
 	p.state[carId] = &state{

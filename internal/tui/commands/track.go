@@ -4,5 +4,4 @@ type SaveTrackConfiguration struct {
 	MaxSpeed string
 }
 
-type OpenTrackConfiguration struct {
-}
+type OpenTrackConfiguration SaveTrackConfiguration
