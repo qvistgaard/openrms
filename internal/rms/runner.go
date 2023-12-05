@@ -73,6 +73,8 @@ func (r *Runner) processEvents() error {
 	}
 	defer r.implement.Stop()
 
+	r.race.Stop()
+
 	for {
 		select {
 		case e := <-ec:

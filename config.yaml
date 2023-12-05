@@ -130,9 +130,9 @@ car:
 
 plugins:
   fuel:
-    enabled: false
+    enabled: true
   race:
-    enabled: false
+    enabled: true
   telemetry:
     enabled: true
   limb-mode:

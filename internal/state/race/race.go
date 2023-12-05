@@ -2,6 +2,7 @@ package race
 
 import (
 	"github.com/qvistgaard/openrms/internal/drivers"
+	"github.com/qvistgaard/openrms/internal/drivers/events"
 	"github.com/qvistgaard/openrms/internal/state/observable"
 	"time"
 )
@@ -19,7 +20,7 @@ type Race struct {
 	implementer drivers.Driver
 	status      observable.Observable[Status]
 	duration    observable.Observable[time.Duration]
-	laps        observable.Observable[uint16]
+	laps        observable.Observable[uint32]
 
 	raceStatus   Status
 	raceDuration time.Duration
@@ -31,16 +32,16 @@ func New(_ Config, implementer drivers.Driver) (*Race, error) {
 		implementer: implementer,
 		status:      observable.Create(Stopped).Filter(filterRaceStatusChange()),
 		duration:    observable.Create(time.Second * 0),
-		laps:        observable.Create(uint16(0)).Filter(filterTotalLapsCountChange()), // observable.Annotation{annotations.RaceValueFieldName, fields.RaceStatus},
+		laps:        observable.Create(uint32(0)).Filter(filterTotalLapsCountChange()), // observable.Annotation{annotations.RaceValueFieldName, fields.RaceStatus},
 	}, nil
 }
 
 func (r *Race) Start() {
-	r.raceStatus = Running
-	r.raceStart = time.Now()
 	if r.raceStatus == Stopped {
 		r.raceDuration = time.Second * 0
+		r.raceStart = time.Now()
 	}
+	r.raceStatus = Running
 	r.implementer.Race().Start()
 	r.status.Set(r.raceStatus)
 }
@@ -69,7 +70,7 @@ func (r *Race) Duration() observable.Observable[time.Duration] {
 	return r.duration
 }
 
-func (r *Race) Laps() observable.Observable[uint16] {
+func (r *Race) Laps() observable.Observable[uint32] {
 	return r.laps
 }
 
@@ -77,8 +78,12 @@ func (r *Race) Status() observable.Observable[Status] {
 	return r.status
 }
 
-func (r *Race) UpdateFromEvent(_ drivers.Event) {
-	// r.laps.Set(e.Car().Lap().Number()) TOOD  fix this
+func (r *Race) UpdateFromEvent(event drivers.Event) {
+	switch e := event.(type) {
+	case events.Lap:
+		r.laps.Set(e.Number())
+	}
+
 	if r.raceStatus == Running {
 		r.duration.Set(calculateRaceDuration(r.raceDuration, r.raceStart, time.Now()))
 	}

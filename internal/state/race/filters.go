@@ -8,8 +8,8 @@ func filterRaceStatusChange() observable.Filter[Status] {
 	}
 }
 
-func filterTotalLapsCountChange() observable.Filter[uint16] {
-	return func(oldLapCount uint16, newLapCount uint16) bool {
+func filterTotalLapsCountChange() observable.Filter[uint32] {
+	return func(oldLapCount uint32, newLapCount uint32) bool {
 		return newLapCount > oldLapCount
 	}
 }

@@ -3,7 +3,6 @@ package commands
 type StartRace struct {
 	RaceTime string
 	Laps     string
-	// TODO drivers laps and mapping to race plugin
 }
 
 type PauseRace struct {

@@ -107,7 +107,10 @@ func main() {
 	}
 
 	if *flagBrowser {
-		browser.OpenURL("http://localhost:8080")
+		err = browser.OpenURL("http://localhost:8080")
+		if err != nil {
+			log.Error(err)
+		}
 	}
 
 	wg.Add(1)

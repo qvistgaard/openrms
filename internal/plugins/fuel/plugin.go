@@ -74,9 +74,11 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 	carState.fuel = observable.Create(float32(config.TankSize))
 
 	car.Controller().TriggerValue().RegisterObserver(func(v uint8) {
-		err := carState.machine.Fire(triggerUpdateFuelLevel, v)
-		if err != nil {
-			log.Error(err)
+		if p.status == race.Running {
+			err := carState.machine.Fire(triggerUpdateFuelLevel, v)
+			if err != nil {
+				log.Error(err)
+			}
 		}
 	})
 
@@ -142,6 +144,12 @@ func (p *Plugin) Fuel(car types.CarId) (observable.Observable[float32], error) {
 func (p *Plugin) ConfigureRace(r *race.Race) {
 	r.Status().RegisterObserver(func(status race.Status) {
 		p.status = status
+		if status == race.Stopped {
+			for _, s := range p.state {
+				s.consumed = 0
+				s.fuel.Update()
+			}
+		}
 	})
 }
 

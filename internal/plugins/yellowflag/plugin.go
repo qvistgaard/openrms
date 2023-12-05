@@ -27,7 +27,7 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 	})
 }
 
-func (p *Plugin) InitializeCar(car *car.Car) {
+func (p *Plugin) InitializeCar(_ *car.Car) {
 	// NOOP
 }
 

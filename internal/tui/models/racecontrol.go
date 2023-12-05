@@ -75,6 +75,7 @@ func (r RaceControl) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return r, func() tea.Msg {
 					return commands.StartRace{
 						RaceTime: r.raceTime.Value(),
+						Laps:     r.maxLaps.Value(),
 					}
 				}
 			}

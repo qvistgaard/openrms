@@ -7,7 +7,7 @@ import (
 
 type Plugin struct {
 	Duration *time.Duration
-	Laps     *uint16
+	Laps     *uint32
 	status   race.Status
 }
 
@@ -21,7 +21,7 @@ func (p *Plugin) ConfigureRace(r *race.Race) {
 			r.Stop()
 		}
 	})
-	r.Laps().RegisterObserver(func(laps uint16) {
+	r.Laps().RegisterObserver(func(laps uint32) {
 		if p.Laps != nil && *p.Laps <= laps && p.status == race.Running {
 			r.Stop()
 		}

@@ -11,6 +11,7 @@ import (
 	"github.com/qvistgaard/openrms/internal/tui/commands"
 	"github.com/qvistgaard/openrms/internal/tui/messages"
 	"github.com/qvistgaard/openrms/internal/types"
+	log "github.com/sirupsen/logrus"
 	"strconv"
 	"time"
 )
@@ -89,6 +90,20 @@ func (bridge *Bridge) messageHandler() {
 			case commands.SaveTrackConfiguration:
 				bridge.saveTrackConfiguration(msg)
 			case commands.StartRace:
+				d, err := time.ParseDuration(msg.RaceTime)
+				if err == nil {
+					bridge.racePlugin.Duration = &d
+				} else {
+					log.Error(err)
+				}
+				l, err := strconv.ParseInt(msg.Laps, 10, 16)
+				if err == nil {
+					u := uint32(l)
+					bridge.racePlugin.Laps = &u
+
+				} else {
+					log.Error(err)
+				}
 				bridge.Race.Start()
 			case commands.ResumeRace:
 				bridge.Race.Start()
