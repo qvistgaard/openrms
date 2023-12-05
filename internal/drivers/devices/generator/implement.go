@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/qvistgaard/openrms/internal/drivers"
 	"github.com/qvistgaard/openrms/internal/drivers/events"
+	"github.com/qvistgaard/openrms/internal/state/race"
 	"github.com/qvistgaard/openrms/internal/types"
 	"math/rand"
 	"sync"
@@ -58,9 +59,11 @@ func (g *Generator) eventGenerator(carId types.CarId, c chan<- drivers.Event, in
 	for g.started {
 		select {
 		case <-time.After(time.Duration(interval) * time.Millisecond):
-			car := NewCar(carId, g.race.laps)
-			c <- events.NewControllerTriggerValueEvent(car, float64(100))
-			c <- events.NewLap(car, g.race.laps, time.Duration(rand.Intn(10000))*time.Millisecond, time.Now().Sub(g.race.raceStart))
+			if g.race.raceStatus == race.Running {
+				car := NewCar(carId, g.race.laps)
+				c <- events.NewControllerTriggerValueEvent(car, float64(100))
+				c <- events.NewLap(car, g.race.laps, time.Duration(rand.Intn(10000))*time.Millisecond, time.Now().Sub(g.race.raceStart))
+			}
 		}
 	}
 }
@@ -73,7 +76,9 @@ func (g *Generator) updateLapCounter() {
 	for g.started {
 		select {
 		case <-time.After(time.Duration(g.interval) * time.Millisecond):
-			g.race.laps++
+			if g.race.raceStatus == race.Running {
+				g.race.laps++
+			}
 		}
 	}
 }

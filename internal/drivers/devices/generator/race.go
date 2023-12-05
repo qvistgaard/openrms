@@ -17,10 +17,12 @@ func NewRace() *Race {
 }
 
 func (r *Race) Start() {
+	if r.raceStatus == race.Stopped {
+		r.laps = 0
+	}
 	log.Info("Race started")
 	r.raceStatus = race.Running
 	r.raceStart = time.Now()
-	r.laps = 0
 }
 
 func (r *Race) Flag() {
