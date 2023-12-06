@@ -1,6 +1,9 @@
 package observable
 
-import "sort"
+import (
+	"sort"
+	"sync"
+)
 
 // Value is a data structure that allows observing and modifying a value.
 type Value[T any] struct {
@@ -9,6 +12,7 @@ type Value[T any] struct {
 	modifiers []modifier[T]
 	observers []Observer[T]
 	filters   []Filter[T]
+	sync      sync.Mutex
 }
 
 // Create creates a new Value with the specified initial value and annotations.
@@ -72,6 +76,9 @@ func (o *Value[T]) Set(value T) bool {
 }
 
 func (o *Value[T]) applyModifiersAndUpdate(value T) bool {
+	o.sync.Lock()
+	defer o.sync.Unlock()
+
 	baseValue := value
 	for _, modifier := range o.modifiers {
 		if v, enabled := modifier.modifier(value); enabled {

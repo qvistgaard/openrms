@@ -141,6 +141,8 @@ plugins:
     enabled: true
   yellow-flag:
     enabled: true
+  confirmation:
+    enabled: false
 
 
 

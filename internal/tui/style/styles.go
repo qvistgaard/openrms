@@ -11,7 +11,7 @@ var (
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(lipgloss.Color("24")).
 			Padding(1, 0).
-			MarginTop(3).
+			MarginTop(0).
 			BorderTop(true).
 			BorderLeft(true).
 			BorderRight(true).

@@ -4,9 +4,11 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	"github.com/qvistgaard/openrms/internal/plugins"
+	"github.com/qvistgaard/openrms/internal/plugins/confirmation"
 	"github.com/qvistgaard/openrms/internal/plugins/fuel"
 	"github.com/qvistgaard/openrms/internal/plugins/limbmode"
 	"github.com/qvistgaard/openrms/internal/plugins/race"
+	race2 "github.com/qvistgaard/openrms/internal/state/race"
 )
 
 func Plugins(conf Config) (*plugins.Plugins, error) {
@@ -76,8 +78,17 @@ func FuelPlugin(conf Config, limpMode *limbmode.Plugin) (*fuel.Plugin, error) {
 // Returns:
 //   - A new instance of the 'race.Plugin' type representing the initialized race plugin.
 //   - An error if there was an issue initializing the race plugin instance.
-func RacePlugin(_ Config) (*race.Plugin, error) {
-	return race.New()
+func RacePlugin(_ Config, r *race2.Race, plugin *confirmation.Plugin) (*race.Plugin, error) {
+	return race.New(r, plugin)
+}
+
+func ConfirmationPlugin(conf Config, r *race2.Race, plugin *confirmation.Plugin) (*confirmation.Plugin, error) {
+	c := &confirmation.Config{}
+	err := mapstructure.Decode(conf, c)
+	if err != nil {
+		return nil, errors.WithMessage(err, "failed to read fuel plugin configuration")
+	}
+	return confirmation.New(c)
 }
 
 // LimbModePlugin initializes and returns a new LimpMode plugin instance based on the provided configuration.

@@ -39,8 +39,8 @@ func New(_ Config, implementer drivers.Driver) (*Race, error) {
 func (r *Race) Start() {
 	if r.raceStatus == Stopped {
 		r.raceDuration = time.Second * 0
-		r.raceStart = time.Now()
 	}
+	r.raceStart = time.Now()
 	r.raceStatus = Running
 	r.implementer.Race().Start()
 	r.status.Set(r.raceStatus)

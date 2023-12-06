@@ -14,3 +14,9 @@ type Update struct {
 	RaceDuration  time.Duration
 	TrackMaxSpeed uint8
 }
+
+type ShowConfirmation struct {
+}
+
+type CloseConfirmation struct {
+}

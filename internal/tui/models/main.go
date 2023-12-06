@@ -3,6 +3,7 @@ package models
 import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/qvistgaard/openrms/internal/plugins/confirmation"
 	"github.com/qvistgaard/openrms/internal/state/race"
 	"github.com/qvistgaard/openrms/internal/tui/commands"
 	"github.com/qvistgaard/openrms/internal/tui/messages"
@@ -16,6 +17,7 @@ const (
 	ViewCarConfiguration
 	ViewRaceConfiguration
 	ViewTrackConfiguration
+	ViewConfirmation
 )
 
 type Main struct {
@@ -26,6 +28,7 @@ type Main struct {
 	Leaderboard        tea.Model
 	CarConfiguration   tea.Model
 	RaceControl        tea.Model
+	Confirmation       tea.Model
 	width              int
 	height             int
 	trackMaxSpeed      uint8
@@ -88,7 +91,10 @@ func (m Main) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.raceStatus = msg.(messages.Update).RaceStatus
 		m.StatusBar, _ = m.StatusBar.Update(msg)
 		m.trackMaxSpeed = msg.(messages.Update).TrackMaxSpeed
-
+	case messages.ShowConfirmation:
+		m.ActiveView = ViewConfirmation
+	case messages.CloseConfirmation:
+		m.ActiveView = ViewLeaderboard
 	case tea.WindowSizeMsg:
 		width := msg.(tea.WindowSizeMsg).Width
 		height := msg.(tea.WindowSizeMsg).Height
@@ -105,6 +111,7 @@ func (m Main) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.Header, _ = m.Header.Update(updatedMsg)
 		m.CarConfiguration, _ = m.CarConfiguration.Update(updatedMsg)
 		m.RaceControl, _ = m.RaceControl.Update(updatedMsg)
+		m.Confirmation, _ = m.Confirmation.Update(updatedMsg)
 		m.TrackConfiguration, _ = m.TrackConfiguration.Update(updatedMsg)
 
 	case commands.OpenCarConfiguration:
@@ -123,6 +130,10 @@ func (m Main) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.ActiveView = ViewLeaderboard
 		m.RaceControl, cmd = m.RaceControl.Update(msg)
 		m.Bridge <- msg
+	case confirmation.Status:
+		m.ActiveView = ViewConfirmation
+		m.Confirmation, cmd = m.Confirmation.Update(msg)
+
 	}
 
 	return m, cmd
@@ -139,6 +150,7 @@ func (m Main) View() string {
 
 	return docStyle.Render(lipgloss.JoinVertical(lipgloss.Top,
 		m.Header.View(),
+		// m.Confirmation.View(),
 		m.activeView(),
 		m.StatusBar.View(),
 	))
@@ -154,6 +166,8 @@ func (m Main) activeView() string {
 		return m.RaceControl.View()
 	case ViewTrackConfiguration:
 		return m.TrackConfiguration.View()
+	case ViewConfirmation:
+		return m.Confirmation.View()
 	}
 	return "No view"
 }

@@ -3,6 +3,7 @@ package tui
 import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/madflojo/tasks"
+	"github.com/qvistgaard/openrms/internal/plugins/confirmation"
 	race2 "github.com/qvistgaard/openrms/internal/plugins/race"
 	"github.com/qvistgaard/openrms/internal/plugins/telemetry"
 	"github.com/qvistgaard/openrms/internal/state/car/repository"
@@ -17,39 +18,57 @@ import (
 )
 
 type Bridge struct {
-	Leaderboard   *telemetry.Plugin
-	Scheduler     *tasks.Scheduler
-	RaceTelemetry telemetry.Race
-	Program       *tea.Program
-	Race          *race.Race
-	Track         *track.Track
-	UI            *UI
-	messages      <-chan tea.Msg
-	Cars          repository.Repository
-	duration      time.Duration
-	status        race.Status
-	racePlugin    *race2.Plugin
-	trackMaxSpeed uint8
+	Leaderboard        *telemetry.Plugin
+	Scheduler          *tasks.Scheduler
+	RaceTelemetry      telemetry.Race
+	Program            *tea.Program
+	Race               *race.Race
+	Track              *track.Track
+	UI                 *UI
+	messages           <-chan tea.Msg
+	Cars               repository.Repository
+	duration           time.Duration
+	status             race.Status
+	racePlugin         *race2.Plugin
+	trackMaxSpeed      uint8
+	confirmationPlugin *confirmation.Plugin
 }
 
-func CreateBridge(leaderboard *telemetry.Plugin, plugin *race2.Plugin, scheduler *tasks.Scheduler, track *track.Track, cars repository.Repository, race *race.Race) *Bridge {
+func CreateBridge(leaderboard *telemetry.Plugin, plugin *race2.Plugin, scheduler *tasks.Scheduler, track *track.Track, cars repository.Repository, race *race.Race, confirmationPlugin *confirmation.Plugin) *Bridge {
 	bridgeChannel := make(chan tea.Msg)
 
 	return &Bridge{
-		messages:    bridgeChannel,
-		Leaderboard: leaderboard,
-		racePlugin:  plugin,
-		duration:    time.Second * 0,
-		Scheduler:   scheduler,
-		Cars:        cars,
-		Track:       track,
-		Race:        race,
-		UI:          Create(bridgeChannel),
+		messages:           bridgeChannel,
+		Leaderboard:        leaderboard,
+		racePlugin:         plugin,
+		confirmationPlugin: confirmationPlugin,
+		duration:           time.Second * 0,
+		Scheduler:          scheduler,
+		Cars:               cars,
+		Track:              track,
+		Race:               race,
+		UI:                 Create(bridgeChannel),
 	}
 }
 
 func (bridge *Bridge) Run() {
 	go bridge.messageHandler()
+
+	bridge.confirmationPlugin.Active().RegisterObserver(func(b bool) {
+		if b {
+			bridge.UI.Send(messages.ShowConfirmation{})
+		}
+	})
+
+	bridge.confirmationPlugin.Confirmed().RegisterObserver(func(b bool) {
+		if b {
+			bridge.UI.Send(messages.CloseConfirmation{})
+		}
+	})
+
+	bridge.confirmationPlugin.Status().RegisterObserver(func(status confirmation.Status) {
+		bridge.UI.Send(status)
+	})
 
 	bridge.Race.Duration().RegisterObserver(func(duration time.Duration) {
 		bridge.duration = duration
@@ -104,9 +123,9 @@ func (bridge *Bridge) messageHandler() {
 				} else {
 					log.Error(err)
 				}
-				bridge.Race.Start()
+				bridge.racePlugin.Start()
 			case commands.ResumeRace:
-				bridge.Race.Start()
+				bridge.racePlugin.Start()
 			case commands.PauseRace:
 				bridge.Race.Pause()
 			case commands.StopRace:

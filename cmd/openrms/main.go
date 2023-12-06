@@ -5,6 +5,7 @@ import (
 	"github.com/madflojo/tasks"
 	"github.com/pkg/browser"
 	"github.com/qvistgaard/openrms/cmd/openrms/configuration"
+	"github.com/qvistgaard/openrms/internal/plugins/confirmation"
 	"github.com/qvistgaard/openrms/internal/plugins/pit"
 	"github.com/qvistgaard/openrms/internal/plugins/telemetry"
 	"github.com/qvistgaard/openrms/internal/plugins/yellowflag"
@@ -72,7 +73,9 @@ func main() {
 			log.Fatal(err)
 		}*/
 
-	racePlugin, err := configuration.RacePlugin(cfg)
+	confirmationPlugin := confirmation.New()
+
+	racePlugin, err := configuration.RacePlugin(cfg, race, confirmationPlugin)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -88,7 +91,7 @@ func main() {
 	}
 	pitPlugin := pit.New(fuelPlugin, limpModePlugin)
 	leaderboardPlugin := telemetry.New(fuelPlugin, limpModePlugin, pitPlugin)
-	yellowFlagPlugin := yellowflag.New()
+	yellowFlagPlugin := yellowflag.New(racePlugin)
 
 	plugins, err := configuration.Plugins(cfg)
 	if err != nil {
@@ -100,6 +103,7 @@ func main() {
 	plugins.Append(limpModePlugin)
 	plugins.Append(fuelPlugin)
 	plugins.Append(yellowFlagPlugin)
+	plugins.Append(confirmationPlugin)
 
 	repository, err := configuration.CarRepository(cfg, driver, plugins)
 	if err != nil {
@@ -121,8 +125,7 @@ func main() {
 		wg.Wait()
 	} else {
 		log.SetOutput(io.Writer(logFile))
-		b := tui.CreateBridge(leaderboardPlugin, racePlugin, scheduler, track, repository, race)
-
+		b := tui.CreateBridge(leaderboardPlugin, racePlugin, scheduler, track, repository, race, confirmationPlugin)
 		b.Run()
 		b.UI.Run()
 	}
