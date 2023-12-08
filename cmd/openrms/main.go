@@ -5,7 +5,6 @@ import (
 	"github.com/madflojo/tasks"
 	"github.com/pkg/browser"
 	"github.com/qvistgaard/openrms/cmd/openrms/configuration"
-	"github.com/qvistgaard/openrms/internal/plugins/confirmation"
 	"github.com/qvistgaard/openrms/internal/plugins/pit"
 	"github.com/qvistgaard/openrms/internal/plugins/telemetry"
 	"github.com/qvistgaard/openrms/internal/plugins/yellowflag"
@@ -73,7 +72,10 @@ func main() {
 			log.Fatal(err)
 		}*/
 
-	confirmationPlugin := confirmation.New()
+	confirmationPlugin, err := configuration.ConfirmationPlugin(cfg)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	racePlugin, err := configuration.RacePlugin(cfg, race, confirmationPlugin)
 	if err != nil {

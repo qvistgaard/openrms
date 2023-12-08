@@ -46,6 +46,9 @@ func (p *Plugin) ConfigureRace(r *race.Race) {
 }
 
 func (p *Plugin) Start() {
+	if !p.confirmation.Enabled() {
+		p.race.Start()
+	}
 	if !p.confirmation.Active().Get() {
 		p.started = true
 		err := p.confirmation.Activate()

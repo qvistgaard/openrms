@@ -2,10 +2,10 @@ package confirmation
 
 import (
 	"github.com/pkg/errors"
-	"github.com/qvistgaard/openrms/internal/plugins"
 	"github.com/qvistgaard/openrms/internal/state/car"
 	"github.com/qvistgaard/openrms/internal/state/observable"
 	"github.com/qvistgaard/openrms/internal/types"
+	"slices"
 	"time"
 )
 
@@ -24,13 +24,17 @@ type Plugin struct {
 	confirmed     observable.Observable[bool]
 	active        observable.Observable[bool]
 	status        observable.Observable[Status]
+	enabled       bool
 }
 
 type Config struct {
-	Car struct {
-		// TODO fix enable disable support
-		plugins.Plugins
-	}
+	Plugin struct {
+		Confirmation struct {
+			Enabled bool           `mapstructure:"enabled"`
+			Timeout *time.Duration `mapstructure:"timeout"`
+			Modes   []string       `mapstructure:"modes"`
+		} `mapstructure:"confirmation"`
+	} `mapstructure:"plugins"`
 }
 
 type Status struct {
@@ -40,14 +44,30 @@ type Status struct {
 	TotalTime            time.Duration
 }
 
-func New() (*Plugin, error) {
-	return &Plugin{
+func New(c *Config) (*Plugin, error) {
+	p := &Plugin{
 		active:    observable.Create(false).Filter(observable.DistinctBooleanChange()),
 		confirmed: observable.Create(false).Filter(observable.DistinctBooleanChange()),
 		status:    observable.Create(Status{}),
 		timeout:   time.Second * 3,
 		mode:      Timer | TrackCall,
-	}, nil
+		enabled:   c.Plugin.Confirmation.Enabled,
+	}
+
+	if c.Plugin.Confirmation.Timeout != nil {
+		p.timeout = *c.Plugin.Confirmation.Timeout
+	}
+
+	if c.Plugin.Confirmation.Modes != nil {
+		if slices.Contains(c.Plugin.Confirmation.Modes, "timer") {
+			p.mode = Timer ^ p.mode
+		}
+		if !slices.Contains(c.Plugin.Confirmation.Modes, "trackcall") {
+			p.mode = TrackCall ^ p.mode
+		}
+	}
+
+	return p, nil
 }
 
 func (p *Plugin) Priority() int {
@@ -129,6 +149,10 @@ func (p *Plugin) Status() observable.Observable[Status] {
 
 func (p *Plugin) Confirmed() observable.Observable[bool] {
 	return p.confirmed
+}
+
+func (p *Plugin) Enabled() bool {
+	return p.enabled
 }
 
 func (p *Plugin) InitializeCar(car *car.Car) {
