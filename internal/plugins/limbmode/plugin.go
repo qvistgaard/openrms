@@ -75,3 +75,7 @@ func (p *Plugin) Name() string {
 func (p *Plugin) ConfigurePitSequence(carId types.CarId) pit.Sequence {
 	return NewSequence(p.state[carId])
 }
+
+func (p *Plugin) Enabled() bool {
+	return p.config.Plugin.LimbMode.Enabled
+}

@@ -18,4 +18,9 @@ type Config struct {
 		Defaults *CarSettings   `mapstructure:"defaults"`
 		Cars     []*CarSettings `mapstructure:"cars"`
 	}
+	Plugin struct {
+		LimbMode struct {
+			Enabled bool `mapstructure:"enabled"`
+		} `mapstructure:"limb-mode"`
+	} `mapstructure:"plugins"`
 }

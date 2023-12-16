@@ -28,16 +28,6 @@ type Plugin struct {
 	enabled       bool
 }
 
-type Config struct {
-	Plugin struct {
-		Confirmation struct {
-			Enabled bool           `mapstructure:"enabled"`
-			Timeout *time.Duration `mapstructure:"timeout"`
-			Modes   []string       `mapstructure:"modes"`
-		} `mapstructure:"confirmation"`
-	} `mapstructure:"plugins"`
-}
-
 type Status struct {
 	PendingConfirmations uint8
 	TotalConfirmed       uint8
@@ -102,10 +92,10 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 
 func (p *Plugin) Activate() error {
 	if p.active.Get() {
-		return errors.New("Confirmation already in progress")
+		return errors.New("LimbMode already in progress")
 	}
 
-	log.Info("Confirmation process started")
+	log.Info("LimbMode process started")
 
 	p.confirmed.Set(false)
 	p.active.Set(true)
@@ -127,7 +117,7 @@ func (p *Plugin) Activate() error {
 					p.active.Set(false)
 
 					log.WithField("mode", "timer").
-						Info("Confirmation process completed")
+						Info("LimbMode process completed")
 
 					return
 				}

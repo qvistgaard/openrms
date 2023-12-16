@@ -1,4 +1,4 @@
-package yellowflag
+package flags
 
 import (
 	race2 "github.com/qvistgaard/openrms/internal/plugins/race"
@@ -9,11 +9,22 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+type Flag uint
+
+const (
+	Green Flag = iota
+	Yellow
+	Red
+	Checkered
+	White
+	Black
+)
+
 type Plugin struct {
 	race       *race.Race
 	racePlugin *race2.Plugin
 	state      map[types.CarId]state
-	flagged    observable.Observable[bool]
+	flagged    observable.Observable[Flag]
 }
 
 type state struct {
@@ -29,7 +40,7 @@ func New(r *race2.Plugin) *Plugin {
 	return &Plugin{
 		racePlugin: r,
 		state:      make(map[types.CarId]state),
-		flagged:    observable.Create(false),
+		flagged:    observable.Create(Green),
 	}
 }
 
@@ -83,4 +94,13 @@ func (p *Plugin) Priority() int {
 
 func (p *Plugin) Name() string {
 	return "yellow-flag"
+}
+
+func (p *Plugin) Flag(flag Flag) int {
+	return 1
+	// return p.flagged.Set(flag)
+}
+
+func (p *Plugin) Clear(id int) {
+
 }

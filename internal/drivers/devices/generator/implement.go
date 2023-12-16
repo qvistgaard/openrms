@@ -61,6 +61,14 @@ func (g *Generator) eventGenerator(carId types.CarId, c chan<- drivers.Event, in
 		case <-time.After(time.Duration(interval) * time.Millisecond):
 			if g.race.raceStatus == race.Running {
 				car := NewCar(carId, g.race.laps)
+				deslot := rand.Float32() < 0.01
+				if deslot {
+					c <- events.NewOnTrack(car, false)
+					c <- events.NewDeslotted(car, true)
+				} else {
+					c <- events.NewOnTrack(car, true)
+					c <- events.NewDeslotted(car, false)
+				}
 				c <- events.NewControllerTriggerValueEvent(car, float64(100))
 				c <- events.NewLap(car, g.race.laps, time.Duration(rand.Intn(10000))*time.Millisecond, time.Now().Sub(g.race.raceStart))
 			}

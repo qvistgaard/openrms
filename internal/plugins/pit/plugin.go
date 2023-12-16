@@ -11,13 +11,15 @@ import (
 type Plugin struct {
 	state    map[types.CarId]*state
 	pitstops []SequencePlugin
+	config   *Config
 }
 
-func New(stops ...SequencePlugin) *Plugin {
+func New(c *Config, stops ...SequencePlugin) (*Plugin, error) {
 	return &Plugin{
+		config:   c,
 		state:    make(map[types.CarId]*state),
 		pitstops: stops,
-	}
+	}, nil
 }
 
 type state struct {
@@ -111,4 +113,8 @@ func (p *Plugin) Active(car types.CarId) observable.Observable[bool] {
 
 func (p *Plugin) Current(car types.CarId) observable.Observable[uint8] {
 	return p.state[car].handler.Current()
+}
+
+func (p *Plugin) Enabled() bool {
+	return p.config.Plugin.Pit.Enabled
 }

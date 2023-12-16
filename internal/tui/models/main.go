@@ -134,7 +134,7 @@ func (m Main) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.Bridge <- msg
 	case confirmation.Status:
 		// m.ActiveView = ViewConfirmation
-		// m.Confirmation, cmd = m.Confirmation.Update(msg)
+		// m.LimbMode, cmd = m.LimbMode.Update(msg)
 		m.Header, cmd = m.Header.Update(msg)
 
 	}
@@ -153,7 +153,7 @@ func (m Main) View() string {
 
 	return docStyle.Render(lipgloss.JoinVertical(lipgloss.Top,
 		m.Header.View(),
-		// m.Confirmation.View(),
+		// m.LimbMode.View(),
 		m.activeView(),
 		m.StatusBar.View(),
 	))

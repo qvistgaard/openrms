@@ -7,6 +7,7 @@ import (
 	"github.com/qvistgaard/openrms/internal/plugins/confirmation"
 	"github.com/qvistgaard/openrms/internal/plugins/fuel"
 	"github.com/qvistgaard/openrms/internal/plugins/limbmode"
+	"github.com/qvistgaard/openrms/internal/plugins/pit"
 	"github.com/qvistgaard/openrms/internal/plugins/race"
 	race2 "github.com/qvistgaard/openrms/internal/state/race"
 )
@@ -60,6 +61,15 @@ func ConfirmationPlugin(conf Config) (*confirmation.Plugin, error) {
 		return nil, errors.WithMessage(err, "failed to read fuel plugin configuration")
 	}
 	return confirmation.New(c)
+}
+
+func PitPlugin(conf Config, stops ...pit.SequencePlugin) (*pit.Plugin, error) {
+	c := &pit.Config{}
+	err := mapstructure.Decode(conf, c)
+	if err != nil {
+		return nil, errors.WithMessage(err, "failed to read fuel plugin configuration")
+	}
+	return pit.New(c, stops...)
 }
 
 // LimbModePlugin initializes and returns a new LimpMode plugin instance based on the provided configuration.

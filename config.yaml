@@ -136,11 +136,14 @@ plugins:
   telemetry:
     enabled: true
   limb-mode:
-    enabled: true
+    enabled: false
   pit:
+    enabled: false
+  ontrack:
     enabled: true
-  yellow-flag:
-    enabled: true
+    flag: yellow # yellow, green or red
+  flag:
+    enabled: false
   confirmation:
     enabled: true
 

@@ -72,9 +72,11 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 	car.PitLaneMaxSpeed().RegisterObserver(func(u uint8) {
 		p.telemetry[id].MaxPitSpeed = u
 	})
-	p.limbModePlugin.LimbMode(id).RegisterObserver(func(b bool) {
-		p.telemetry[id].LimbMode = b
-	})
+	if p.limbModePlugin.Enabled() {
+		p.limbModePlugin.LimbMode(id).RegisterObserver(func(b bool) {
+			p.telemetry[id].LimbMode = b
+		})
+	}
 
 	car.Enabled().RegisterObserver(func(b bool) {
 		p.telemetry[id].Enabled = b
@@ -91,12 +93,14 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 		p.updateLeaderboard()
 	})
 
-	p.pitPlugin.Active(id).RegisterObserver(func(b bool) {
-		p.telemetry[id].PitStopActive = b
-	})
-	p.pitPlugin.Current(id).RegisterObserver(func(u uint8) {
-		p.telemetry[id].PitStopSequence = u
-	})
+	if p.pitPlugin.Enabled() {
+		p.pitPlugin.Active(id).RegisterObserver(func(b bool) {
+			p.telemetry[id].PitStopActive = b
+		})
+		p.pitPlugin.Current(id).RegisterObserver(func(u uint8) {
+			p.telemetry[id].PitStopSequence = u
+		})
+	}
 
 }
 

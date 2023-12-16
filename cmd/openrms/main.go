@@ -5,9 +5,9 @@ import (
 	"github.com/madflojo/tasks"
 	"github.com/pkg/browser"
 	"github.com/qvistgaard/openrms/cmd/openrms/configuration"
-	"github.com/qvistgaard/openrms/internal/plugins/pit"
+	"github.com/qvistgaard/openrms/internal/plugins/flags"
+	"github.com/qvistgaard/openrms/internal/plugins/ontrack"
 	"github.com/qvistgaard/openrms/internal/plugins/telemetry"
-	"github.com/qvistgaard/openrms/internal/plugins/yellowflag"
 	"github.com/qvistgaard/openrms/internal/rms"
 	"github.com/qvistgaard/openrms/internal/tui"
 	log "github.com/sirupsen/logrus"
@@ -91,9 +91,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	pitPlugin := pit.New(fuelPlugin, limpModePlugin)
+	pitPlugin, _ := configuration.PitPlugin(cfg, fuelPlugin, limpModePlugin)
 	leaderboardPlugin := telemetry.New(fuelPlugin, limpModePlugin, pitPlugin)
-	yellowFlagPlugin := yellowflag.New(racePlugin)
+	flagPlugin := flags.New(racePlugin)
+	ontrackPlugin := ontrack.New(flagPlugin)
 
 	plugins, err := configuration.Plugins(cfg)
 	if err != nil {
@@ -104,8 +105,9 @@ func main() {
 	plugins.Append(leaderboardPlugin)
 	plugins.Append(limpModePlugin)
 	plugins.Append(fuelPlugin)
-	plugins.Append(yellowFlagPlugin)
+	plugins.Append(flagPlugin)
 	plugins.Append(confirmationPlugin)
+	plugins.Append(ontrackPlugin)
 
 	repository, err := configuration.CarRepository(cfg, driver, plugins)
 	if err != nil {
