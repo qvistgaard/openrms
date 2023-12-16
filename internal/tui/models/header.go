@@ -4,6 +4,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/qvistgaard/openrms/internal/plugins/confirmation"
+	"github.com/qvistgaard/openrms/internal/plugins/flags"
 	"github.com/qvistgaard/openrms/internal/tui/elements"
 )
 
@@ -35,6 +36,8 @@ func (h Header) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		h.width = msg.(tea.WindowSizeMsg).Width
 	case confirmation.Status:
+		h.confirmation, _ = h.confirmation.Update(msg)
+	case flags.Flag:
 		h.confirmation, _ = h.confirmation.Update(msg)
 	}
 	return h, nil

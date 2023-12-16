@@ -4,6 +4,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/madflojo/tasks"
 	"github.com/qvistgaard/openrms/internal/plugins/confirmation"
+	"github.com/qvistgaard/openrms/internal/plugins/flags"
 	race2 "github.com/qvistgaard/openrms/internal/plugins/race"
 	"github.com/qvistgaard/openrms/internal/plugins/telemetry"
 	"github.com/qvistgaard/openrms/internal/state/car/repository"
@@ -32,15 +33,17 @@ type Bridge struct {
 	racePlugin         *race2.Plugin
 	trackMaxSpeed      uint8
 	confirmationPlugin *confirmation.Plugin
+	flagsPlugin        *flags.Plugin
 }
 
-func CreateBridge(leaderboard *telemetry.Plugin, plugin *race2.Plugin, scheduler *tasks.Scheduler, track *track.Track, cars repository.Repository, race *race.Race, confirmationPlugin *confirmation.Plugin) *Bridge {
+func CreateBridge(leaderboard *telemetry.Plugin, plugin *race2.Plugin, scheduler *tasks.Scheduler, track *track.Track, cars repository.Repository, race *race.Race, confirmationPlugin *confirmation.Plugin, flagPlugin *flags.Plugin) *Bridge {
 	bridgeChannel := make(chan tea.Msg)
 
 	return &Bridge{
 		messages:           bridgeChannel,
 		Leaderboard:        leaderboard,
 		racePlugin:         plugin,
+		flagsPlugin:        flagPlugin,
 		confirmationPlugin: confirmationPlugin,
 		duration:           time.Second * 0,
 		Scheduler:          scheduler,
@@ -81,6 +84,10 @@ func (bridge *Bridge) Run() {
 	})
 	bridge.Track.MaxSpeed().RegisterObserver(func(maxSpeed uint8) {
 		bridge.trackMaxSpeed = maxSpeed
+	})
+
+	bridge.flagsPlugin.Flagged().RegisterObserver(func(flag flags.Flag) {
+		bridge.UI.Send(flag)
 	})
 
 	bridge.Scheduler.Add(&tasks.Task{

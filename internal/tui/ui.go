@@ -22,7 +22,6 @@ func Create(bridge chan<- tea.Msg) *UI {
 			CarConfiguration:   models.InitialCarConfigurationModel(),
 			RaceControl:        models.InitialRaceControlModel(),
 			TrackConfiguration: models.InitialTrackControlModel(),
-			Confirmation:       models.InitialConfirmationModel(),
 		}, tea.WithAltScreen()),
 	}
 }

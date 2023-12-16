@@ -4,6 +4,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/qvistgaard/openrms/internal/plugins/confirmation"
+	"github.com/qvistgaard/openrms/internal/plugins/flags"
 	"github.com/qvistgaard/openrms/internal/state/race"
 	"github.com/qvistgaard/openrms/internal/tui/commands"
 	"github.com/qvistgaard/openrms/internal/tui/messages"
@@ -17,7 +18,6 @@ const (
 	ViewCarConfiguration
 	ViewRaceConfiguration
 	ViewTrackConfiguration
-	ViewConfirmation
 )
 
 type Main struct {
@@ -28,7 +28,6 @@ type Main struct {
 	Leaderboard        tea.Model
 	CarConfiguration   tea.Model
 	RaceControl        tea.Model
-	Confirmation       tea.Model
 	width              int
 	height             int
 	trackMaxSpeed      uint8
@@ -111,7 +110,6 @@ func (m Main) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.Header, _ = m.Header.Update(updatedMsg)
 		m.CarConfiguration, _ = m.CarConfiguration.Update(updatedMsg)
 		m.RaceControl, _ = m.RaceControl.Update(updatedMsg)
-		m.Confirmation, _ = m.Confirmation.Update(updatedMsg)
 		m.TrackConfiguration, _ = m.TrackConfiguration.Update(updatedMsg)
 
 	case commands.OpenCarConfiguration:
@@ -133,8 +131,8 @@ func (m Main) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case commands.ToggleEnableDisableCar:
 		m.Bridge <- msg
 	case confirmation.Status:
-		// m.ActiveView = ViewConfirmation
-		// m.LimbMode, cmd = m.LimbMode.Update(msg)
+		m.Header, cmd = m.Header.Update(msg)
+	case flags.Flag:
 		m.Header, cmd = m.Header.Update(msg)
 
 	}
@@ -169,8 +167,6 @@ func (m Main) activeView() string {
 		return m.RaceControl.View()
 	case ViewTrackConfiguration:
 		return m.TrackConfiguration.View()
-	case ViewConfirmation:
-		return m.Confirmation.View()
 	}
 	return "No view"
 }

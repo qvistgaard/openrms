@@ -16,6 +16,18 @@ type Plugin struct {
 	started      bool
 }
 
+func (p *Plugin) Flag() {
+	p.race.Flag()
+}
+
+func (p *Plugin) Pause() {
+	p.race.Pause()
+}
+
+func (p *Plugin) Stop() {
+	p.race.Stop()
+}
+
 func New(r *race.Race, confirmationPlugin *confirmation.Plugin) (*Plugin, error) {
 	p := &Plugin{confirmation: confirmationPlugin, race: r}
 

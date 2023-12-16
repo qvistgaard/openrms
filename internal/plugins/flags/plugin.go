@@ -1,12 +1,8 @@
 package flags
 
 import (
-	race2 "github.com/qvistgaard/openrms/internal/plugins/race"
-	"github.com/qvistgaard/openrms/internal/state/car"
+	"github.com/qvistgaard/openrms/internal/plugins/race"
 	"github.com/qvistgaard/openrms/internal/state/observable"
-	"github.com/qvistgaard/openrms/internal/state/race"
-	"github.com/qvistgaard/openrms/internal/types"
-	log "github.com/sirupsen/logrus"
 )
 
 type Flag uint
@@ -15,77 +11,37 @@ const (
 	Green Flag = iota
 	Yellow
 	Red
-	Checkered
 	White
-	Black
+	Checkered
 )
 
 type Plugin struct {
-	race       *race.Race
-	racePlugin *race2.Plugin
-	state      map[types.CarId]state
-	flagged    observable.Observable[Flag]
+	race        *race.Plugin
+	flagged     observable.Observable[Flag]
+	activeFlags map[int]Flag
+	nextFlagId  int
 }
 
-type state struct {
-	deslotted bool
-	enabled   bool
-}
-
-func (p *Plugin) ConfigureRace(r *race.Race) {
-	p.race = r
-}
-
-func New(r *race2.Plugin) *Plugin {
-	return &Plugin{
-		racePlugin: r,
-		state:      make(map[types.CarId]state),
-		flagged:    observable.Create(Green),
+func New(r *race.Plugin) *Plugin {
+	plugin := &Plugin{
+		race:       r,
+		nextFlagId: 1,
+		activeFlags: map[int]Flag{
+			0: Green,
+		},
 	}
+	plugin.initObservableProperties()
+	plugin.registerObservers()
+
+	return plugin
 }
 
-func (p *Plugin) ConfigureCar(car *car.Car) {
-	p.state[car.Id()] = state{
-		deslotted: false,
-		enabled:   true,
-	}
-
-	car.Deslotted().RegisterObserver(func(b bool) {
-		s := p.state[car.Id()]
-		p.updateState(car.Id(), b, s.enabled)
-	})
-
-	car.Enabled().RegisterObserver(func(b bool) {
-		s := p.state[car.Id()]
-		p.updateState(car.Id(), s.deslotted, b)
-	})
+func (p *Plugin) initObservableProperties() {
+	p.flagged = observable.Create(Green).Filter(observable.DistinctComparableChange[Flag]())
 }
 
-func (p *Plugin) updateState(id types.CarId, deslotted bool, enabled bool) {
-	p.state[id] = state{
-		deslotted: deslotted,
-		enabled:   enabled,
-	}
-
-	deslottedCount := 0
-	for _, s := range p.state {
-		if s.deslotted && s.enabled {
-			deslottedCount = deslottedCount + 1
-		}
-	}
-	if deslottedCount > 0 {
-		log.WithField("deslotted", deslottedCount).
-			Info("Yellow flagged")
-		p.race.Pause()
-	} else {
-		log.WithField("deslotted", deslottedCount).
-			Info("Restarted race")
-		p.racePlugin.Start()
-	}
-}
-
-func (p *Plugin) InitializeCar(_ *car.Car) {
-	// NOOP
+func (p *Plugin) registerObservers() {
+	p.flagged.RegisterObserver(p.handFlagUpdate)
 }
 
 func (p *Plugin) Priority() int {
@@ -96,11 +52,49 @@ func (p *Plugin) Name() string {
 	return "yellow-flag"
 }
 
+func (p *Plugin) Flagged() observable.Observable[Flag] {
+	return p.flagged
+}
+
 func (p *Plugin) Flag(flag Flag) int {
-	return 1
-	// return p.flagged.Set(flag)
+	flagId := p.nextFlagId
+	p.nextFlagId = flagId + 1
+
+	p.activeFlags[flagId] = flag
+	p.update()
+	return flagId
 }
 
 func (p *Plugin) Clear(id int) {
+	delete(p.activeFlags, id)
+	p.update()
+}
 
+func (p *Plugin) HasActive(flag Flag) bool {
+	for _, f := range p.activeFlags {
+		if f == flag {
+			return true
+		}
+	}
+	return false
+}
+
+func (p *Plugin) update() {
+	active := 0
+	flag := Green
+	for i, f := range p.activeFlags {
+		if i > active && f > flag {
+			active = i
+		}
+	}
+	p.flagged.Set(p.activeFlags[active])
+}
+
+func (p *Plugin) handFlagUpdate(flag Flag) {
+	switch flag {
+	case Green:
+		p.race.Start()
+	case Yellow:
+		p.race.Pause()
+	}
 }

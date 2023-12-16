@@ -129,7 +129,7 @@ func main() {
 		wg.Wait()
 	} else {
 		log.SetOutput(io.Writer(logFile))
-		b := tui.CreateBridge(leaderboardPlugin, racePlugin, scheduler, track, repository, race, confirmationPlugin)
+		b := tui.CreateBridge(leaderboardPlugin, racePlugin, scheduler, track, repository, race, confirmationPlugin, flagPlugin)
 		b.Run()
 		b.UI.Run()
 	}

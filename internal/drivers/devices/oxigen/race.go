@@ -41,7 +41,7 @@ func (r *Race) Pause() {
 
 func (r *Race) Stop() {
 	log.WithField("drivers", "oxigen").
-		WithField("race-status", "stopepd").
+		WithField("race-status", "stopped").
 		Info("Race status changed")
 	r.status = RaceStoppedByte
 }
