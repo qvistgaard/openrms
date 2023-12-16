@@ -94,6 +94,13 @@ func (l Leaderboard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					DriverName:  l.rows[l.table.Cursor()][1],
 				}
 			}
+		case "e":
+			return l, func() tea.Msg {
+				carIdString := strings.TrimSpace(l.rows[l.table.Cursor()][2])
+				return commands.ToggleEnableDisableCar{
+					CarId: carIdString,
+				}
+			}
 		}
 		l.table, cmd = l.table.Update(msg)
 		break
@@ -108,8 +115,8 @@ func (l Leaderboard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case messages.Update:
 		l.rows = make([]table.Row, 0)
-		telemetry := msg.(messages.Update).RaceTelemetry
-		for k, v := range telemetry.Sort() {
+		raceTelemetry := msg.(messages.Update).RaceTelemetry
+		for k, v := range raceTelemetry.Sort() {
 			var inPitString string
 			var lmMode string
 			var deslotted string
@@ -133,9 +140,16 @@ func (l Leaderboard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				deslotted = ""
 			}
 
+			var team string
+			if v.Enabled {
+				team = v.Team
+			} else {
+				team = v.Team + " (Disabled)"
+			}
+
 			l.rows = append(l.rows, table.Row{
 				alignRight.Width(3).Render(strconv.Itoa(k + 1)),
-				v.Team,
+				team,
 				alignRight.Width(3).Render(strconv.Itoa(int(v.Id))),
 				alignRight.Width(4).Render(fmt.Sprintf("%.f", v.Fuel)),
 				alignRight.Width(7).Render(formatDurationSecondsMilliseconds(v.Last.Time)),
@@ -149,7 +163,7 @@ func (l Leaderboard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			})
 		}
 		l.table.SetRows(l.rows)
-		l.raceTelemetry = telemetry
+		l.raceTelemetry = raceTelemetry
 	}
 
 	return l, cmd

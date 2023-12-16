@@ -108,6 +108,8 @@ func (bridge *Bridge) messageHandler() {
 				bridge.saveCarConfiguration(msg)
 			case commands.SaveTrackConfiguration:
 				bridge.saveTrackConfiguration(msg)
+			case commands.ToggleEnableDisableCar:
+				bridge.toggleEnableDisableCar(msg)
 			case commands.StartRace:
 				d, err := time.ParseDuration(msg.RaceTime)
 				if err == nil {
@@ -156,4 +158,14 @@ func (bridge *Bridge) saveCarConfiguration(msg commands.SaveCarConfiguration) {
 	car.Drivers().Set(types.Drivers{
 		{Name: name},
 	})
+}
+
+func (bridge *Bridge) toggleEnableDisableCar(msg commands.ToggleEnableDisableCar) {
+	fromString, _ := types.IdFromString(msg.CarId)
+	car, _, _ := bridge.Cars.Get(fromString)
+	if car.Enabled().Get() {
+		car.Disable()
+	} else {
+		car.Enable()
+	}
 }

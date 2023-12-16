@@ -41,6 +41,7 @@ func (c *Car) initObservableProperties(settings *Settings) {
 	c.drivers = observable.Create(*settings.Drivers)
 	c.team = observable.Create(*settings.Team).Filter(observable.DistinctComparableChange[string]())
 	c.controller = controller.NewController()
+	c.enabled = observable.Create(false).Filter(observable.DistinctBooleanChange())
 }
 
 func (c *Car) registerObservers() {
@@ -82,6 +83,7 @@ type Car struct {
 	lastLap         observable.Observable[types.Lap]
 	drivers         observable.Observable[types.Drivers]
 	team            observable.Observable[string]
+	enabled         observable.Observable[bool]
 }
 
 func (c *Car) PitLaneMaxSpeed() observable.Observable[uint8] {
@@ -128,6 +130,14 @@ func (c *Car) Team() observable.Observable[string] {
 	return c.team
 }
 
+func (c *Car) Enable() bool {
+	return c.enabled.Set(true)
+}
+
+func (c *Car) Disable() bool {
+	return c.enabled.Set(false)
+}
+
 func (c *Car) UpdateFromEvent(event drivers.Event) {
 	switch e := event.(type) {
 	case events.ControllerTriggerValueEvent:
@@ -157,4 +167,9 @@ func (c *Car) Initialize() {
 	c.pitLaneMaxSpeed.Publish()
 	c.minSpeed.Publish()
 	c.maxBreaking.Publish()
+	c.enabled.Set(true)
+}
+
+func (c *Car) Enabled() observable.Observable[bool] {
+	return c.enabled
 }

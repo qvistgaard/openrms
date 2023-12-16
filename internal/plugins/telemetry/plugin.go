@@ -76,6 +76,10 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 		p.telemetry[id].LimbMode = b
 	})
 
+	car.Enabled().RegisterObserver(func(b bool) {
+		p.telemetry[id].Enabled = b
+	})
+
 	car.LastLap().RegisterObserver(func(lap types.Lap) {
 		p.telemetry[id].Laps = append(p.telemetry[id].Laps, lap)
 		p.telemetry[id].Delta = time.Duration(lap.Time.Nanoseconds() - p.telemetry[id].Last.Time.Nanoseconds())

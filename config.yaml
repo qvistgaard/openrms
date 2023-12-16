@@ -130,7 +130,7 @@ car:
 
 plugins:
   fuel:
-    enabled: true
+    enabled: false
   race:
     enabled: true
   telemetry:
@@ -142,7 +142,7 @@ plugins:
   yellow-flag:
     enabled: true
   confirmation:
-    enabled: false
+    enabled: true
 
 
 

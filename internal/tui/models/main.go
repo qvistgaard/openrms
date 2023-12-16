@@ -92,9 +92,9 @@ func (m Main) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.StatusBar, _ = m.StatusBar.Update(msg)
 		m.trackMaxSpeed = msg.(messages.Update).TrackMaxSpeed
 	case messages.ShowConfirmation:
-		m.ActiveView = ViewConfirmation
+		// m.ActiveView = ViewConfirmation
 	case messages.CloseConfirmation:
-		m.ActiveView = ViewLeaderboard
+		// m.ActiveView = ViewLeaderboard
 	case tea.WindowSizeMsg:
 		width := msg.(tea.WindowSizeMsg).Width
 		height := msg.(tea.WindowSizeMsg).Height
@@ -130,9 +130,12 @@ func (m Main) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.ActiveView = ViewLeaderboard
 		m.RaceControl, cmd = m.RaceControl.Update(msg)
 		m.Bridge <- msg
+	case commands.ToggleEnableDisableCar:
+		m.Bridge <- msg
 	case confirmation.Status:
-		m.ActiveView = ViewConfirmation
-		m.Confirmation, cmd = m.Confirmation.Update(msg)
+		// m.ActiveView = ViewConfirmation
+		// m.Confirmation, cmd = m.Confirmation.Update(msg)
+		m.Header, cmd = m.Header.Update(msg)
 
 	}
 

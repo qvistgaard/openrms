@@ -3,6 +3,7 @@ package models
 import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/qvistgaard/openrms/internal/plugins/confirmation"
 	"github.com/qvistgaard/openrms/internal/tui/elements"
 )
 
@@ -17,7 +18,12 @@ var groupStyle = lipgloss.NewStyle().
 	Width(7)
 
 type Header struct {
-	width int
+	width        int
+	confirmation tea.Model
+}
+
+func InitialHeaderModel() *Header {
+	return &Header{confirmation: InitialSimpleConfirmationModel()}
 }
 
 func (h Header) Init() tea.Cmd {
@@ -28,6 +34,8 @@ func (h Header) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg.(type) {
 	case tea.WindowSizeMsg:
 		h.width = msg.(tea.WindowSizeMsg).Width
+	case confirmation.Status:
+		h.confirmation, _ = h.confirmation.Update(msg)
 	}
 	return h, nil
 }
@@ -50,6 +58,7 @@ func (h Header) View() string {
 			groupStyle.Render("Car:"),
 			// helpStyle.Render("[ENTER] Details"),
 			elements.Shortcut("C", "Configuration"),
+			elements.Shortcut("E", "Enable/Disable"),
 		),
 		lipgloss.JoinHorizontal(lipgloss.Right,
 			style1.Render("/ /_/ / /_/ /  __/ / / / _, _/ /  / /___/ / "),
@@ -62,6 +71,7 @@ func (h Header) View() string {
 		),
 		lipgloss.JoinHorizontal(lipgloss.Right,
 			style1.Render("    /_/                                     "),
+			h.confirmation.View(),
 		),
 	)
 }

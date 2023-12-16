@@ -5,6 +5,7 @@ import (
 	"github.com/qvistgaard/openrms/internal/state/car"
 	"github.com/qvistgaard/openrms/internal/state/observable"
 	"github.com/qvistgaard/openrms/internal/types"
+	log "github.com/sirupsen/logrus"
 	"slices"
 	"time"
 )
@@ -50,7 +51,7 @@ func New(c *Config) (*Plugin, error) {
 		confirmed: observable.Create(false).Filter(observable.DistinctBooleanChange()),
 		status:    observable.Create(Status{}),
 		timeout:   time.Second * 3,
-		mode:      Timer | TrackCall,
+		mode:      Timer,
 		enabled:   c.Plugin.Confirmation.Enabled,
 	}
 
@@ -103,6 +104,9 @@ func (p *Plugin) Activate() error {
 	if p.active.Get() {
 		return errors.New("Confirmation already in progress")
 	}
+
+	log.Info("Confirmation process started")
+
 	p.confirmed.Set(false)
 	p.active.Set(true)
 
@@ -121,6 +125,10 @@ func (p *Plugin) Activate() error {
 				if 0 >= status.RemainingTime {
 					p.confirmed.Set(true)
 					p.active.Set(false)
+
+					log.WithField("mode", "timer").
+						Info("Confirmation process completed")
+
 					return
 				}
 			}

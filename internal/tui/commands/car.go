@@ -12,6 +12,10 @@ type OpenCarConfiguration struct {
 
 type SaveCarConfiguration OpenCarConfiguration
 
+type ToggleEnableDisableCar struct {
+	CarId string
+}
+
 /*
 func OpenCarConfiguration(id string, maxSpeed string, maxPitSpeed string, driverName string) tea.Msg {
 	return CarConfigurationCommand{

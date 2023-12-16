@@ -22,6 +22,7 @@ type Entry struct {
 	InPit           bool
 	LimbMode        bool
 	Fuel            float32
+	Enabled         bool
 	PitStopSequence uint8
 }
 
@@ -32,7 +33,13 @@ func (r Race) Sort() []Entry {
 	for _, v := range r {
 		sorted = append(sorted, *v)
 	}
-	sort.Slice(sorted, func(i, j int) bool {
+	sort.SliceStable(sorted, func(i, j int) bool {
+		if !sorted[i].Enabled && sorted[j].Enabled {
+			return false
+		} else if sorted[i].Enabled && !sorted[j].Enabled {
+			return true
+		}
+
 		if sorted[i].Last.Number > sorted[j].Last.Number {
 			return true
 		} else if sorted[i].Last.Number == sorted[j].Last.Number {
