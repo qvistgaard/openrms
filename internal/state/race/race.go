@@ -28,42 +28,63 @@ type Race struct {
 }
 
 func New(_ Config, implementer drivers.Driver) (*Race, error) {
-	return &Race{
+	r := &Race{
 		implementer: implementer,
-		status:      observable.Create(Stopped).Filter(filterRaceStatusChange()),
-		duration:    observable.Create(time.Second * 0),
-		laps:        observable.Create(uint32(0)).Filter(filterTotalLapsCountChange()), // observable.Annotation{annotations.RaceValueFieldName, fields.RaceStatus},
-	}, nil
+	}
+
+	r.initObservableProperties()
+	r.registerObservers()
+
+	return r, nil
+}
+
+func (r *Race) initObservableProperties() {
+	r.status = observable.Create(Stopped).Filter(filterRaceStatusChange())
+	r.duration = observable.Create(time.Second * 0)
+	r.laps = observable.Create(uint32(0)).Filter(filterTotalLapsCountChange())
+}
+
+func (r *Race) registerObservers() {
+	r.status.RegisterObserver(r.handleRaceStatusChange)
+}
+
+func (r *Race) handleRaceStatusChange(status Status) {
+	switch status {
+	case Running:
+		if r.raceStatus == Stopped {
+			r.raceDuration = time.Second * 0
+		}
+		r.raceStart = time.Now()
+		r.implementer.Race().Start()
+		r.raceStatus = Running
+	case Flagged:
+		r.implementer.Race().Flag()
+		r.raceStatus = Flagged
+	case Stopped:
+		r.raceDuration = calculateRaceDuration(r.raceDuration, r.raceStart, time.Now())
+		r.implementer.Race().Stop()
+		r.raceStatus = Stopped
+	case Paused:
+		r.raceDuration = calculateRaceDuration(r.raceDuration, r.raceStart, time.Now())
+		r.implementer.Race().Pause()
+		r.raceStatus = Paused
+	}
 }
 
 func (r *Race) Start() {
-	if r.raceStatus == Stopped {
-		r.raceDuration = time.Second * 0
-	}
-	r.raceStart = time.Now()
-	r.raceStatus = Running
-	r.implementer.Race().Start()
-	r.status.Set(r.raceStatus)
+	r.status.Set(Running)
 }
 
 func (r *Race) Flag() {
-	r.implementer.Race().Flag()
-	r.raceStatus = Flagged
-	r.status.Set(r.raceStatus)
+	r.status.Set(Flagged)
 }
 
 func (r *Race) Stop() {
-	r.raceDuration = calculateRaceDuration(r.raceDuration, r.raceStart, time.Now())
-	r.implementer.Race().Stop()
-	r.raceStatus = Stopped
-	r.status.Set(r.raceStatus)
+	r.status.Set(Stopped)
 }
 
 func (r *Race) Pause() {
-	r.raceDuration = calculateRaceDuration(r.raceDuration, r.raceStart, time.Now())
-	r.implementer.Race().Pause()
-	r.raceStatus = Paused
-	r.status.Set(r.raceStatus)
+	r.status.Set(Paused)
 }
 
 func (r *Race) Duration() observable.Observable[time.Duration] {

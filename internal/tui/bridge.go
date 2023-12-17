@@ -132,9 +132,9 @@ func (bridge *Bridge) messageHandler() {
 				} else {
 					log.Error(err)
 				}
-				bridge.racePlugin.Start()
+				bridge.Race.Start()
 			case commands.ResumeRace:
-				bridge.racePlugin.Start()
+				bridge.Race.Start()
 			case commands.PauseRace:
 				bridge.Race.Pause()
 			case commands.StopRace:

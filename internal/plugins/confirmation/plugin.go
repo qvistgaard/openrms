@@ -58,6 +58,12 @@ func New(c *Config) (*Plugin, error) {
 		}
 	}
 
+	p.active.RegisterObserver(func(b bool) {
+		if !b {
+			p.confirmed.Set(false)
+		}
+	})
+
 	return p, nil
 }
 

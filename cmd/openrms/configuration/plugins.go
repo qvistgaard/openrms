@@ -78,18 +78,18 @@ func PitPlugin(conf Config, stops ...pit.SequencePlugin) (*pit.Plugin, error) {
 
 func FlagPlugin(conf Config, track *track.Track, race *race2.Race) (*flags.Plugin, error) {
 	c := &flags.Config{}
-	err := mapstructure.Decode(conf, c)
 	defaults.SetDefaults(c)
+	err := mapstructure.Decode(conf, c)
 	if err != nil {
-		return nil, errors.WithMessage(err, "failed to read fuel plugin configuration")
+		return nil, errors.WithMessage(err, "failed to read flag plugin configuration")
 	}
 	return flags.New(c, track, race)
 }
 
 func OnTrackPlugin(conf Config, f *flags.Plugin) (*ontrack.Plugin, error) {
 	c := &ontrack.Config{}
-	err := mapstructure.Decode(conf, c)
 	defaults.SetDefaults(c)
+	err := mapstructure.Decode(conf, c)
 	if err != nil {
 		return nil, errors.WithMessage(err, "failed to read fuel plugin configuration")
 	}

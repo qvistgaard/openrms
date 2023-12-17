@@ -1,8 +1,8 @@
 package flags
 
 type FlagConfig struct {
-	Pause    *bool
-	MaxSpeed *uint8
+	Pause    *bool  `mapstructure:"pause"`
+	MaxSpeed *uint8 `mapstructure:"max-speed"`
 }
 
 type Config struct {

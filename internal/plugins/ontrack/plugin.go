@@ -22,7 +22,6 @@ type state struct {
 }
 
 func New(c *Config, f *flags.Plugin) (*Plugin, error) {
-
 	var flag flags.Flag
 	switch c.Plugin.OnTrack.Flag {
 	case "green":
@@ -40,6 +39,11 @@ func New(c *Config, f *flags.Plugin) (*Plugin, error) {
 		flagPlugin: f,
 		flag:       flag,
 		state:      make(map[types.CarId]state),
+	}
+
+	if !f.Enabled() && c.Plugin.OnTrack.Enabled {
+		log.WithField("plugin", plugin.Name()).
+			Warn("flags plugin is not enabled, plugin will have no effect.")
 	}
 
 	return plugin, nil
@@ -74,9 +78,7 @@ func (p *Plugin) updateState(id types.CarId, ontrack bool, enabled bool) {
 			count = count + 1
 		}
 	}
-	if p.flagPlugin.Enabled() {
-		p.updateFlagPluginStatus(count)
-	}
+	p.updateFlagPluginStatus(count)
 }
 
 func (p *Plugin) updateFlagPluginStatus(count int) {

@@ -91,7 +91,11 @@ func main() {
 	}
 	pitPlugin, _ := configuration.PitPlugin(cfg, fuelPlugin, limpModePlugin)
 	leaderboardPlugin := telemetry.New(fuelPlugin, limpModePlugin, pitPlugin)
-	flagPlugin, _ := configuration.FlagPlugin(cfg, track, race)
+	flagPlugin, err := configuration.FlagPlugin(cfg, track, race)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	ontrackPlugin, _ := configuration.OnTrackPlugin(cfg, flagPlugin)
 
 	plugins, err := configuration.Plugins(cfg)

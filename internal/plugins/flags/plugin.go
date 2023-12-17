@@ -43,22 +43,27 @@ func New(c *Config, t *track.Track, r *race.Race) (*Plugin, error) {
 }
 
 func (p *Plugin) initObservableProperties() {
-	p.flagged = observable.Create(Green).Filter(observable.DistinctComparableChange[Flag]())
+	p.flagged = observable.Create(Green).
+		Filter(observable.DistinctComparableChange[Flag]()).
+		Filter(p.flaggedIsPluginEnabledCondition)
 	p.track.MaxSpeed().Modifier(p.trackMaxSpeedModifier, 10000)
 
+}
+func (p *Plugin) registerObservers() {
+	p.flagged.RegisterObserver(p.handFlagUpdate)
+}
+
+func (p *Plugin) flaggedIsPluginEnabledCondition(_ Flag, _ Flag) bool {
+	return p.Enabled() && p.race.Status().Get() != race.Stopped
 }
 
 func (p *Plugin) trackMaxSpeedModifier(_ uint8) (uint8, bool) {
 	isActive := p.activeFlagConfig.MaxSpeed != nil
 	if isActive {
-		return *p.activeFlagConfig.MaxSpeed, isActive
+		return *p.activeFlagConfig.MaxSpeed, isActive && p.Enabled()
 	} else {
 		return 0, false
 	}
-}
-
-func (p *Plugin) registerObservers() {
-	p.flagged.RegisterObserver(p.handFlagUpdate)
 }
 
 func (p *Plugin) Priority() int {
@@ -66,7 +71,7 @@ func (p *Plugin) Priority() int {
 }
 
 func (p *Plugin) Name() string {
-	return "yellow-flag"
+	return "flags"
 }
 
 func (p *Plugin) Flagged() observable.Observable[Flag] {

@@ -3,7 +3,6 @@ package race
 import (
 	"github.com/qvistgaard/openrms/internal/plugins/confirmation"
 	"github.com/qvistgaard/openrms/internal/state/race"
-	log "github.com/sirupsen/logrus"
 	"time"
 )
 
@@ -22,24 +21,36 @@ func New(r *race.Race, confirmationPlugin *confirmation.Plugin) (*Plugin, error)
 		race:         r,
 	}
 
+	p.initObservableProperties()
+	p.registerObservers()
+
 	return p, nil
 }
 
-func (p *Plugin) ConfigureRace(r *race.Race) {
-	r.Duration().RegisterObserver(func(duration time.Duration) {
+func (p *Plugin) initObservableProperties() {
+
+}
+
+func (p *Plugin) registerObservers() {
+	p.race.Duration().RegisterObserver(func(duration time.Duration) {
 		if p.Duration != nil && *p.Duration <= duration && p.status == race.Running {
-			r.Stop()
+			p.race.Stop()
 		}
 	})
-	r.Laps().RegisterObserver(func(laps uint32) {
+	p.race.Laps().RegisterObserver(func(laps uint32) {
 		if p.Laps != nil && *p.Laps <= laps && p.status == race.Running {
-			r.Stop()
+			p.race.Stop()
 		}
 	})
-	r.Status().RegisterObserver(func(status race.Status) {
+	p.race.Status().Filter(func(status race.Status, status2 race.Status) bool {
+		if status == race.Stopped && status2 == race.Running {
+			// TODO fix this, make it wait
+		}
+		return false
+	})
+	p.race.Status().RegisterObserver(func(status race.Status) {
 		p.status = status
 	})
-
 	p.confirmation.Confirmed().RegisterObserver(func(b bool) {
 		if p.started && b {
 			p.race.Start()
@@ -48,24 +59,29 @@ func (p *Plugin) ConfigureRace(r *race.Race) {
 	})
 }
 
-func (p *Plugin) Start() {
-	if !p.confirmation.Enabled() {
-		p.race.Start()
-		return
-	}
-	if !p.confirmation.Active().Get() {
-		p.started = true
-		err := p.confirmation.Activate()
-		if err != nil {
-			log.Error(err)
+func (p *Plugin) ConfigureRace(_ *race.Race) {
+	// NOOP
+}
+
+/*
+	func (p *Plugin) Start() {
+		if !p.confirmation.Enabled() {
+			p.race.Start()
+			return
+		}
+		if !p.confirmation.Active().Get() {
+			p.started = true
+			err := p.confirmation.Activate()
+			if err != nil {
+				log.Error(err)
+			}
 		}
 	}
-}
 
-func (p *Plugin) Race() *race.Race {
-	return p.race
-}
-
+	func (p *Plugin) Race() *race.Race {
+		return p.race
+	}
+*/
 func (p *Plugin) Name() string {
 	return "race"
 }

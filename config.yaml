@@ -143,12 +143,11 @@ plugins:
     enabled: true
     flag: yellow # yellow, green or red
   flag:
-    enabled: false
+    enabled: true
     yellow:
       max-speed: 50
     red:
       pause: true
-
   confirmation:
     enabled: true
 

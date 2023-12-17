@@ -41,7 +41,7 @@ func (c *Car) initObservableProperties(settings *Settings) {
 	c.drivers = observable.Create(*settings.Drivers)
 	c.team = observable.Create(*settings.Team).Filter(observable.DistinctComparableChange[string]())
 	c.controller = controller.NewController()
-	c.enabled = observable.Create(false).Filter(observable.DistinctBooleanChange())
+	c.enabled = observable.Create(true).Filter(observable.DistinctBooleanChange())
 }
 
 func (c *Car) registerObservers() {
@@ -167,7 +167,7 @@ func (c *Car) Initialize() {
 	c.pitLaneMaxSpeed.Publish()
 	c.minSpeed.Publish()
 	c.maxBreaking.Publish()
-	c.enabled.Set(true)
+	c.enabled.Publish()
 }
 
 func (c *Car) Enabled() observable.Observable[bool] {

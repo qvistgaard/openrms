@@ -60,7 +60,7 @@ func (g *Generator) eventGenerator(carId types.CarId, c chan<- drivers.Event, in
 		select {
 		case <-time.After(time.Duration(interval) * time.Millisecond):
 			car := NewCar(carId, g.race.laps)
-			deslot := rand.Float32() < 0.05
+			deslot := rand.Float32() < 0.07
 			if deslot {
 				c <- events.NewOnTrack(car, false)
 				c <- events.NewDeslotted(car, true)

@@ -108,9 +108,10 @@ func (p *Plugin) ConfigureRace(r *race.Race) {
 	r.Status().RegisterObserver(func(status race.Status) {
 		if status == race.Running && p.status == race.Stopped {
 			for carId := range p.telemetry {
-				p.telemetry[carId] = &Entry{
-					Id: carId,
-				}
+				p.telemetry[carId].Laps = nil
+				p.telemetry[carId].Delta = 0
+				p.telemetry[carId].Best = 0
+				p.telemetry[carId].Last = types.Lap{}
 			}
 			p.status = race.Running
 		}
