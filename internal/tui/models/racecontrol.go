@@ -45,8 +45,7 @@ func InitialRaceControlModel() RaceControl {
 }
 
 func (r RaceControl) Init() tea.Cmd {
-	//TODO drivers me
-	panic("drivers me")
+	return nil
 }
 
 func (r RaceControl) Update(msg tea.Msg) (tea.Model, tea.Cmd) {

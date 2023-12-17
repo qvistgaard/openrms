@@ -11,6 +11,7 @@ type Plugin struct {
 	Laps         *uint32
 	status       race.Status
 	confirmation *confirmation.Plugin
+	confirmed    bool
 	race         *race.Race
 	started      bool
 }
@@ -44,17 +45,32 @@ func (p *Plugin) registerObservers() {
 	})
 	p.race.Status().Filter(func(status race.Status, status2 race.Status) bool {
 		if status == race.Stopped && status2 == race.Running {
-			// TODO fix this, make it wait
+			if p.confirmed {
+				p.confirmed = false
+				return true
+			}
+			p.confirmation.Activate()
+			return false
 		}
-		return false
+		if status == race.Paused && status2 == race.Running {
+			if p.confirmed {
+				p.confirmed = false
+				return true
+			}
+			p.confirmation.Activate()
+			return false
+		}
+		return true
 	})
+
 	p.race.Status().RegisterObserver(func(status race.Status) {
 		p.status = status
 	})
+
 	p.confirmation.Confirmed().RegisterObserver(func(b bool) {
-		if p.started && b {
+		if b && (p.status == race.Stopped || p.status == race.Paused) {
+			p.confirmed = true
 			p.race.Start()
-			p.started = false
 		}
 	})
 }

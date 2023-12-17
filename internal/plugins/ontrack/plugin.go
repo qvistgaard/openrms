@@ -19,6 +19,7 @@ type Plugin struct {
 type state struct {
 	ontrack bool
 	enabled bool
+	inPit   bool
 }
 
 func New(c *Config, f *flags.Plugin) (*Plugin, error) {
@@ -52,29 +53,36 @@ func New(c *Config, f *flags.Plugin) (*Plugin, error) {
 func (p *Plugin) ConfigureCar(car *car.Car) {
 	p.state[car.Id()] = state{
 		ontrack: true,
+		inPit:   false,
 		enabled: true,
 	}
 
 	car.Deslotted().RegisterObserver(func(b bool) {
 		s := p.state[car.Id()]
-		p.updateState(car.Id(), !b, s.enabled)
+		p.updateState(car.Id(), !b, s.inPit, s.enabled)
+	})
+
+	car.Pit().RegisterObserver(func(b bool) {
+		s := p.state[car.Id()]
+		p.updateState(car.Id(), s.ontrack, b, s.enabled)
 	})
 
 	car.Enabled().RegisterObserver(func(b bool) {
 		s := p.state[car.Id()]
-		p.updateState(car.Id(), s.ontrack, b)
+		p.updateState(car.Id(), s.ontrack, s.inPit, b)
 	})
 }
 
-func (p *Plugin) updateState(id types.CarId, ontrack bool, enabled bool) {
+func (p *Plugin) updateState(id types.CarId, ontrack bool, inPit bool, enabled bool) {
 	p.state[id] = state{
 		ontrack: ontrack,
+		inPit:   inPit,
 		enabled: enabled,
 	}
 
 	count := 0
 	for _, s := range p.state {
-		if !s.ontrack && s.enabled {
+		if !s.ontrack && s.enabled && !s.inPit {
 			count = count + 1
 		}
 	}

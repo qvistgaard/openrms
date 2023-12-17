@@ -35,8 +35,7 @@ func InitialTrackControlModel() TrackControl {
 }
 
 func (r TrackControl) Init() tea.Cmd {
-	//TODO drivers me
-	panic("drivers me")
+	return nil
 }
 
 func (r TrackControl) Update(msg tea.Msg) (tea.Model, tea.Cmd) {

@@ -23,8 +23,7 @@ func InitialSimpleConfirmationModel() SimpleConfirmation {
 }
 
 func (c SimpleConfirmation) Init() tea.Cmd {
-	//TODO drivers me
-	panic("drivers me")
+	return nil
 }
 
 func (c SimpleConfirmation) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
