@@ -1,8 +1,9 @@
 package flags
 
 import (
-	"github.com/qvistgaard/openrms/internal/plugins/race"
 	"github.com/qvistgaard/openrms/internal/state/observable"
+	"github.com/qvistgaard/openrms/internal/state/race"
+	"github.com/qvistgaard/openrms/internal/state/track"
 )
 
 type Flag uint
@@ -16,15 +17,20 @@ const (
 )
 
 type Plugin struct {
-	race        *race.Plugin
-	flagged     observable.Observable[Flag]
-	activeFlags map[int]Flag
-	nextFlagId  int
+	race             *race.Race
+	track            *track.Track
+	config           *Config
+	flagged          observable.Observable[Flag]
+	activeFlags      map[int]Flag
+	activeFlagConfig FlagConfig
+	nextFlagId       int
 }
 
-func New(r *race.Plugin) *Plugin {
+func New(c *Config, t *track.Track, r *race.Race) (*Plugin, error) {
 	plugin := &Plugin{
+		track:      t,
 		race:       r,
+		config:     c,
 		nextFlagId: 1,
 		activeFlags: map[int]Flag{
 			0: Green,
@@ -33,11 +39,22 @@ func New(r *race.Plugin) *Plugin {
 	plugin.initObservableProperties()
 	plugin.registerObservers()
 
-	return plugin
+	return plugin, nil
 }
 
 func (p *Plugin) initObservableProperties() {
 	p.flagged = observable.Create(Green).Filter(observable.DistinctComparableChange[Flag]())
+	p.track.MaxSpeed().Modifier(p.trackMaxSpeedModifier, 10000)
+
+}
+
+func (p *Plugin) trackMaxSpeedModifier(_ uint8) (uint8, bool) {
+	isActive := p.activeFlagConfig.MaxSpeed != nil
+	if isActive {
+		return *p.activeFlagConfig.MaxSpeed, isActive
+	} else {
+		return 0, false
+	}
 }
 
 func (p *Plugin) registerObservers() {
@@ -91,10 +108,21 @@ func (p *Plugin) update() {
 }
 
 func (p *Plugin) handFlagUpdate(flag Flag) {
+	p.activeFlagConfig = FlagConfig{}
 	switch flag {
 	case Green:
 		p.race.Start()
 	case Yellow:
+		p.activeFlagConfig = p.config.Plugin.Flag.Yellow
+	case Red:
+		p.activeFlagConfig = p.config.Plugin.Flag.Red
+	}
+
+	if p.activeFlagConfig.Pause != nil && *p.activeFlagConfig.Pause {
 		p.race.Pause()
 	}
+}
+
+func (p *Plugin) Enabled() bool {
+	return p.config.Plugin.Flag.Enabled
 }

@@ -1,6 +1,7 @@
 package ontrack
 
 import (
+	"github.com/pkg/errors"
 	"github.com/qvistgaard/openrms/internal/plugins/flags"
 	"github.com/qvistgaard/openrms/internal/state/car"
 	"github.com/qvistgaard/openrms/internal/types"
@@ -8,9 +9,11 @@ import (
 )
 
 type Plugin struct {
-	flag   *flags.Plugin
-	state  map[types.CarId]state
-	flagId int
+	config     *Config
+	flagPlugin *flags.Plugin
+	state      map[types.CarId]state
+	flagId     int
+	flag       flags.Flag
 }
 
 type state struct {
@@ -18,11 +21,28 @@ type state struct {
 	enabled bool
 }
 
-func New(f *flags.Plugin) *Plugin {
-	return &Plugin{
-		flag:  f,
-		state: make(map[types.CarId]state),
+func New(c *Config, f *flags.Plugin) (*Plugin, error) {
+
+	var flag flags.Flag
+	switch c.Plugin.OnTrack.Flag {
+	case "green":
+		flag = flags.Green
+	case "yellow":
+		flag = flags.Yellow
+	case "red":
+		flag = flags.Red
+	default:
+		return nil, errors.New("Invalid flagPlugin")
 	}
+
+	plugin := &Plugin{
+		config:     c,
+		flagPlugin: f,
+		flag:       flag,
+		state:      make(map[types.CarId]state),
+	}
+
+	return plugin, nil
 }
 
 func (p *Plugin) ConfigureCar(car *car.Car) {
@@ -54,16 +74,23 @@ func (p *Plugin) updateState(id types.CarId, ontrack bool, enabled bool) {
 			count = count + 1
 		}
 	}
+	if p.flagPlugin.Enabled() {
+		p.updateFlagPluginStatus(count)
+	}
+}
+
+func (p *Plugin) updateFlagPluginStatus(count int) {
 	if count > 0 {
 		log.WithField("deslotted", count).
-			Info("Yellow flagged")
+			WithField("flag", p.flag).
+			Info("Race flagged")
 		if p.flagId < 0 {
-			p.flagId = p.flag.Flag(flags.Yellow)
+			p.flagId = p.flagPlugin.Flag(p.flag)
 		}
 	} else {
 		log.WithField("deslotted", count).
 			Info("Flag cleared")
-		p.flag.Clear(p.flagId)
+		p.flagPlugin.Clear(p.flagId)
 		p.flagId = -1
 	}
 }

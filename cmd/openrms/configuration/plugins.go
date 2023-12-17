@@ -1,15 +1,19 @@
 package configuration
 
 import (
+	"github.com/mcuadros/go-defaults"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	"github.com/qvistgaard/openrms/internal/plugins"
 	"github.com/qvistgaard/openrms/internal/plugins/confirmation"
+	"github.com/qvistgaard/openrms/internal/plugins/flags"
 	"github.com/qvistgaard/openrms/internal/plugins/fuel"
 	"github.com/qvistgaard/openrms/internal/plugins/limbmode"
+	"github.com/qvistgaard/openrms/internal/plugins/ontrack"
 	"github.com/qvistgaard/openrms/internal/plugins/pit"
 	"github.com/qvistgaard/openrms/internal/plugins/race"
 	race2 "github.com/qvistgaard/openrms/internal/state/race"
+	"github.com/qvistgaard/openrms/internal/state/track"
 )
 
 func Plugins(conf Config) (*plugins.Plugins, error) {
@@ -70,6 +74,26 @@ func PitPlugin(conf Config, stops ...pit.SequencePlugin) (*pit.Plugin, error) {
 		return nil, errors.WithMessage(err, "failed to read fuel plugin configuration")
 	}
 	return pit.New(c, stops...)
+}
+
+func FlagPlugin(conf Config, track *track.Track, race *race2.Race) (*flags.Plugin, error) {
+	c := &flags.Config{}
+	err := mapstructure.Decode(conf, c)
+	defaults.SetDefaults(c)
+	if err != nil {
+		return nil, errors.WithMessage(err, "failed to read fuel plugin configuration")
+	}
+	return flags.New(c, track, race)
+}
+
+func OnTrackPlugin(conf Config, f *flags.Plugin) (*ontrack.Plugin, error) {
+	c := &ontrack.Config{}
+	err := mapstructure.Decode(conf, c)
+	defaults.SetDefaults(c)
+	if err != nil {
+		return nil, errors.WithMessage(err, "failed to read fuel plugin configuration")
+	}
+	return ontrack.New(c, f)
 }
 
 // LimbModePlugin initializes and returns a new LimpMode plugin instance based on the provided configuration.

@@ -5,8 +5,6 @@ import (
 	"github.com/madflojo/tasks"
 	"github.com/pkg/browser"
 	"github.com/qvistgaard/openrms/cmd/openrms/configuration"
-	"github.com/qvistgaard/openrms/internal/plugins/flags"
-	"github.com/qvistgaard/openrms/internal/plugins/ontrack"
 	"github.com/qvistgaard/openrms/internal/plugins/telemetry"
 	"github.com/qvistgaard/openrms/internal/rms"
 	"github.com/qvistgaard/openrms/internal/tui"
@@ -93,8 +91,8 @@ func main() {
 	}
 	pitPlugin, _ := configuration.PitPlugin(cfg, fuelPlugin, limpModePlugin)
 	leaderboardPlugin := telemetry.New(fuelPlugin, limpModePlugin, pitPlugin)
-	flagPlugin := flags.New(racePlugin)
-	ontrackPlugin := ontrack.New(flagPlugin)
+	flagPlugin, _ := configuration.FlagPlugin(cfg, track, race)
+	ontrackPlugin, _ := configuration.OnTrackPlugin(cfg, flagPlugin)
 
 	plugins, err := configuration.Plugins(cfg)
 	if err != nil {

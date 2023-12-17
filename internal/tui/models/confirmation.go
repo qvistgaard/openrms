@@ -62,7 +62,13 @@ func (c SimpleConfirmation) View() string {
 			Bold(true).
 			AlignHorizontal(lipgloss.Center).
 			Render("ALL CLEAR")
+	case flags.Red:
+		return lipgloss.NewStyle().Width(72).Background(lipgloss.Color("124")).
+			Foreground(lipgloss.Color("15")).
+			Bold(true).
+			AlignHorizontal(lipgloss.Center).
+			Render("SESSION SUSPENDED")
 	default:
-		return lipgloss.NewStyle().Width(72).Background(lipgloss.Color("232")).Render("")
+		return lipgloss.NewStyle().Width(72).Render("")
 	}
 }

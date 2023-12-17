@@ -26,10 +26,16 @@ type Car interface {
 	// and should not depend on the initialization of the plugin, as it precedes
 	// the InitializeCarState method.
 	ConfigureCar(*car.Car)
+
+	// InitializeCar init
+	// Deprecated: seems to be unused
 	InitializeCar(*car.Car)
 }
 
 type Race interface {
+	// ConfigureRace
+	//
+	// Deprecated: no longer needed
 	ConfigureRace(*race.Race)
 }
 
