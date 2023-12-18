@@ -267,13 +267,14 @@ func (o *Oxigen) heartbeat() {
 func (o *Oxigen) event(c chan<- drivers.Event, b []byte) {
 	rt := unpackRaceTime([4]byte{b[9], b[10], b[11], b[12]}, b[4])
 	lt := unpackLapTime(b[2], b[3])
-	ln := (uint32(b[6]) * 256) + uint32(b[5])
+	lapNumber := (uint32(b[6]) * 256) + uint32(b[5])
 
 	car := NewCar(o, types.IdFromUint(b[1]))
 	c <- events.NewControllerTriggerValueEvent(car, float64(0x7F&b[7]))
 	c <- events.NewControllerTrackCallButton(car, 0x08&b[0] == 0x08)
-	c <- events.NewLap(car, ln, lt, rt)
+	c <- events.NewLap(car, lapNumber, lt, rt)
 	c <- events.NewInPit(car, 0x40&b[8] == 0x40)
+	// TODO: Deprecate and remove
 	c <- events.NewDeslotted(car, !(0x80&b[7] == 0x80))
 	c <- events.NewOnTrack(car, 0x80&b[7] == 0x80)
 
@@ -284,21 +285,21 @@ func (o *Oxigen) event(c chan<- drivers.Event, b []byte) {
 					drivers.Event{
 				RaceTimer: unpackRaceTime([4]byte{b[9], b[10], b[11], b[12]}, b[4]),
 				Car: drivers.Car{
-					CarId:        types.IdFromUint(b[1]),
-					Reset:     0x01&b[0] == 0x01,
-					InPit:     0x40&b[8] == 0x40,
-					Deslotted: !(0x80&b[7] == 0x80),
+					CarId:        types.IdFromUint(b[1]), // OK
+					Reset:     0x01&b[0] == 0x01, //
+					InPit:     0x40&b[8] == 0x40, // OK
+					Deslotted: !(0x80&b[7] == 0x80), // OK
 					Controller: drivers.Controller{
 						BatteryWarning: 0x04&b[0] == 0x04,
 						Link:           0x02&b[0] == 0x02,
-						TrackCall:      0x08&b[0] == 0x08,
+						TrackCall:      0x08&b[0] == 0x08, // OK
 						ArrowUp:        0x20&b[0] == 0x20,
 						ArrowDown:      0x40&b[0] == 0x40,
-						TriggerValue:   float64(0x7F & b[7]),
+						TriggerValue:   float64(0x7F & b[7]), // OK
 					},
 					Lap: drivers.Lap{
-						Number:  (uint16(b[6]) * 256) + uint16(b[5]),
-						LapTime: unpackLapTime(b[2], b[3]),
+						Number:  (uint16(b[6]) * 256) + uint16(b[5]), // OK
+						LapTime: unpackLapTime(b[2], b[3]), // OK
 					},
 				},
 			}

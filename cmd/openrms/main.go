@@ -124,6 +124,9 @@ func main() {
 	}
 
 	wg.Add(1)
+
+	b := tui.CreateBridge(leaderboardPlugin, racePlugin, scheduler, track, repository, race, confirmationPlugin, flagPlugin)
+
 	go rms.Create(&wg, driver, plugins, track, race, repository).Run()
 	//go c.Webserver.RunServer(&wg)
 
@@ -131,7 +134,6 @@ func main() {
 		wg.Wait()
 	} else {
 		log.SetOutput(io.Writer(logFile))
-		b := tui.CreateBridge(leaderboardPlugin, racePlugin, scheduler, track, repository, race, confirmationPlugin, flagPlugin)
 		b.Run()
 		b.UI.Run()
 	}

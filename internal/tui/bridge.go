@@ -57,18 +57,6 @@ func CreateBridge(leaderboard *telemetry.Plugin, plugin *race2.Plugin, scheduler
 func (bridge *Bridge) Run() {
 	go bridge.messageHandler()
 
-	bridge.confirmationPlugin.Active().RegisterObserver(func(b bool) {
-		if b {
-			bridge.UI.Send(messages.ShowConfirmation{})
-		}
-	})
-
-	bridge.confirmationPlugin.Confirmed().RegisterObserver(func(b bool) {
-		if b {
-			bridge.UI.Send(messages.CloseConfirmation{})
-		}
-	})
-
 	bridge.confirmationPlugin.Status().RegisterObserver(func(status confirmation.Status) {
 		bridge.UI.Send(status)
 	})
@@ -93,7 +81,7 @@ func (bridge *Bridge) Run() {
 	bridge.Scheduler.Add(&tasks.Task{
 		Interval: 1000 * time.Millisecond,
 		TaskFunc: func() error {
-			if bridge.RaceTelemetry != nil && bridge.UI != nil {
+			if bridge.UI != nil {
 				bridge.UI.Send(messages.Update{
 					RaceTelemetry: bridge.RaceTelemetry,
 					RaceStatus:    bridge.status,

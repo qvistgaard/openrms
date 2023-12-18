@@ -6,13 +6,15 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/qvistgaard/openrms/internal/state/race"
 	"github.com/qvistgaard/openrms/internal/tui/messages"
+	"strconv"
 	"time"
 )
 
 type StatusBar struct {
-	width      int
-	raceTime   time.Duration
-	raceStatus race.Status
+	width         int
+	raceTime      time.Duration
+	raceStatus    race.Status
+	trackMaxSpeed uint8
 }
 
 func (s StatusBar) Init() tea.Cmd {
@@ -26,6 +28,7 @@ func (s StatusBar) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case messages.Update:
 		s.raceTime = msg.(messages.Update).RaceDuration
 		s.raceStatus = msg.(messages.Update).RaceStatus
+		s.trackMaxSpeed = msg.(messages.Update).TrackMaxSpeed
 	}
 	return s, nil
 }
@@ -36,9 +39,11 @@ func (s StatusBar) View() string {
 		Background(lipgloss.Color("24")).
 		PaddingLeft(1).
 		PaddingRight(1).
-		AlignHorizontal(lipgloss.Right).
 		Width(s.width).
-		Render("Race time: ", formatDuration(s.raceTime), "Status: ", formatRaceStatus(s.raceStatus))
+		Render(lipgloss.JoinHorizontal(lipgloss.Center,
+			lipgloss.NewStyle().Width(20).Render("Track speed: ", strconv.Itoa(int(s.trackMaxSpeed))),
+			lipgloss.NewStyle().Width(s.width-22).AlignHorizontal(lipgloss.Right).Render("Race time: ", formatDuration(s.raceTime), "Status: ", formatRaceStatus(s.raceStatus)),
+		))
 }
 
 func formatDuration(d time.Duration) string {

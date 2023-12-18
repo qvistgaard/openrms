@@ -1,8 +1,6 @@
 package observable
 
-// Filter represents a function type used for filtering observable value changes.
-
-// Observer represents a function type used for observing changes in an observable value along with associated annotations.
+// Observer represents a function type used for observing changes in an observable value.
 type Observer[T any] func(T)
 
 // Observable is an interface that represents an observable value, which can be observed, modified, and filtered.
@@ -24,17 +22,16 @@ type Observable[T any] interface {
 	Modifier(fn Modifier[T], priority int) Observable[T]
 
 	// Publish notifies registered observers about the latest value change.
-	// It triggers the execution of observer functions.
 	Publish()
 
+	// Update processes the value through filters and modifiers then notifies observers.
 	Update()
 
-	// Set sets a new value for the Observable. It applies all registered modifiers,
-	// updates the current value, and notifies observers.
-	// It takes a value of type T.
+	// Set sets a new value for the Observable, applies modifiers, and notifies observers.
+	// Returns true if the value was successfully set.
 	Set(value T) bool
 
 	// Get retrieves the current value of the Observable.
-	// It returns the current value of type T.
+	// Returns the current value.
 	Get() T
 }

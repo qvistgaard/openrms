@@ -114,6 +114,8 @@ func (c *Car) Pit() observable.Observable[bool] {
 	return c.pit
 }
 
+// Deslotted function
+// Deprecated: Use OnTrack instead
 func (c *Car) Deslotted() observable.Observable[bool] {
 	return c.deslotted
 }
