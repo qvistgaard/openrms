@@ -45,7 +45,7 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 	id := car.Id()
 	if entry, ok := p.telemetry[id]; !ok {
 		entry = &Entry{
-			Id: id,
+			Id: car.Number(),
 		}
 		p.telemetry[id] = entry
 	}

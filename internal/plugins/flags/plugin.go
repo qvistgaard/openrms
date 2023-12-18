@@ -125,6 +125,8 @@ func (p *Plugin) handFlagUpdate(flag Flag) {
 
 	if p.activeFlagConfig.Pause != nil && *p.activeFlagConfig.Pause {
 		p.race.Pause()
+	} else {
+		p.track.MaxSpeed().Update()
 	}
 }
 

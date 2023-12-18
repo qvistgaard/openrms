@@ -14,6 +14,7 @@ type Settings struct {
 	MinSpeed    *uint8         `mapstructure:"min-speed"`
 	Drivers     *types.Drivers `mapstructure:"drivers"`
 	Team        *string        `mapstructure:"team"`
+	Number      *uint          `mapstructure:"number"`
 }
 
 type Config struct {

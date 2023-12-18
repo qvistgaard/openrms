@@ -17,6 +17,7 @@ func NewCar(implementer drivers.Driver, settings *Settings, defaults *Settings, 
 	car := &Car{
 		implementer: implementer,
 		id:          id,
+		number:      settings.Number,
 	}
 
 	// Initialize observable properties
@@ -84,6 +85,7 @@ type Car struct {
 	drivers         observable.Observable[types.Drivers]
 	team            observable.Observable[string]
 	enabled         observable.Observable[bool]
+	number          *uint
 }
 
 func (c *Car) PitLaneMaxSpeed() observable.Observable[uint8] {
@@ -108,6 +110,13 @@ func (c *Car) Controller() *controller.Controller {
 
 func (c *Car) Id() types.CarId {
 	return c.id
+}
+
+func (c *Car) Number() uint {
+	if c.number != nil {
+		return *c.number
+	}
+	return uint(c.Id())
 }
 
 func (c *Car) Pit() observable.Observable[bool] {

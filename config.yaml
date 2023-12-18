@@ -22,7 +22,7 @@ track:
   # format: percentage
   # type: integer
   # allowed range: 0-100
-  max-speed: 40
+  max-speed: 100
 
   # Track length is used to calculate average speed of the cars
   # format: meter
@@ -52,7 +52,7 @@ car:
     # format: percentage
     # type: integer
     # allowed range: 0-100
-    max-speed: 60
+    max-speed: 100
 
     # Default minimum speed of cars
     # this defines the minimum speed of cars, this can be used to create
@@ -110,6 +110,7 @@ car:
 
   cars:
     - id: 3
+      number: 99
       # max-speedrs: 100
       drivers:
         - name: John Doe

@@ -7,7 +7,7 @@ import (
 )
 
 type Entry struct {
-	Id              types.CarId
+	Id              uint
 	Team            string
 	Last            types.Lap
 	PitStopActive   bool
