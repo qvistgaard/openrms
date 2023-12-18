@@ -32,7 +32,7 @@ jobs:
           bundler-cache: true
           cache-version: 0
       - name: Generate Site
-        run: bundle --gemfile docs/site/Gemfile exec jekyll build --config docs/site/config.yaml --baseurl "${{ steps.pages.outputs.base_path }}"
+        run: bundle exec jekyll build --config docs/site/config.yaml --baseurl "${{ steps.pages.outputs.base_path }}"
         env:
           JEKYLL_ENV: production
       - name: Upload Artifacts
