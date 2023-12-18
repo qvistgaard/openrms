@@ -1,123 +1,186 @@
 package car
 
 import (
-	"context"
 	"github.com/divideandconquer/go-merge/merge"
-	"github.com/qvistgaard/openrms/internal/implement"
-	config "github.com/qvistgaard/openrms/internal/state/config/car"
+	"github.com/qvistgaard/openrms/internal/drivers"
+	"github.com/qvistgaard/openrms/internal/drivers/events"
 	"github.com/qvistgaard/openrms/internal/state/controller"
+	"github.com/qvistgaard/openrms/internal/state/observable"
 	"github.com/qvistgaard/openrms/internal/types"
-	"github.com/qvistgaard/openrms/internal/types/annotations"
-	"github.com/qvistgaard/openrms/internal/types/fields"
-	"github.com/qvistgaard/openrms/internal/types/reactive"
+	log "github.com/sirupsen/logrus"
+	"reflect"
 )
 
-func NewCar(implementer implement.Implementer, settings *config.CarSettings, defaults *config.CarSettings, id types.Id) *Car {
-	a := reactive.Annotations{
-		annotations.CarId: id,
+func NewCar(implementer drivers.Driver, settings *Settings, defaults *Settings, id types.CarId) *Car {
+	settings = merge.Merge(defaults, settings).(*Settings)
+
+	car := &Car{
+		implementer: implementer,
+		id:          id,
+		number:      settings.Number,
 	}
 
-	settings = merge.Merge(defaults, settings).(*config.CarSettings)
-	car := &Car{
-		implementer:     implementer,
-		id:              id,
-		maxBreaking:     reactive.NewPercent(*settings.MaxBreaking),
-		maxSpeed:        reactive.NewPercent(*settings.MaxSpeed, a, reactive.Annotations{annotations.CarValueFieldName: "max-speed"}),
-		minSpeed:        reactive.NewPercent(*settings.MinSpeed, a, reactive.Annotations{annotations.CarValueFieldName: "min-speed"}),
-		pitLaneMaxSpeed: reactive.NewPercent(*settings.PitLane.MaxSpeed, a, reactive.Annotations{annotations.CarValueFieldName: "pit-lane-max-speed"}),
-		pit:             reactive.NewBoolean(false, a, reactive.Annotations{annotations.CarValueFieldName: fields.InPit}),
-		deslotted:       reactive.NewBoolean(false, a, reactive.Annotations{annotations.CarValueFieldName: fields.Deslotted}),
-		lastLapTime:     reactive.NewDuration(0, a, reactive.Annotations{annotations.CarValueFieldName: fields.LapTime}),
-		lastLap:         reactive.NewLap(a, reactive.Annotations{annotations.CarValueFieldName: fields.LastLap}),
-		laps:            reactive.NewGauge(0, a, reactive.Annotations{annotations.CarValueFieldName: fields.Laps}),
-		controller:      controller.NewController(a),
-	}
+	// Initialize observable properties
+	car.initObservableProperties(settings)
+
+	// Register observers
+	car.registerObservers()
+
+	car.filters()
 	return car
 }
 
-type Car struct {
-	id              types.Id
-	implementer     implement.Implementer
-	controller      *controller.Controller
-	pit             *reactive.Boolean
-	pitLaneMaxSpeed *reactive.Percent
-	maxSpeed        *reactive.Percent
-	minSpeed        *reactive.Percent
-	maxBreaking     *reactive.Percent
-	deslotted       *reactive.Boolean
-	lastLapTime     *reactive.Duration
-	laps            *reactive.Gauge
-	lastLap         *reactive.Lap
+func (c *Car) initObservableProperties(settings *Settings) {
+	c.maxBreaking = observable.Create(*settings.MaxBreaking).Filter(observable.DistinctComparableChange[uint8]())
+	c.maxSpeed = observable.Create(*settings.MaxSpeed).Filter(observable.DistinctComparableChange[uint8]())
+	c.minSpeed = observable.Create(*settings.MinSpeed).Filter(observable.DistinctComparableChange[uint8]())
+	c.pitLaneMaxSpeed = observable.Create(*settings.PitLane.MaxSpeed).Filter(observable.DistinctComparableChange[uint8]())
+	c.pit = observable.Create(false).Filter(observable.DistinctBooleanChange())
+	c.deslotted = observable.Create(false).Filter(observable.DistinctBooleanChange())
+	c.lastLap = observable.Create(types.Lap{})
+	c.laps = observable.Create(uint32(0)).Filter(observable.DistinctComparableChange[uint32]())
+	c.drivers = observable.Create(*settings.Drivers)
+	c.team = observable.Create(*settings.Team).Filter(observable.DistinctComparableChange[string]())
+	c.controller = controller.NewController()
+	c.enabled = observable.Create(true).Filter(observable.DistinctBooleanChange())
 }
 
-func (c *Car) PitLaneMaxSpeed() *reactive.Percent {
+func (c *Car) registerObservers() {
+	c.maxSpeed.RegisterObserver(func(u uint8) {
+		c.implementer.Car(c.id).SetMaxSpeed(u)
+	})
+	c.minSpeed.RegisterObserver(func(u uint8) {
+		c.implementer.Car(c.id).SetMinSpeed(u)
+	})
+	c.pitLaneMaxSpeed.RegisterObserver(func(u uint8) {
+		c.implementer.Car(c.id).SetPitLaneMaxSpeed(u)
+	})
+	c.maxBreaking.RegisterObserver(func(u uint8) {
+		c.implementer.Car(c.id).SetMaxBreaking(u)
+	})
+}
+
+func (c *Car) filters() {
+	c.maxSpeed.Filter(observable.DistinctPercentageChange())
+	c.minSpeed.Filter(observable.DistinctPercentageChange())
+	c.pitLaneMaxSpeed.Filter(observable.DistinctPercentageChange())
+	c.maxBreaking.Filter(observable.DistinctPercentageChange())
+	c.pit.Filter(observable.DistinctBooleanChange())
+	c.deslotted.Filter(observable.DistinctBooleanChange())
+	c.laps.Filter(observable.DistinctComparableChange[uint32]())
+}
+
+type Car struct {
+	id              types.CarId
+	implementer     drivers.Driver
+	controller      *controller.Controller
+	pit             observable.Observable[bool]
+	pitLaneMaxSpeed observable.Observable[uint8]
+	maxSpeed        observable.Observable[uint8]
+	minSpeed        observable.Observable[uint8]
+	maxBreaking     observable.Observable[uint8]
+	deslotted       observable.Observable[bool]
+	laps            observable.Observable[uint32]
+	lastLap         observable.Observable[types.Lap]
+	drivers         observable.Observable[types.Drivers]
+	team            observable.Observable[string]
+	enabled         observable.Observable[bool]
+	number          *uint
+}
+
+func (c *Car) PitLaneMaxSpeed() observable.Observable[uint8] {
 	return c.pitLaneMaxSpeed
 }
 
-func (c *Car) LastLap() *reactive.Lap {
+func (c *Car) LastLap() observable.Observable[types.Lap] {
 	return c.lastLap
 }
 
-func (c *Car) MaxSpeed() *reactive.Percent {
+func (c *Car) MaxSpeed() observable.Observable[uint8] {
 	return c.maxSpeed
+}
+
+func (c *Car) MinSpeed() observable.Observable[uint8] {
+	return c.minSpeed
 }
 
 func (c *Car) Controller() *controller.Controller {
 	return c.controller
 }
 
-func (c *Car) Id() types.Id {
+func (c *Car) Id() types.CarId {
 	return c.id
 }
 
-func (c *Car) Pit() *reactive.Boolean {
+func (c *Car) Number() uint {
+	if c.number != nil {
+		return *c.number
+	}
+	return uint(c.Id())
+}
+
+func (c *Car) Pit() observable.Observable[bool] {
 	return c.pit
 }
 
-func (c *Car) Deslotted() *reactive.Boolean {
+// Deslotted function
+// Deprecated: Use OnTrack instead
+func (c *Car) Deslotted() observable.Observable[bool] {
 	return c.deslotted
 }
 
-func (c *Car) LastLapTime() *reactive.Duration {
-	return c.lastLapTime
-}
-
-func (c *Car) Laps() *reactive.Gauge {
+func (c *Car) Laps() observable.Observable[uint32] {
 	return c.laps
 }
 
-func (c *Car) UpdateFromEvent(e implement.Event) {
-	c.Pit().Set(e.Car.InPit)
-	c.Deslotted().Set(e.Car.Deslotted)
-	c.LastLapTime().Set(e.Car.Lap.LapTime)
-	c.Laps().Set(float64(e.Car.Lap.Number))
-	c.LastLap().Set(types.NewLap(e.Car.Lap.Number, e.RaceTimer))
-	c.Controller().ButtonTrackCall().Set(e.Car.Controller.TrackCall)
-	c.Controller().TriggerValue().Set(types.NewPercentFromFloat64(e.Car.Controller.TriggerValue))
+func (c *Car) Drivers() observable.Observable[types.Drivers] {
+	return c.drivers
 }
 
-func (c *Car) Init(ctx context.Context, postProcess reactive.ValuePostProcessor) {
-	c.maxSpeed.RegisterObserver(c.maxSpeedChangeObserver)
-	c.maxSpeed.Init(ctx, postProcess)
-	c.maxSpeed.Update()
+func (c *Car) Team() observable.Observable[string] {
+	return c.team
+}
 
-	c.pitLaneMaxSpeed.RegisterObserver(c.pitLaneMaxSpeedChangeObserver)
-	c.pitLaneMaxSpeed.Init(ctx, postProcess)
-	c.pitLaneMaxSpeed.Update()
+func (c *Car) Enable() bool {
+	return c.enabled.Set(true)
+}
 
-	c.deslotted.Init(ctx, postProcess)
-	c.lastLapTime.Init(ctx, postProcess)
-	c.laps.Init(ctx, postProcess)
-	c.lastLap.Init(ctx, postProcess)
+func (c *Car) Disable() bool {
+	return c.enabled.Set(false)
+}
 
-	c.minSpeed.RegisterObserver(c.minSpeedChangeObserver)
-	c.minSpeed.Init(ctx, postProcess)
-	c.minSpeed.Update()
+func (c *Car) UpdateFromEvent(event drivers.Event) {
+	switch e := event.(type) {
+	case events.ControllerTriggerValueEvent:
+		c.Controller().TriggerValue().Set(uint8(e.TriggerValue()))
+	case events.Lap:
+		if c.Laps().Set(e.Number()) {
+			c.LastLap().Set(types.Lap{e.Number(), e.Time(), e.Recorded()})
+		}
+		break
+	case events.ControllerLinkEvent:
+	case events.OnTrack:
+	case events.ControllerTrackCallButton:
+		c.Controller().ButtonTrackCall().Set(e.Pressed())
+	case events.InPit:
+		c.Pit().Set(e.InPit())
+	case events.Deslotted:
+		c.Deslotted().Set(e.Deslotted())
+	default:
+		log.WithField("package", reflect.TypeOf(e).Elem().PkgPath()).
+			WithField("event", reflect.TypeOf(e).Elem().Name()).
+			WithField("car", e.Car().Id()).Warn("Received unhandled event")
+	}
+}
 
-	c.maxBreaking.RegisterObserver(c.maxBreakingChangeObserver)
-	c.maxBreaking.Init(ctx, postProcess)
-	c.maxBreaking.Update()
+func (c *Car) Initialize() {
+	c.maxSpeed.Publish()
+	c.pitLaneMaxSpeed.Publish()
+	c.minSpeed.Publish()
+	c.maxBreaking.Publish()
+	c.enabled.Publish()
+}
 
-	c.pit.Init(ctx, postProcess)
-	c.controller.Init(ctx, postProcess)
+func (c *Car) Enabled() observable.Observable[bool] {
+	return c.enabled
 }

@@ -27,9 +27,9 @@ loop
 end
 
 autonumber 3
-group Send all state changes back to implement
+group Send all state changes back to drivers
     State -> Command: State changed mapped to command
-    Command -> Implement: Generic command is sent back to implement
+    Command -> Implement: Generic command is sent back to drivers
 end
 
 group if state is changed
@@ -138,9 +138,9 @@ loop
 end
 
 autonumber 3
-group Send all state changes back to implement
+group Send all state changes back to drivers
     State -> Command: State changed mapped to command
-    Command -> Implement: Generic command is sent back to implement
+    Command -> Implement: Generic command is sent back to drivers
 end
 
 group if state is changed

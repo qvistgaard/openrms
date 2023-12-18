@@ -6,13 +6,13 @@ logging:
   file: openrmsd.log
 
 implement:
-  plugin: oxigen
+  plugin: generator
 
   oxigen:
-    port: COM6
+    # port: COM7 # Leave blank for auto detection
 
   generator:
-    cars: 1
+    cars: 5
     interval: 1000
 
 # configure the track, this will define of openrms & oxigen
@@ -22,7 +22,7 @@ track:
   # format: percentage
   # type: integer
   # allowed range: 0-100
-  max-speed: 75
+  max-speed: 100
 
   # Track length is used to calculate average speed of the cars
   # format: meter
@@ -37,7 +37,7 @@ track:
       # Count lap on entry or exit
       # type: boolean
       # format: if true count on entry, if false count on exit
-      on-entry: true
+      on-entry: false
 
 # Car behaviour
 car:
@@ -110,9 +110,16 @@ car:
 
   cars:
     - id: 3
-      # max-speed: 100
+      number: 99
+      # max-speedrs: 100
       drivers:
         - name: John Doe
+    - id: 7
+      max-speed: 30
+    - id: 8
+      max-speed: 100
+      pit-lane:
+        max-speed: 28
   #  - id: 1
   #    max-speed: 100
   #    fuel: 100
@@ -122,42 +129,32 @@ car:
   #    max-speed: 100
 
 
-rules:
-  #- plugin: race
-    # Note:
-    # The race plugin have not been implemented yet, therefore
-    # this section has no effect
-    # enabled: false
-    # stages:
-      # - type: training
-      #   duration: 10m
-      # - type: qualification
-      #   laps: 10
-      # - type: competition
-      #   duration: 10m
-
-  - plugin: fuel
+plugins:
+  fuel:
+    enabled: true
+  race:
+    enabled: true
+  telemetry:
+    enabled: true
+  limb-mode:
+    enabled: true
+  pit:
+    enabled: true
+  ontrack:
+    enabled: true
+    flag: yellow # yellow, green or red
+  flag:
+    enabled: true
+    yellow:
+      max-speed: 50
+    red:
+      pause: true
+  confirmation:
     enabled: true
 
-  - plugin: limb-mode
-    enabled: true
-
-  - plugin: pit
-    enabled: true
 
 
 # Configure how the webserver works
 webserver:
   # Port for the webserver to listen on
   listen: ":8080"
-
-
-postprocessors:
-#   influxdb:
-#    url: "http://localhost:8086"
-#    batch-size: 100
-#    auth-token: ""
-#    organization: openrms
-#    bucket: openrms
-
-  leaderboard: {}

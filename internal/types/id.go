@@ -2,15 +2,20 @@ package types
 
 import "strconv"
 
-type Id uint
+type CarId uint
 
-func IdFromUint(id uint8) Id {
-	return Id(id)
+func IdFromUint(id uint8) CarId {
+	return CarId(id)
 }
-func (i Id) ToUint() uint {
+func (i CarId) ToUint() uint {
 	return uint(i)
 }
 
-func (i Id) String() string {
+func IdFromString(id string) (CarId, error) {
+	val, err := strconv.ParseUint(id, 10, 32)
+	return CarId(uint(val)), err
+}
+
+func (i CarId) String() string {
 	return strconv.Itoa(int(i))
 }

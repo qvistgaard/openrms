@@ -1,36 +1,41 @@
 package track
 
 import (
-	"context"
-	"github.com/qvistgaard/openrms/internal/implement"
-	"github.com/qvistgaard/openrms/internal/types"
-	"github.com/qvistgaard/openrms/internal/types/reactive"
-	"github.com/reactivex/rxgo/v2"
+	"github.com/qvistgaard/openrms/internal/drivers"
+	"github.com/qvistgaard/openrms/internal/state/observable"
 )
 
 type Track struct {
-	implementer implement.Implementer
-	maxSpeed    *reactive.Percent
+	driver   drivers.Driver
+	maxSpeed observable.Observable[uint8]
 }
 
-func NewTrack(implementer implement.Implementer) *Track {
-	return &Track{
-		implementer: implementer,
-		maxSpeed:    reactive.NewPercent(100),
+func New(c Config, di drivers.Driver) (*Track, error) {
+	var o drivers.PitLaneLapCounting
+	if c.Track.PitLane.LapCounting.OnEntry {
+		o = drivers.LapCountingOnEntry
+	} else {
+		o = drivers.LapCountingOnExit
 	}
+
+	di.Track().PitLane().LapCounting(c.Track.PitLane.LapCounting.Enabled, o)
+	di.Track().MaxSpeed(c.Track.MaxSpeed)
+
+	t := &Track{
+		driver:   di,
+		maxSpeed: observable.Create(c.Track.MaxSpeed).Filter(observable.DistinctComparableChange[uint8]()),
+	}
+
+	t.maxSpeed.RegisterObserver(func(u uint8) {
+		t.driver.Track().MaxSpeed(u)
+	})
+	return t, nil
 }
 
-func (t *Track) MaxSpeed() *reactive.Percent {
+func (t *Track) MaxSpeed() observable.Observable[uint8] {
 	return t.maxSpeed
 }
 
-func (t *Track) Init(ctx context.Context, postProcess reactive.ValuePostProcessor) {
-	t.maxSpeed.RegisterObserver(t.trackMaxSpeedChangeObserver)
-	t.maxSpeed.Init(ctx, postProcess)
-}
-
-func (t *Track) trackMaxSpeedChangeObserver(observable rxgo.Observable) {
-	observable.DoOnNext(func(i interface{}) {
-		t.implementer.Track().MaxSpeed(i.(types.Percent))
-	})
+func (t *Track) Initialize() {
+	t.maxSpeed.Publish()
 }

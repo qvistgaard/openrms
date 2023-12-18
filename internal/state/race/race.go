@@ -1,99 +1,119 @@
 package race
 
 import (
-	"context"
-	"github.com/qvistgaard/openrms/internal/implement"
-	"github.com/qvistgaard/openrms/internal/types/annotations"
-	"github.com/qvistgaard/openrms/internal/types/fields"
-	"github.com/qvistgaard/openrms/internal/types/reactive"
-	"github.com/reactivex/rxgo/v2"
-	"net/http"
+	"github.com/qvistgaard/openrms/internal/drivers"
+	"github.com/qvistgaard/openrms/internal/drivers/events"
+	"github.com/qvistgaard/openrms/internal/state/observable"
 	"time"
 )
 
-type RaceState struct {
-	reactive.Value
-}
+type Status int
 
-func NewRaceState(initial implement.RaceStatus, annotations ...reactive.Annotations) *RaceState {
-	return &RaceState{reactive.NewDistinctValue(initial, annotations...)}
-}
-
-func (p *RaceState) Set(value implement.RaceStatus) {
-	p.Value.Set(value)
-}
+const (
+	Stopped Status = iota
+	Paused
+	Running
+	Flagged
+)
 
 type Race struct {
-	implementer       implement.Implementer
-	status            *RaceState
-	raceTimer         *reactive.Duration
-	raceStart         time.Time
-	raceStatusCurrent implement.RaceStatus
+	implementer drivers.Driver
+	status      observable.Observable[Status]
+	duration    observable.Observable[time.Duration]
+	laps        observable.Observable[uint32]
+
+	raceStatus   Status
+	raceDuration time.Duration
+	raceStart    time.Time
 }
 
-func (r *Race) UpdateTime() {
-	if r.raceStatusCurrent == implement.RaceRunning {
-		r.raceTimer.Set(time.Now().Sub(r.raceStart))
-	}
-}
-
-func NewRace(implementer implement.Implementer) *Race {
-	return &Race{
+func New(_ Config, implementer drivers.Driver) (*Race, error) {
+	r := &Race{
 		implementer: implementer,
-		status: NewRaceState(implement.RaceRunning, reactive.Annotations{
-			annotations.RaceValueFieldName: fields.RaceStatus,
-		}),
-		raceTimer: reactive.NewDuration(0, reactive.Annotations{
-			annotations.RaceValueFieldName: fields.RaceTimer,
-		}),
-		raceStart: time.Now(),
+	}
+
+	r.initObservableProperties()
+	r.registerObservers()
+
+	return r, nil
+}
+
+func (r *Race) initObservableProperties() {
+	r.status = observable.Create(Stopped).Filter(filterRaceStatusChange())
+	r.duration = observable.Create(time.Second * 0)
+	r.laps = observable.Create(uint32(0)).Filter(filterTotalLapsCountChange())
+}
+
+func (r *Race) registerObservers() {
+	r.status.RegisterObserver(r.handleRaceStatusChange)
+}
+
+func (r *Race) handleRaceStatusChange(status Status) {
+	switch status {
+	case Running:
+		if r.raceStatus == Stopped {
+			r.raceDuration = time.Second * 0
+		}
+		r.raceStart = time.Now()
+		r.implementer.Race().Start()
+		r.raceStatus = Running
+	case Flagged:
+		r.implementer.Race().Flag()
+		r.raceStatus = Flagged
+	case Stopped:
+		r.raceDuration = calculateRaceDuration(r.raceDuration, r.raceStart, time.Now())
+		r.implementer.Race().Stop()
+		r.raceStatus = Stopped
+	case Paused:
+		r.raceDuration = calculateRaceDuration(r.raceDuration, r.raceStart, time.Now())
+		r.implementer.Race().Pause()
+		r.raceStatus = Paused
 	}
 }
 
-func (r *Race) Status() *RaceState {
+func (r *Race) Start() {
+	r.status.Set(Running)
+}
+
+func (r *Race) Flag() {
+	r.status.Set(Flagged)
+}
+
+func (r *Race) Stop() {
+	r.status.Set(Stopped)
+}
+
+func (r *Race) Pause() {
+	r.status.Set(Paused)
+}
+
+func (r *Race) Duration() observable.Observable[time.Duration] {
+	return r.duration
+}
+
+func (r *Race) Laps() observable.Observable[uint32] {
+	return r.laps
+}
+
+func (r *Race) Status() observable.Observable[Status] {
 	return r.status
 }
 
-func (r *Race) Init(ctx context.Context, postProcess reactive.ValuePostProcessor) {
-	http.HandleFunc("/v1/race/start", func(writer http.ResponseWriter, request *http.Request) {
-		if request.Method == http.MethodPost {
-			r.status.Set(implement.RaceRunning)
-			writer.WriteHeader(200)
-			return
-		}
-		writer.WriteHeader(500)
-	})
-	http.HandleFunc("/v1/race/pause", func(writer http.ResponseWriter, request *http.Request) {
-		if request.Method == http.MethodPost {
-			r.status.Set(implement.RacePaused)
-			writer.WriteHeader(200)
-			return
-		}
-		writer.WriteHeader(500)
-	})
-	http.HandleFunc("/v1/race/stop", func(writer http.ResponseWriter, request *http.Request) {
-		if request.Method == http.MethodPost {
-			r.status.Set(implement.RaceStopped)
-			writer.WriteHeader(200)
-			return
-		}
-		writer.WriteHeader(500)
-	})
+func (r *Race) UpdateFromEvent(event drivers.Event) {
+	switch e := event.(type) {
+	case events.Lap:
+		r.laps.Set(e.Number())
+	}
 
-	r.status.RegisterObserver(r.raceStatusChangeObserver)
-	r.status.Init(ctx, postProcess)
-	r.status.Update()
-
-	r.raceTimer.Init(ctx, postProcess)
+	if r.raceStatus == Running {
+		r.duration.Set(calculateRaceDuration(r.raceDuration, r.raceStart, time.Now()))
+	}
 }
 
-func (r *Race) raceStatusChangeObserver(observable rxgo.Observable) {
-	observable.DoOnNext(func(i interface{}) {
-		status := i.(implement.RaceStatus)
-		if status == implement.RaceRunning {
-			r.raceStart = time.Now()
-		}
-		r.raceStatusCurrent = status
-		r.implementer.Race().Status(status)
-	})
+func (r *Race) Initialize() {
+	r.status.Publish()
+}
+
+func calculateRaceDuration(duration time.Duration, startTime time.Time, currentTime time.Time) time.Duration {
+	return duration + currentTime.Sub(startTime)
 }

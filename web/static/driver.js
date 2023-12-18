@@ -23,7 +23,7 @@ const app = Vue.createApp({
               })
         },
         position: function(){
-            return this.$store.getters.getCarState(this.car, "car-leaderboard-position", "N/A")
+            return this.$store.getters.getCarState(this.car, "car-web-position", "N/A")
         },
         damage: function(){
             let v = this.$store.getters.getCarState(this.car, "damage", 0)

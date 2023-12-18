@@ -1,32 +1,37 @@
 package controller
 
 import (
-	"context"
-	"github.com/qvistgaard/openrms/internal/types/annotations"
-	"github.com/qvistgaard/openrms/internal/types/reactive"
+	"github.com/qvistgaard/openrms/internal/state/observable"
 )
 
+func NewController() *Controller {
+	controller := &Controller{}
+
+	controller.initObservableProperties()
+
+	controller.filters()
+
+	return controller
+}
+
+func (c *Controller) initObservableProperties() {
+	c.triggerValue = observable.Create(uint8(0))
+	c.buttonTrackCall = observable.Create(false).Filter(observable.DistinctBooleanChange())
+}
+
+func (c *Controller) filters() {
+	c.buttonTrackCall.Filter(observable.DistinctBooleanChange())
+}
+
 type Controller struct {
-	triggerValue    *reactive.Percent
-	buttonTrackCall *reactive.Boolean
+	buttonTrackCall observable.Observable[bool]
+	triggerValue    observable.Observable[uint8]
 }
 
-func NewController(a reactive.Annotations) *Controller {
-	return &Controller{
-		triggerValue:    reactive.NewPercentAll(0, a, reactive.Annotations{annotations.CarValueFieldName: "trigger-value"}),
-		buttonTrackCall: reactive.NewBoolean(false, a, reactive.Annotations{annotations.CarValueFieldName: "track-call"}),
-	}
-}
-
-func (c *Controller) TriggerValue() *reactive.Percent {
+func (c *Controller) TriggerValue() observable.Observable[uint8] {
 	return c.triggerValue
 }
 
-func (c *Controller) ButtonTrackCall() *reactive.Boolean {
+func (c *Controller) ButtonTrackCall() observable.Observable[bool] {
 	return c.buttonTrackCall
-}
-
-func (c *Controller) Init(ctx context.Context, postProcess reactive.ValuePostProcessor) {
-	c.buttonTrackCall.Init(ctx, postProcess)
-	c.triggerValue.Init(ctx, postProcess)
 }

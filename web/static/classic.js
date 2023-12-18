@@ -27,7 +27,7 @@ const app = Vue.createApp({
             return this.carState(car, "car-ready", false)
         },
         position: function (car){
-            return this.carState(car, "car-leaderboard-position", "N/A")
+            return this.carState(car, "car-web-position", "N/A")
         },
         inPit: function (car){
             return this.carState(car, "car-in-pit", false)

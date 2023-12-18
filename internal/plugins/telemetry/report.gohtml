@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Reace results</title>
+    <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css">
+</head>
+<body>
+<h1>Race results</h1>
+<h2>Overall results</h2>
+<table style="width: 100%">
+    <tr>
+        <th style="text-align: right">P</th>
+        <th style="text-align: right">#</th>
+        <th>Team</th>
+        <th style="text-align: right">Laps</th>
+        <th style="text-align: right">Best Lap</th>
+    </tr>
+    {{range .}}
+        <tr>
+            <td style="text-align: right"></td>
+            <td style="text-align: right">{{.Id}}</td>
+            <td>{{.Team}}</td>
+            <td style="text-align: right"></td>
+            <td style="text-align: right">{{.Best}}</td>
+        </tr>
+    {{end}}
+</table>
+<h2>Individual results</h2>
+{{range .}}
+    <h3>#{{.Id}} {{.Team}}</h3>
+    <table style="width: 100%">
+        <tr>
+            <th style="text-align: right">#</th>
+            <th style="text-align: right">Time</th>
+            <th style="text-align: right">Delta</th>
+        </tr>
+        {{range .Laps}}
+            <tr>
+                <td style="text-align: right">{{.Number}}</td>
+                <td style="text-align: right">{{.Time}}</td>
+                <td style="text-align: right"></td>
+            </tr>
+        {{end}}
+    </table>
+{{end}}
+</body>
+</html>
