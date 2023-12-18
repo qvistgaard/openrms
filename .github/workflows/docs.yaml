@@ -13,6 +13,8 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      BUNDLE_GEMFILE: docs/site/Gemfile
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -24,12 +26,13 @@ jobs:
         uses: actions/configure-pages@v3
       - name: Install Ruby and Jekyll
         uses: ruby/setup-ruby@v1
+
         with:
           ruby-version: '3.2'
           bundler-cache: true
           cache-version: 0
       - name: Generate Site
-        run: bundle --gemfile docs/site exec jekyll build --config docs/site/config.yaml --baseurl "${{ steps.pages.outputs.base_path }}"
+        run: bundle --gemfile docs/site/Gemfile exec jekyll build --config docs/site/config.yaml --baseurl "${{ steps.pages.outputs.base_path }}"
         env:
           JEKYLL_ENV: production
       - name: Upload Artifacts
