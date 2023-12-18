@@ -75,7 +75,7 @@ func Test_machine(t *testing.T) {
 		t.Errorf("Expected no error, but got: %v", err)
 	}
 
-	log.Info(stateMachine.String())
+	// log.Info(stateMachine.String())
 
 	// time.Sleep(15 * time.Second)
 

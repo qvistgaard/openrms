@@ -14,7 +14,10 @@ func NewSequence(limbMode observable.Observable[bool]) *Sequence {
 }
 
 func (s *Sequence) Start() error {
-	time.Sleep(10 * time.Second)
+	if s.limbMode.Get() == true {
+		time.Sleep(10 * time.Second)
+	}
 	s.limbMode.Set(false)
 	return nil
+
 }

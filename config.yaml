@@ -131,15 +131,15 @@ car:
 
 plugins:
   fuel:
-    enabled: false
+    enabled: true
   race:
     enabled: true
   telemetry:
     enabled: true
   limb-mode:
-    enabled: false
+    enabled: true
   pit:
-    enabled: false
+    enabled: true
   ontrack:
     enabled: true
     flag: yellow # yellow, green or red
