@@ -1,0 +1,7 @@
+= Plugins
+:page-layout: page
+:page-has_children: true
+:page-nav_order: 5
+:doctype: book
+
+= Plugins

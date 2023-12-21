@@ -48,6 +48,8 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 			Id: car.Number(),
 		}
 		p.telemetry[id] = entry
+		p.updateLeaderboard()
+
 	}
 
 	if f, err := p.fuelPlugin.Fuel(id); err == nil {
@@ -65,9 +67,13 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 
 	car.MaxSpeed().RegisterObserver(func(u uint8) {
 		p.telemetry[id].MaxSpeed = u
+		p.updateLeaderboard()
+
 	})
 	car.MinSpeed().RegisterObserver(func(u uint8) {
 		p.telemetry[id].MinSpeed = u
+		p.updateLeaderboard()
+
 	})
 	car.PitLaneMaxSpeed().RegisterObserver(func(u uint8) {
 		p.telemetry[id].MaxPitSpeed = u
@@ -80,6 +86,14 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 
 	car.Enabled().RegisterObserver(func(b bool) {
 		p.telemetry[id].Enabled = b
+		p.updateLeaderboard()
+
+	})
+
+	car.Team().RegisterObserver(func(s string) {
+		p.telemetry[id].Team = s
+		p.updateLeaderboard()
+
 	})
 
 	car.LastLap().RegisterObserver(func(lap types.Lap) {
@@ -89,7 +103,6 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 		if p.telemetry[id].Best == 0 || p.telemetry[id].Last.Time < p.telemetry[id].Best {
 			p.telemetry[id].Best = p.telemetry[id].Last.Time
 		}
-		p.telemetry[id].Team = car.Team().Get()
 		p.updateLeaderboard()
 	})
 

@@ -1,1 +1,63 @@
 = OpenRMS
+:page-layout: home
+:page-nav_order: 1
+:doctype: book
+
+[.fs-9]#OpenRMS#
+
+[.fs-6 .fw-300]#OpenRMS is an open-source platform for Slot car Race Management, developed using the
+Go programming language.#
+
+xref:getting-started.adoc[[.btn .btn-primary .fs-5 .mb-4 .mb-md-0 .mr-2]#Get started now#]
+https://github.com/qvistgaard/openrms[[.btn .fs-5 .mb-4 .mb-md-0]#View it on GitHub#]
+
+'''
+
+== Motivation
+This project stems from personal experiences in the world of slot car racing. A
+notable gap in the hobby is the predominance of closed-source and often unmaintained
+or platform-dependent software tools.
+
+The core objective is to develop a versatile, open-source race management system.
+This system aims to accommodate a variety of vendors, including Scalextric, Carrera,
+and Oxigen.
+
+A key feature of OpenRMS is its community-driven nature. We envision a platform
+where enthusiasts can contribute and enhance functionalities as needed. This could
+range from improved Arduino integration to innovative features like track-wide yellow
+flag alerts in the event of a car crash.
+
+An essential aspect of OpenRMS is its platform independence. Our vision is to enable
+seamless operation on low-cost hardware like the Raspberry Pi, thus bypassing the
+need for expensive computers with specific operating system licenses. Our ambition
+is to release versions compatible with Mac OS, Linux, and Windows, catering to a
+broad user base.
+
+== Features
+
+OpenRMS is loaded with advanced features for an enhanced slot car racing experience:
+
+- **Race Management**: Efficient management of races with options for time or lap limits.
+- **Race Flags**: Implementation of race flag signals including red, yellow, and green.
+- **Fuel Consumption**: Tracking and management of fuel usage for strategic racing.
+- **Pit Handling**: Features like refueling to simulate real-world racing scenarios.
+- **End of Race Reporting**: Detailed reporting for performance analysis and race outcomes.
+- **Terminal UI**: A user-friendly terminal-based interface for easy navigation.
+- **Event-Based System**: Utilizes an event-driven architecture for responsive and dynamic
+  race management.
+- **Flexible Architecture**: The system's architecture is highly flexible, supporting a wide
+  array of different plugins to extend functionality and customization.
+
+== Supported Platforms
+
+OpenRMS runs seamlessly on various platforms:
+
+- **Windows**: Fully compatible with Windows environments.
+- **Linux**: Supports both amd64 and ARM architectures, including devices like Raspberry Pi.
+
+== Supported Drivers
+
+OpenRMS currently supports:
+
+- **Oxigen**: Full integration with Oxigen systems.
+- **Data Generator**: An integrated data generator for testing and simulation.

@@ -1,0 +1,6 @@
+= Confirmation
+:page-layout: page
+:page-parent: Plugins
+:doctype: book
+
+= Confirmation

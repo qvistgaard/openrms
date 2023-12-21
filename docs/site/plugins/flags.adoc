@@ -1,0 +1,6 @@
+= Flags
+:page-layout: page
+:page-parent: Plugins
+:doctype: book
+
+= Flags

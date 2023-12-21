@@ -179,6 +179,7 @@ func (c *Car) Initialize() {
 	c.minSpeed.Publish()
 	c.maxBreaking.Publish()
 	c.enabled.Publish()
+	c.team.Publish()
 }
 
 func (c *Car) Enabled() observable.Observable[bool] {

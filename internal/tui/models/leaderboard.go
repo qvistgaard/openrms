@@ -2,11 +2,12 @@ package models
 
 import (
 	"fmt"
-	"github.com/charmbracelet/bubbles/table"
+
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/qvistgaard/openrms/internal/plugins/telemetry"
 	"github.com/qvistgaard/openrms/internal/tui/commands"
+	table "github.com/qvistgaard/openrms/internal/tui/elements"
 	"github.com/qvistgaard/openrms/internal/tui/messages"
 	"github.com/qvistgaard/openrms/internal/types"
 	"math"
@@ -21,6 +22,12 @@ type Leaderboard struct {
 	rows          []table.Row
 	raceTelemetry telemetry.Race
 }
+
+const (
+	DESLOTTED = "⛐"
+	LIMBMODE  = "⛍"
+	PIT       = "P" // "🛠"
+)
 
 var (
 	alignRight  = lipgloss.NewStyle().AlignHorizontal(lipgloss.Right)
@@ -40,18 +47,18 @@ var (
 			Bold(false)
 
 	columns = []table.Column{
-		{Title: alignRight.Width(3).Render("P"), Width: 3},
-		{Title: "Name", Width: 120 - 69},
+		{Title: alignRight.Width(3).Align(lipgloss.Center).Render("P"), Width: 3},
+		{Title: "Name", Width: 120},
 		{Title: alignRight.Width(3).Render("#"), Width: 3},
 		{Title: alignRight.Width(4).Render("Fuel"), Width: 4},
-		{Title: alignRight.Width(7).Render("Lap"), Width: 7},
-		{Title: alignRight.Width(7).Render("Delta"), Width: 7},
-		{Title: alignRight.Width(7).Render("Best"), Width: 7},
+		{Title: lipgloss.NewStyle().Width(7).Align(lipgloss.Right).Render("Lap"), Width: 7},
+		{Title: alignRight.Width(7).Align(lipgloss.Right).Render("Delta"), Width: 7},
+		{Title: alignRight.Width(7).Align(lipgloss.Right).Render("Best"), Width: 7},
 		{Title: alignRight.Width(4).Render("Laps"), Width: 4},
-		{Title: alignRight.Width(3).Render("Pit"), Width: 3},
-		{Title: alignRight.Width(3).Render("LM"), Width: 3},
-		{Title: alignRight.Width(3).Render("DS"), Width: 3},
-		{Title: alignRight.Width(3).Render("MS"), Width: 3},
+		{Title: alignRight.Width(3).Align(lipgloss.Center).Render("Pit"), Width: 3},
+		{Title: alignRight.Width(3).Align(lipgloss.Center).Render(LIMBMODE), Width: 3},
+		{Title: " " + DESLOTTED, Width: 3},
+		{Title: " MS", Width: 3},
 	}
 )
 
@@ -59,6 +66,46 @@ func InitialLeaderboardModel() Leaderboard {
 	s := table.DefaultStyles()
 	s.Header = headerStyle
 	s.Selected = selectedStyle
+
+	s.RenderCell = func(model table.Model, value string, position table.CellPosition) string {
+		if position.RowID == 0 && position.Column == 0 {
+			return s.Cell.Copy().Background(lipgloss.Color("250")).Foreground(lipgloss.Color("16")).Bold(true).Render(value)
+		}
+		if strings.Contains(value, DESLOTTED) {
+			return s.Cell.Copy().Background(lipgloss.Color("124")).Foreground(lipgloss.Color("15")).Bold(true).Render(value)
+		}
+		if strings.Contains(value, LIMBMODE) {
+			return s.Cell.Copy().Background(lipgloss.Color("220")).Foreground(lipgloss.Color("16")).Bold(true).Render(value)
+		}
+		if position.Column == 8 && len(strings.Trim(value, " ")) > 0 {
+			return s.Cell.Copy().Background(lipgloss.Color("18")).Foreground(lipgloss.Color("255")).Bold(true).Render(value)
+		}
+
+		if position.Column == 3 {
+			parseInt, err := strconv.ParseInt(value, 10, 32)
+			if err == nil {
+				if parseInt < 25 && parseInt > 15 {
+					return s.Cell.Copy().Background(lipgloss.Color("220")).Foreground(lipgloss.Color("16")).Bold(true).Render(value)
+				}
+				if parseInt > 15 {
+					return s.Cell.Copy().Background(lipgloss.Color("124")).Foreground(lipgloss.Color("15")).Bold(true).Render(value)
+				}
+			}
+		}
+
+		if position.Column == 5 && value[0] == ("-")[0] {
+			return s.Cell.Copy().Foreground(lipgloss.Color("40")).Render(value)
+		}
+
+		if position.IsRowSelected {
+			return s.Cell.Copy().
+				Foreground(lipgloss.Color("229")).
+				Background(lipgloss.Color("24")).
+				Render(value)
+		}
+
+		return s.Cell.Copy().Render(value)
+	}
 
 	return Leaderboard{
 		table: table.New(
@@ -124,18 +171,18 @@ func (l Leaderboard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if v.PitStopActive {
 					inPitString = strconv.Itoa(int(v.PitStopSequence))
 				} else {
-					inPitString = "X"
+					inPitString = PIT
 				}
 			} else {
 				inPitString = ""
 			}
 			if v.LimbMode {
-				lmMode = "X"
+				lmMode = LIMBMODE
 			} else {
 				lmMode = ""
 			}
 			if v.Deslotted {
-				deslotted = "X"
+				deslotted = DESLOTTED
 			} else {
 				deslotted = ""
 			}
@@ -148,17 +195,18 @@ func (l Leaderboard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			l.rows = append(l.rows, table.Row{
-				alignRight.Width(3).Render(strconv.Itoa(k + 1)),
+
+				alignRight.AlignHorizontal(lipgloss.Center).Render(strconv.Itoa(k + 1)),
 				team,
-				alignRight.Width(3).Render(strconv.Itoa(int(v.Id))),
+				alignRight.Render(strconv.Itoa(int(v.Id))),
 				alignRight.Width(4).Render(fmt.Sprintf("%.f", v.Fuel)),
-				alignRight.Width(7).Render(formatDurationSecondsMilliseconds(v.Last.Time)),
-				alignRight.Width(7).Render(formatDurationSecondsMilliseconds(v.Delta)),
-				alignRight.Width(7).Render(formatDurationSecondsMilliseconds(v.Best)),
+				alignRight.Width(7).AlignHorizontal(lipgloss.Right).Render(formatDurationSecondsMilliseconds(v.Last.Time)),
+				alignRight.Width(7).AlignHorizontal(lipgloss.Right).Render(formatDurationSecondsMilliseconds(v.Delta)),
+				alignRight.Width(7).AlignHorizontal(lipgloss.Right).Render(formatDurationSecondsMilliseconds(v.Best)),
 				alignRight.Width(4).Render(strconv.Itoa(int(v.Last.Number))),
-				alignRight.Width(3).AlignHorizontal(lipgloss.Center).Render(inPitString),
-				alignRight.Width(2).AlignHorizontal(lipgloss.Right).Render(lmMode),
-				alignRight.Width(2).AlignHorizontal(lipgloss.Right).Render(deslotted),
+				" " + inPitString,
+				" " + lmMode,
+				" " + deslotted,
 				alignRight.Width(3).AlignHorizontal(lipgloss.Right).Render(strconv.Itoa(int(v.MaxSpeed))),
 			})
 		}
@@ -172,6 +220,7 @@ func (l Leaderboard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (l Leaderboard) View() string {
 	return l.table.View()
+
 }
 
 func formatDurationSecondsMilliseconds(d time.Duration) string {

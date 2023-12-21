@@ -1,0 +1,7 @@
+= Preparing the Track
+:page-layout: default
+:page-nav_order: 4
+:doctype: book
+
+= Preparing the track
+

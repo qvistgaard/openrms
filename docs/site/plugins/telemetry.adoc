@@ -1,0 +1,6 @@
+= Telemetry
+:page-layout: page
+:page-parent: Plugins
+:doctype: book
+
+= Telemetry

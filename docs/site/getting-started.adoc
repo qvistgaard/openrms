@@ -1,0 +1,56 @@
+= Getting started
+:page-layout: page
+:page-nav_order: 2
+:doctype: book
+
+= Getting Started with OpenRMS
+
+== Introduction
+This guide provides instructions on how to start using OpenRMS, a robust platform for Slot car Race Management.
+OpenRMS can be run by downloading a pre-compiled binary from GitHub or by compiling the source code.
+
+== Downloading Binary from GitHub
+To use a pre-compiled binary:
+
+1. Visit the OpenRMS GitHub repository: https://github.com/<repository_path>
+2. Navigate to the 'Releases' section.
+3. Download the latest binary for your operating system (Windows/Linux/MacOS).
+4. Extract the file to your desired location.
+5. Run the OpenRMS executable from the terminal or command prompt.
+6. On the first run, a default `config.yaml` file will be created in the current working directory.
+
+== Compiling from Source
+
+=== Prerequisites
+Before compiling from source, ensure you have:
+
+- Go programming language (Download from https://golang.org/dl/)
+- Git (Download from https://git-scm.com/downloads)
+
+=== Steps
+
+1. Clone the OpenRMS repository:
+[source,shell]
+----
+git clone https://github.com/<repository_path>.git
+----
+
+2. Navigate to the cloned repository directory:
+[source,shell]
+----
+cd openrms
+----
+
+3. Compile and run the program using Go:
+[source,shell]
+----
+go run .
+----
+
+4. On the first run, a default `config.yaml` file will be created in the current working directory.
+
+== Next Steps
+After setting up OpenRMS, you can customize your race management system by configuring tracks, cars, and plugins as per your requirements.
+
+Enjoy your racing experience with OpenRMS!
+

@@ -1,0 +1,105 @@
+= Configuration
+:page-layout: default
+:page-nav_order: 3
+:doctype: book
+
+= OpenRMS Configuration Documentation
+
+== Overview
+The `config.yaml` file is a crucial component for customizing the behavior of OpenRMS. It allows you to
+configure various aspects of race management, car behavior, plugins, and more. This document provides
+detailed information on each configuration setting.
+
+== Configuration Structure
+
+=== Logging
+Configure the logging level and output file for OpenRMS.
+
+[source,yaml]
+----
+logging:
+  level: trace  # Possible values: error, warn, info, debug, trace
+  file: openrmsd.log  # Log file location
+----
+
+=== Plugin Implementation
+Specify which plugins to implement, including race management and telemetry.
+
+[source,yaml]
+----
+implement:
+  plugin: generator
+  # Other plugins like oxigen and generator
+----
+
+=== Track Configuration
+Define the characteristics of the track, including max speed, length, and pit lane behavior.
+
+[source,yaml]
+----
+track:
+  max-speed: 100  # Maximum speed in percentage (0-100)
+  length: 19      # Track length in meters
+  pit-lane:
+    lap-counting:
+      enabled: true
+      on-entry: false  # Lap count on entry (true) or exit (false)
+----
+
+=== Car Behavior
+Set the default behavior for cars and override these settings for individual cars.
+
+[source,yaml]
+----
+car:
+  plugin: config
+  defaults:
+    max-speed: 100     # Default max speed in percentage
+    min-speed: 0       # Default min speed in percentage
+    # Fuel configuration
+    fuel:
+      tank-size: 75
+      starting-fuel: 60
+      burn-rate: 0.223
+      flow-rate: 11.3
+    # Pit lane configuration
+    pit-lane:
+      max-speed: 20
+    # Limb mode configuration
+    limb-mode:
+      max-speed: 17
+  cars:
+    - id: 3
+      # Individual car configurations
+    - id: 7
+      # ...
+----
+
+=== Plugins
+Enable or disable various plugins like fuel management, race control, and telemetry.
+
+[source,yaml]
+----
+plugins:
+  fuel:
+    enabled: true
+  race:
+    enabled: true
+  # Other plugins...
+----
+
+=== Webserver Configuration
+Set up the webserver for OpenRMS.
+
+[source,yaml]
+----
+webserver:
+  listen: ":8080"  # Port for the webserver
+----
+
+== Additional Notes
+- The `config.yaml` file is created on the first run of OpenRMS.
+- Customizing this file allows for a tailored race management experience.
+- It's important to adhere to the specified formats and ranges for each setting.
+
+For further details or support, refer to the OpenRMS documentation or community forums.

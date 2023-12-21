@@ -1,0 +1,71 @@
+= Fuel
+:page-layout: page
+:page-parent: Plugins
+:doctype: book
+
+== Fuel Plugin
+
+The Fuel Plugin in OpenRMS plays a crucial role in managing the fuel and fuel usage for slot cars,
+adding a strategic dimension to the racing experience. It allows for realistic fuel management
+similar to what you would encounter in actual motorsport events.
+
+To activate or deactivate the Fuel Plugin, adjust the following in the configuration file:
+
+[source,yaml]
+----
+plugins:
+  fuel:
+    enabled: true
+----
+
+While the plugin is enabled, the fuel settings for each car can be individually configured.
+These settings are initially defined under the `defaults` section and can be specifically
+overridden for each car in the `car.cars[]` section.
+
+[source,yaml]
+----
+car:
+  defaults:
+    fuel:
+      # Default fuel tank size
+      # format: liter
+      # type: integer
+      # allowed range: 0 - max int
+      tank-size: 75
+
+      # Default starting fuel
+      # format: liter
+      # type: integer
+      # allowed range: 0 - max int
+      starting-fuel: 60
+
+      # Default fuel burn rate
+      # format: Liter per second at max power
+      # type: float
+      burn-rate: 0.223
+
+      # Default fuel refuelling flow rate
+      # format: Liter per second
+      # type: float
+      flow-rate: 11.3
+
+  cars:
+    - id: <car_id>
+      fuel:
+        tank-size: <custom_value>
+        starting-fuel: <custom_value>
+        burn-rate: <custom_value>
+        flow-rate: <custom_value>
+    - id: <another_car_id>
+      # ...additional configurations...
+----
+
+Each field in the fuel configuration serves a specific purpose:
+
+- `tank-size`: Determines the total fuel capacity of the car's tank.
+- `starting-fuel`: Sets the initial amount of fuel in the car at the start of the race.
+- `burn-rate`: Defines how quickly fuel is consumed when the car is at maximum power.
+- `flow-rate`: Specifies the speed at which the car is refueled during pit stops.
+
+By adjusting these settings, you can tailor the fuel strategy for each car, affecting overall race
+strategy and the dynamics of pit stops.

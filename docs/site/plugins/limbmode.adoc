@@ -1,0 +1,6 @@
+= Limb mode
+:page-layout: page
+:page-parent: Plugins
+:doctype: book
+
+= Limb mode
