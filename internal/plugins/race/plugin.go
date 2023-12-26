@@ -1,24 +1,33 @@
 package race
 
 import (
+	"embed"
+	"github.com/qvistgaard/openrms/internal/plugins/commentary"
 	"github.com/qvistgaard/openrms/internal/plugins/confirmation"
 	"github.com/qvistgaard/openrms/internal/state/race"
+	"github.com/qvistgaard/openrms/internal/utils"
+	log "github.com/sirupsen/logrus"
 	"time"
 )
+
+//go:embed commentary/start.txt
+var announcements embed.FS
 
 type Plugin struct {
 	Duration     *time.Duration
 	Laps         *uint32
 	status       race.Status
 	confirmation *confirmation.Plugin
+	commentary   *commentary.Plugin
 	confirmed    bool
 	race         *race.Race
 	started      bool
 }
 
-func New(r *race.Race, confirmationPlugin *confirmation.Plugin) (*Plugin, error) {
+func New(r *race.Race, confirmationPlugin *confirmation.Plugin, commentary *commentary.Plugin) (*Plugin, error) {
 	p := &Plugin{
 		confirmation: confirmationPlugin,
+		commentary:   commentary,
 		race:         r,
 	}
 
@@ -71,6 +80,12 @@ func (p *Plugin) registerObservers() {
 		if b && (p.status == race.Stopped || p.status == race.Paused) {
 			p.confirmed = true
 			p.race.Start()
+			line, err := utils.RandomLine(announcements, "commentary/start.txt")
+			if err != nil {
+				log.Error(err)
+			} else {
+				p.commentary.Announce(line)
+			}
 		}
 	})
 }
@@ -79,25 +94,6 @@ func (p *Plugin) ConfigureRace(_ *race.Race) {
 	// NOOP
 }
 
-/*
-	func (p *Plugin) Start() {
-		if !p.confirmation.Enabled() {
-			p.race.Start()
-			return
-		}
-		if !p.confirmation.Active().Get() {
-			p.started = true
-			err := p.confirmation.Activate()
-			if err != nil {
-				log.Error(err)
-			}
-		}
-	}
-
-	func (p *Plugin) Race() *race.Race {
-		return p.race
-	}
-*/
 func (p *Plugin) Name() string {
 	return "race"
 }

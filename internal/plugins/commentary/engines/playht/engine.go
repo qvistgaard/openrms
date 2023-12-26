@@ -8,12 +8,13 @@ import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
 type Engine struct {
-	format string
 	voice  *Voice
+	config *PlayHTConfig
 	apiKey string
 	userId string
 }
@@ -27,13 +28,21 @@ type Voice struct {
 	Style    string `json:style`
 }
 
-func New() *Engine {
-	engine := &Engine{}
+func New(config *PlayHTConfig) (*Engine, error) {
+	engine := &Engine{
+		apiKey: config.ApiKey,
+		userId: config.UserId,
+		config: config,
+	}
+	newpath := filepath.Join(".", config.Cache)
+	err := os.MkdirAll(newpath, os.ModePerm)
 
-	voice, _ := engine.getVoice("Oliver (Advertising)")
+	voice, err := engine.getVoice(config.Voice)
+	if err != nil {
+		return nil, errors.WithMessage(err, "Unable to get voice")
+	}
 	engine.voice = voice
-
-	return engine
+	return engine, nil
 }
 
 type GenerateSpeak struct {
@@ -47,7 +56,7 @@ type GenerateSpeak struct {
 
 func (e *Engine) getVoice(name string) (*Voice, error) {
 	var voices = make([]Voice, 0)
-	filename := "voices.json"
+	filename := e.config.Cache + "/voices.json"
 
 	if _, err := os.Stat(filename); errors.Is(err, os.ErrNotExist) {
 
@@ -82,7 +91,7 @@ func (e *Engine) getVoice(name string) (*Voice, error) {
 
 	// Print the response
 	for _, voice := range voices {
-		fmt.Printf("%+v\n", voice)
+		// fmt.Printf("%+v\n", voice)
 		if strings.Compare(voice.Name, name) == 0 {
 			log.WithField("voice", voice.Name).Info("Speaker found")
 			return &voice, nil
@@ -91,25 +100,8 @@ func (e *Engine) getVoice(name string) (*Voice, error) {
 	return nil, errors.New("Could not find voice")
 }
 
-/**
-We are underway, here at <track name>!
-there's contact there's all sorts of pandemonium
-oh big accident of the <turn
-oh contact that was a big a hit,look at the damage at the front of car number <number>
-Car number <number> is almost out of fuel.
-Oh no. car number 99 has run out of fuel
-oh oh, that is damage big time for car number 77
-Car number <number> has gone of the track
-The lights go green, and we are under way here at <track name>
-The lights go green, Blast off here at <track name>
-Car number <number> takes the lead on lap <lap number>
-And across the line! it's a win for <team name> in car number <number>
-It's a win for <team name> and car number <number>
-Oh my goodness, the wheels actually has come of the car number <number>
-*/
-
 func (e *Engine) downloadSpeak(speak string) (*os.File, error) {
-	filename := fmt.Sprintf("%x.mp3", md5.Sum([]byte(speak+e.voice.Manifest)))
+	filename := fmt.Sprintf("%s/%x.mp3", e.config.Cache, md5.Sum([]byte(speak+e.voice.Manifest)))
 	if _, err := os.Stat(filename); errors.Is(err, os.ErrNotExist) {
 		log.Info("Speak not found. Generating new speak")
 

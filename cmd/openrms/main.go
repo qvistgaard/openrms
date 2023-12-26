@@ -70,12 +70,17 @@ func main() {
 			log.Fatal(err)
 		}*/
 
+	commentaryPlugin, err := configuration.CommentaryPlugin(cfg)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	confirmationPlugin, err := configuration.ConfirmationPlugin(cfg)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	racePlugin, err := configuration.RacePlugin(cfg, race, confirmationPlugin)
+	racePlugin, err := configuration.RacePlugin(cfg, race, confirmationPlugin, commentaryPlugin)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -96,7 +101,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	ontrackPlugin, _ := configuration.OnTrackPlugin(cfg, flagPlugin)
+	ontrackPlugin, _ := configuration.OnTrackPlugin(cfg, flagPlugin, commentaryPlugin)
 
 	plugins, err := configuration.Plugins(cfg)
 	if err != nil {

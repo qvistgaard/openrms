@@ -19,6 +19,7 @@ type Plugin struct {
 	config    Config
 	carConfig map[types.CarId]CarSettings
 	state     map[types.CarId]*state
+	usage     map[types.CarId][]float32
 	status    race.Status
 	limbMode  *limbmode.Plugin
 }
@@ -38,6 +39,7 @@ func New(config Config, limbMode *limbmode.Plugin) (*Plugin, error) {
 		config:   config,
 		limbMode: limbMode,
 		state:    make(map[types.CarId]*state),
+		usage:    make(map[types.CarId][]float32),
 	}, nil
 }
 
@@ -72,6 +74,10 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 
 	carState.machine = machine(handleUpdateFuelLevel(carState, config.TankSize, config.BurnRate))
 	carState.fuel = observable.Create(float32(config.TankSize))
+
+	car.LastLap().RegisterObserver(func(lap types.Lap) {
+		p.usage[carId] = append(p.usage[carId], p.state[carId].consumed)
+	})
 
 	car.Controller().TriggerValue().RegisterObserver(func(v uint8) {
 		if p.status == race.Running {

@@ -15,9 +15,11 @@ func NewCar(implementer drivers.Driver, settings *Settings, defaults *Settings, 
 	settings = merge.Merge(defaults, settings).(*Settings)
 
 	car := &Car{
-		implementer: implementer,
-		id:          id,
-		number:      settings.Number,
+		implementer:  implementer,
+		id:           id,
+		number:       settings.Number,
+		manufacturer: *settings.Manufacturer,
+		color:        *settings.Color,
 	}
 
 	// Initialize observable properties
@@ -86,6 +88,16 @@ type Car struct {
 	team            observable.Observable[string]
 	enabled         observable.Observable[bool]
 	number          *uint
+	manufacturer    string
+	color           string
+}
+
+type TemplateData struct {
+	DriverName string
+	TeamName   string
+	Brand      string
+	Color      string
+	Number     uint
 }
 
 func (c *Car) PitLaneMaxSpeed() observable.Observable[uint8] {
@@ -119,6 +131,13 @@ func (c *Car) Number() uint {
 	return uint(c.Id())
 }
 
+func (c *Car) Brand() string {
+	return c.manufacturer
+}
+func (c *Car) Color() string {
+	return c.color
+}
+
 func (c *Car) Pit() observable.Observable[bool] {
 	return c.pit
 }
@@ -139,6 +158,16 @@ func (c *Car) Drivers() observable.Observable[types.Drivers] {
 
 func (c *Car) Team() observable.Observable[string] {
 	return c.team
+}
+
+func (c *Car) TemplateData() TemplateData {
+	return TemplateData{
+		DriverName: c.drivers.Get()[0].Name,
+		TeamName:   c.team.Get(),
+		Brand:      c.Brand(),
+		Color:      c.Color(),
+		Number:     c.Number(),
+	}
 }
 
 func (c *Car) Enable() bool {

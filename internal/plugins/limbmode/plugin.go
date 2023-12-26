@@ -56,7 +56,11 @@ func (p *Plugin) InitializeCar(_ *car.Car) {
 
 func (p *Plugin) ConfigureRace(r *race.Race) {
 	r.Status().RegisterObserver(func(status race.Status) {
-
+		if status == race.Stopped {
+			for _, o := range p.state {
+				o.Set(false)
+			}
+		}
 	})
 }
 

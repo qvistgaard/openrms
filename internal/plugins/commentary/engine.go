@@ -1,5 +1,7 @@
 package commentary
 
+import "os"
+
 type Engine interface {
-	Announce(speak string)
+	Announce(speak string) (*os.File, error)
 }

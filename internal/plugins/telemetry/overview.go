@@ -24,6 +24,7 @@ type Entry struct {
 	Fuel            float32
 	Enabled         bool
 	PitStopSequence uint8
+	Color           string
 }
 
 type Race map[types.CarId]*Entry

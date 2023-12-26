@@ -66,6 +66,15 @@ func (c *InMemory) Get(id types.CarId) (*car.Car, bool, bool) {
 			c.config[id].Team = &team
 		}
 
+		if c.config[id].Manufacturer == nil {
+			manufacturer := names.RandomManufacture()
+			c.config[id].Manufacturer = &manufacturer
+		}
+		if c.config[id].Color == nil {
+			color := ""
+			c.config[id].Color = &color
+		}
+
 		// i := merge.Merge(c.defaults, c.config[id])
 		c.cars[id] = car.NewCar(c.implement, c.config[id], c.defaults, id)
 

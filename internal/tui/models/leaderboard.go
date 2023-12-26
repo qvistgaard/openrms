@@ -21,6 +21,7 @@ type Leaderboard struct {
 	width         int
 	rows          []table.Row
 	raceTelemetry telemetry.Race
+	colors        map[uint]string
 }
 
 const (
@@ -63,6 +64,7 @@ var (
 )
 
 func InitialLeaderboardModel() Leaderboard {
+	l := Leaderboard{}
 	s := table.DefaultStyles()
 	s.Header = headerStyle
 	s.Selected = selectedStyle
@@ -97,6 +99,44 @@ func InitialLeaderboardModel() Leaderboard {
 			return s.Cell.Copy().Foreground(lipgloss.Color("40")).Render(value)
 		}
 
+		if position.Column == 2 {
+			v, _ := strconv.ParseInt(strings.TrimSpace(value), 10, 32)
+			c, ok := l.colors[uint(v)]
+			if ok {
+				var bg, fg string
+				switch c {
+				case "red":
+					bg = "124"
+					fg = "255"
+				case "orange":
+					bg = "208"
+					fg = "232"
+				case "blue":
+					bg = "19"
+					fg = "255"
+				case "black":
+					bg = "16"
+					fg = "254"
+				case "green":
+					bg = "34"
+					fg = "16"
+				case "white":
+					bg = "253"
+					fg = "16"
+				case "yellow":
+					bg = "214"
+					fg = "16"
+				case "purple":
+					bg = "91"
+					fg = "255"
+				}
+
+				if bg != "" && fg != "" {
+					return s.Cell.Copy().Foreground(lipgloss.Color(fg)).Background(lipgloss.Color(bg)).Render(value)
+				}
+			}
+		}
+
 		if position.IsRowSelected {
 			return s.Cell.Copy().
 				Foreground(lipgloss.Color("229")).
@@ -106,15 +146,13 @@ func InitialLeaderboardModel() Leaderboard {
 
 		return s.Cell.Copy().Render(value)
 	}
-
-	return Leaderboard{
-		table: table.New(
-			table.WithColumns(columns),
-			table.WithFocused(true),
-			table.WithHeight(10),
-			table.WithStyles(s),
-		),
-	}
+	l.colors = make(map[uint]string)
+	l.table = table.New(
+		table.WithColumns(columns),
+		table.WithFocused(true),
+		table.WithHeight(10),
+		table.WithStyles(s))
+	return l
 }
 
 func (l Leaderboard) Init() tea.Cmd {
@@ -194,12 +232,14 @@ func (l Leaderboard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				team = v.Team + " (Disabled)"
 			}
 
+			l.colors[v.Id] = v.Color
+
 			l.rows = append(l.rows, table.Row{
 
 				alignRight.AlignHorizontal(lipgloss.Center).Render(strconv.Itoa(k + 1)),
 				team,
-				alignRight.Render(strconv.Itoa(int(v.Id))),
-				alignRight.Width(4).Render(fmt.Sprintf("%.f", v.Fuel)),
+				alignRight.Width(3).AlignHorizontal(lipgloss.Right).Render(strconv.Itoa(int(v.Id))),
+				alignRight.Width(4).AlignHorizontal(lipgloss.Right).Render(fmt.Sprintf("%.f", v.Fuel)),
 				alignRight.Width(7).AlignHorizontal(lipgloss.Right).Render(formatDurationSecondsMilliseconds(v.Last.Time)),
 				alignRight.Width(7).AlignHorizontal(lipgloss.Right).Render(formatDurationSecondsMilliseconds(v.Delta)),
 				alignRight.Width(7).AlignHorizontal(lipgloss.Right).Render(formatDurationSecondsMilliseconds(v.Best)),

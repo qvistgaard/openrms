@@ -1,19 +1,26 @@
 package ontrack
 
 import (
+	"embed"
 	"github.com/pkg/errors"
+	"github.com/qvistgaard/openrms/internal/plugins/commentary"
 	"github.com/qvistgaard/openrms/internal/plugins/flags"
 	"github.com/qvistgaard/openrms/internal/state/car"
 	"github.com/qvistgaard/openrms/internal/types"
+	"github.com/qvistgaard/openrms/internal/utils"
 	log "github.com/sirupsen/logrus"
 )
 
+//go:embed commentary/offtrack.txt
+var announcements embed.FS
+
 type Plugin struct {
-	config     *Config
-	flagPlugin *flags.Plugin
-	state      map[types.CarId]state
-	flagId     int
-	flag       flags.Flag
+	config           *Config
+	flagPlugin       *flags.Plugin
+	state            map[types.CarId]state
+	flagId           int
+	flag             flags.Flag
+	commentaryPlugin *commentary.Plugin
 }
 
 type state struct {
@@ -22,7 +29,7 @@ type state struct {
 	inPit   bool
 }
 
-func New(c *Config, f *flags.Plugin) (*Plugin, error) {
+func New(c *Config, f *flags.Plugin, commentaryPlugin *commentary.Plugin) (*Plugin, error) {
 	var flag flags.Flag
 	switch c.Plugin.OnTrack.Flag {
 	case "green":
@@ -36,10 +43,11 @@ func New(c *Config, f *flags.Plugin) (*Plugin, error) {
 	}
 
 	plugin := &Plugin{
-		config:     c,
-		flagPlugin: f,
-		flag:       flag,
-		state:      make(map[types.CarId]state),
+		config:           c,
+		flagPlugin:       f,
+		commentaryPlugin: commentaryPlugin,
+		flag:             flag,
+		state:            make(map[types.CarId]state),
 	}
 
 	if !f.Enabled() && c.Plugin.OnTrack.Enabled {
@@ -60,6 +68,14 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 	car.Deslotted().RegisterObserver(func(b bool) {
 		s := p.state[car.Id()]
 		p.updateState(car.Id(), !b, s.inPit, s.enabled)
+
+		if b && p.config.Plugin.OnTrack.Commentary {
+			line, _ := utils.RandomLine(announcements, "commentary/offtrack.txt")
+			template, err := utils.ProcessTemplate(line, car.TemplateData())
+			if err == nil {
+				p.commentaryPlugin.OptionalAnnouncement(template)
+			}
+		}
 	})
 
 	car.Pit().RegisterObserver(func(b bool) {

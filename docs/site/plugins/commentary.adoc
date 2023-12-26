@@ -1,0 +1,42 @@
+= Commentary Plugin Documentation
+
+== Overview
+
+The Commentary plugin in OpenRMS enriches the race management experience by enabling AI-generated audio commentary.
+This feature, powered by the Play.ht service, allows other plugins to generate dynamic commentary based on the events occurring during the race, enhancing the immersion and spectator engagement.
+
+== Configuration
+
+To enable and configure the Commentary plugin, update the `plugins` section of your `config.yaml` file:
+
+[source,yaml]
+----
+plugins:
+  commentary:
+    enabled: true    # Enable the Commentary plugin
+    playht:
+      apiKey: <your_api_key>  # API key from Play.ht
+      userId: <your_user_id>  # User ID from Play.ht
+----
+
+=== Enabling the Plugin
+
+Set `enabled` to `true` to activate the Commentary plugin.
+This setting allows other plugins within OpenRMS to utilize AI-generated commentary during races.
+
+=== Playht Configuration
+
+Configure the connection to the Play.ht service for AI audio generation.
+
+- `apiKey`: Your personal API key from Play.ht, obtained after signing up at https://play.ht.
+- `userId`: Your User ID from Play.ht, which is provided upon registration with the service.
+
+== Additional Notes
+
+- Keep your API key and User ID confidential to secure your access to the Play.ht service.
+- The commentary's quality and style depend on the capabilities of the Play.ht service.
+- This plugin does not generate commentary by itself but provides the capability for other plugins to do so, based on race events.
+
+For detailed support or more information about the Commentary plugin, refer to the OpenRMS documentation or community forums.
+
+The integration of the Commentary plugin with OpenRMS offers a unique and engaging way to experience slot car racing, bringing a new level of excitement to the event.

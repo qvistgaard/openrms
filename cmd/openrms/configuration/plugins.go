@@ -5,6 +5,8 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	"github.com/qvistgaard/openrms/internal/plugins"
+	"github.com/qvistgaard/openrms/internal/plugins/commentary"
+	"github.com/qvistgaard/openrms/internal/plugins/commentary/engines/playht"
 	"github.com/qvistgaard/openrms/internal/plugins/confirmation"
 	"github.com/qvistgaard/openrms/internal/plugins/flags"
 	"github.com/qvistgaard/openrms/internal/plugins/fuel"
@@ -54,8 +56,20 @@ func FuelPlugin(conf Config, limpMode *limbmode.Plugin) (*fuel.Plugin, error) {
 // Returns:
 //   - A new instance of the 'race.Plugin' type representing the initialized race plugin.
 //   - An error if there was an issue initializing the race plugin instance.
-func RacePlugin(_ Config, r *race2.Race, plugin *confirmation.Plugin) (*race.Plugin, error) {
-	return race.New(r, plugin)
+func RacePlugin(_ Config, r *race2.Race, plugin *confirmation.Plugin, comment *commentary.Plugin) (*race.Plugin, error) {
+	return race.New(r, plugin, comment)
+}
+
+func CommentaryPlugin(conf Config) (*commentary.Plugin, error) {
+	c := &commentary.Config{}
+	defaults.SetDefaults(c)
+	c.Plugin.Commentary.PlayHT = &playht.PlayHTConfig{}
+	defaults.SetDefaults(c.Plugin.Commentary.PlayHT)
+	err := mapstructure.Decode(conf, c)
+	if err != nil {
+		return nil, errors.WithMessage(err, "failed to read fuel plugin configuration")
+	}
+	return commentary.New(c)
 }
 
 func ConfirmationPlugin(conf Config) (*confirmation.Plugin, error) {
@@ -86,14 +100,14 @@ func FlagPlugin(conf Config, track *track.Track, race *race2.Race) (*flags.Plugi
 	return flags.New(c, track, race)
 }
 
-func OnTrackPlugin(conf Config, f *flags.Plugin) (*ontrack.Plugin, error) {
+func OnTrackPlugin(conf Config, f *flags.Plugin, comment *commentary.Plugin) (*ontrack.Plugin, error) {
 	c := &ontrack.Config{}
 	defaults.SetDefaults(c)
 	err := mapstructure.Decode(conf, c)
 	if err != nil {
 		return nil, errors.WithMessage(err, "failed to read fuel plugin configuration")
 	}
-	return ontrack.New(c, f)
+	return ontrack.New(c, f, comment)
 }
 
 // LimbModePlugin initializes and returns a new LimpMode plugin instance based on the provided configuration.

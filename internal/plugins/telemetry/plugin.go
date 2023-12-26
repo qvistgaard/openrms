@@ -45,7 +45,8 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 	id := car.Id()
 	if entry, ok := p.telemetry[id]; !ok {
 		entry = &Entry{
-			Id: car.Number(),
+			Id:    car.Number(),
+			Color: car.Color(),
 		}
 		p.telemetry[id] = entry
 		p.updateLeaderboard()

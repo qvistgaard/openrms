@@ -1,0 +1,20 @@
+Well, {{.DriverName}} in the {{.Color}} {{.Brand}} from {{.TeamName}}, car number {{.Number}}, has decided to take a brief tour of the countryside. Perhaps they're scouting for a picnic spot?
+It seems {{.DriverName}} of {{.TeamName}}, driving car number {{.Number}}, fancied a bit of off-road adventure in their {{.Color}} {{.Brand}}. Not quite the rally we expected!
+Oh dear, {{.DriverName}} in the {{.Color}} {{.Brand}}, car number {{.Number}} from {{.TeamName}}, appears to have mistaken the track for a dance floor and has stepped out of line.
+Car number {{.Number}}, the {{.Color}} {{.Brand}} of {{.TeamName}}, piloted by {{.DriverName}}, seems to be on a quest to find the end of the rainbow. Wrong sport, old chap!
+Looks like {{.DriverName}} from {{.TeamName}} in their {{.Color}} {{.Brand}}, car number {{.Number}}, is auditioning for a part in an off-road racing film. A bit too dramatic, I'd say!
+And {{.DriverName}} of {{.TeamName}}, driving the car number {{.Number}} {{.Color}} {{.Brand}}, just took a detour. Maybe they've spotted a lovely tea shop by the trackside?
+The {{.Color}} {{.Brand}} of {{.TeamName}}, car number {{.Number}}, with {{.DriverName}} at the wheel, is exploring the track limits. Quite the explorer, aren't they?
+Looks like {{.DriverName}} in car number {{.Number}} from {{.TeamName}} is trying a new track layout in their {{.Color}} {{.Brand}}. Innovation is key, but perhaps not here.
+Car number {{.Number}}, the {{.Color}} {{.Brand}} driven by {{.DriverName}} for {{.TeamName}}, is taking a scenic route. A bit of sightseeing, perhaps?
+{{.DriverName}} in the car number {{.Number}} {{.Color}} {{.Brand}} from {{.TeamName}} has opted for an unconventional path. Maybe they're just avoiding traffic?
+{{.DriverName}} of {{.TeamName}}, driving the {{.Color}} {{.Brand}}, car number {{.Number}}, has gone off the track. A quick recovery is needed.
+The {{.Color}} {{.Brand}} from {{.TeamName}}, driven by {{.DriverName}}, car number {{.Number}}, has left the track. They must regain control quickly.
+Car number {{.Number}}, the {{.Color}} {{.Brand}} of {{.TeamName}}, with {{.DriverName}} behind the wheel, has skidded off course. They need to focus on rejoining the race.
+We've seen {{.DriverName}} in the {{.Color}} {{.Brand}}, car number {{.Number}} for {{.TeamName}}, veer off the track. It's crucial to get back on course.
+{{.TeamName}}'s {{.DriverName}}, driving car number {{.Number}}, the {{.Color}} {{.Brand}}, has made an off-track excursion. A swift return to the track is essential.
+The {{.Color}} {{.Brand}}, car number {{.Number}}, driven by {{.DriverName}} for {{.TeamName}}, is now off the track. They need to recover quickly to stay in the race.
+Car number {{.Number}}, a {{.Color}} {{.Brand}} driven by {{.DriverName}} for {{.TeamName}}, has strayed from the track. A quick response is critical.
+{{.DriverName}}, in car number {{.Number}} for {{.TeamName}}, has lost track position in their {{.Color}} {{.Brand}}. They must focus on regaining their position.
+An off-track moment for {{.DriverName}} of {{.TeamName}} in the {{.Color}} {{.Brand}}, car number {{.Number}}. They need to regain control and rejoin the race.
+The {{.TeamName}}'s {{.Color}} {{.Brand}}, driven by {{.DriverName}}, car number {{.Number}}, has drifted off the track. It's vital to get back into the race as soon as possible.
