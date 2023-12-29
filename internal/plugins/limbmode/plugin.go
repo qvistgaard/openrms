@@ -53,7 +53,8 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 		if b {
 			line, err := utils.RandomLine(announcements, "commentary/limbmode.txt")
 			if err == nil {
-				p.commentary.Announce(line)
+				template, _ := utils.ProcessTemplate(line, car.TemplateData())
+				p.commentary.Announce(template)
 			}
 		}
 		car.MaxSpeed().Update()

@@ -93,7 +93,8 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 		if f < 5 {
 			line, err := utils.RandomLine(announcements, "commentary/out_of_fuel.txt")
 			if err == nil && !carState.announced {
-				p.commentary.Announce(line)
+				template, _ := utils.ProcessTemplate(line, car.TemplateData())
+				p.commentary.Announce(template)
 				carState.announced = true
 			}
 		}
