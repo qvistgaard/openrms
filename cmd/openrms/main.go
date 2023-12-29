@@ -85,7 +85,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	limpModePlugin, err := configuration.LimbModePlugin(cfg)
+	limpModePlugin, err := configuration.LimbModePlugin(cfg, commentaryPlugin)
 	if err != nil {
 		log.Fatal(err)
 	}

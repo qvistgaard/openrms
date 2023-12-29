@@ -118,11 +118,11 @@ func OnTrackPlugin(conf Config, f *flags.Plugin, comment *commentary.Plugin) (*o
 // Returns:
 //   - A new instance of the 'limbmode.Plugin' type representing the initialized LimpMode plugin.
 //   - An error if there was an issue initializing the LimpMode plugin instance.
-func LimbModePlugin(conf Config) (*limbmode.Plugin, error) {
+func LimbModePlugin(conf Config, commentary *commentary.Plugin) (*limbmode.Plugin, error) {
 	c := &limbmode.Config{}
 	err := mapstructure.Decode(conf, c)
 	if err != nil {
 		return nil, errors.WithMessage(err, "failed to read fuel plugin configuration")
 	}
-	return limbmode.New(c)
+	return limbmode.New(c, commentary)
 }
