@@ -90,7 +90,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fuelPlugin, err := configuration.FuelPlugin(cfg, limpModePlugin)
+	fuelPlugin, err := configuration.FuelPlugin(cfg, limpModePlugin, commentaryPlugin)
 	if err != nil {
 		log.Fatal(err)
 	}

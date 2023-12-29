@@ -86,7 +86,8 @@ func (e *Engine) getVoice(name string) (*Voice, error) {
 
 	err = json.NewDecoder(open).Decode(&voices)
 	if err != nil {
-		return nil, errors.WithMessage(err, "Unable to load voices")
+		dir, err := os.Getwd()
+		return nil, errors.WithMessage(err, "Unable to load voices: "+dir+filename)
 	}
 
 	// Print the response

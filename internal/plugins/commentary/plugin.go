@@ -33,12 +33,15 @@ func New(config *Config) (*Plugin, error) {
 		return nil, errors.WithMessage(err, "Unable to create egine")
 	}
 
-	switch p.config.Plugin.Commentary.Engine {
-	case "playht":
-		p.engine, err = playht.New(p.config.Plugin.Commentary.PlayHT)
-	default:
-		return nil, errors.New("Unknown commentary engine: " + p.config.Plugin.Commentary.Engine)
+	if config.Plugin.Commentary.Enabled {
+		switch p.config.Plugin.Commentary.Engine {
+		case "playht":
+			p.engine, err = playht.New(p.config.Plugin.Commentary.PlayHT)
+		default:
+			return nil, errors.New("Unknown commentary engine: " + p.config.Plugin.Commentary.Engine)
+		}
 	}
+
 	if err != nil {
 		return nil, errors.WithMessage(err, "Unable to create engine")
 	}

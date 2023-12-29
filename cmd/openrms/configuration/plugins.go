@@ -38,14 +38,14 @@ func Plugins(conf Config) (*plugins.Plugins, error) {
 // Returns:
 //   - A new instance of the 'fuel.Plugin' type representing the initialized fuel plugin.
 //   - An error if there was an issue initializing the fuel plugin instance.
-func FuelPlugin(conf Config, limpMode *limbmode.Plugin) (*fuel.Plugin, error) {
+func FuelPlugin(conf Config, limpMode *limbmode.Plugin, commentary *commentary.Plugin) (*fuel.Plugin, error) {
 	c := &fuel.Config{}
 	err := mapstructure.Decode(conf, c)
 	if err != nil {
 		return nil, errors.WithMessage(err, "failed to read fuel plugin configuration")
 	}
 
-	return fuel.New(*c, limpMode)
+	return fuel.New(*c, limpMode, commentary)
 }
 
 // RacePlugin initializes and returns a new race plugin instance based on the provided configuration.
