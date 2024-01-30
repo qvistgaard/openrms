@@ -3,6 +3,7 @@ package track
 import (
 	"github.com/qvistgaard/openrms/internal/drivers"
 	"github.com/qvistgaard/openrms/internal/state/observable"
+	"math"
 )
 
 type Track struct {
@@ -22,8 +23,14 @@ func New(c Config, di drivers.Driver) (*Track, error) {
 	di.Track().MaxSpeed(c.Track.MaxSpeed)
 
 	t := &Track{
-		driver:   di,
-		maxSpeed: observable.Create(c.Track.MaxSpeed).Filter(observable.DistinctComparableChange[uint8]()),
+		driver: di,
+		maxSpeed: observable.Create(c.Track.MaxSpeed).Filter(observable.DistinctComparableChange[uint8]()).
+			Modifier(func(u uint8) (uint8, bool) {
+				if u > c.Track.MaxSpeed {
+					return c.Track.MaxSpeed, true
+				}
+				return u, true
+			}, math.MaxInt),
 	}
 
 	t.maxSpeed.RegisterObserver(func(u uint8) {
