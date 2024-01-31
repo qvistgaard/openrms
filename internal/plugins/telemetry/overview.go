@@ -7,9 +7,10 @@ import (
 )
 
 type Entry struct {
-	Id              uint
+	Id              types.CarId
 	Team            string
 	Last            types.Lap
+	Number          uint
 	PitStopActive   bool
 	Laps            []types.Lap
 	Delta           time.Duration

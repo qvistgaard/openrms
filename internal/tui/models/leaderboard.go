@@ -20,6 +20,7 @@ type Leaderboard struct {
 	table         table.Model
 	width         int
 	rows          []table.Row
+	rowsId        []types.CarId
 	raceTelemetry telemetry.Race
 	colors        map[uint]string
 }
@@ -169,7 +170,7 @@ func (l Leaderboard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return l, nil
 		case "c":
 			return l, func() tea.Msg {
-				carIdString := strings.TrimSpace(l.rows[l.table.Cursor()][2])
+				carIdString := strconv.Itoa(int(l.rowsId[l.table.Cursor()]))
 				carId, _ := types.IdFromString(carIdString)
 				return commands.OpenCarConfiguration{
 					CarId:       carIdString,
@@ -200,6 +201,7 @@ func (l Leaderboard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case messages.Update:
 		l.rows = make([]table.Row, 0)
+		l.rowsId = make([]types.CarId, 0)
 		raceTelemetry := msg.(messages.Update).RaceTelemetry
 		for k, v := range raceTelemetry.Sort() {
 			var inPitString string
@@ -232,13 +234,14 @@ func (l Leaderboard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				team = v.Team + " (Disabled)"
 			}
 
-			l.colors[v.Id] = v.Color
+			l.colors[v.Number] = v.Color
 
+			l.rowsId = append(l.rowsId, v.Id)
 			l.rows = append(l.rows, table.Row{
 
 				alignRight.AlignHorizontal(lipgloss.Center).Render(strconv.Itoa(k + 1)),
 				team,
-				alignRight.Width(3).AlignHorizontal(lipgloss.Right).Render(strconv.Itoa(int(v.Id))),
+				alignRight.Width(3).AlignHorizontal(lipgloss.Right).Render(strconv.Itoa(int(v.Number))),
 				alignRight.Width(4).AlignHorizontal(lipgloss.Right).Render(fmt.Sprintf("%.f", v.Fuel)),
 				alignRight.Width(7).AlignHorizontal(lipgloss.Right).Render(formatDurationSecondsMilliseconds(v.Last.Time)),
 				alignRight.Width(7).AlignHorizontal(lipgloss.Right).Render(formatDurationSecondsMilliseconds(v.Delta)),

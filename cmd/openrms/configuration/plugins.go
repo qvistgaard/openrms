@@ -6,6 +6,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/qvistgaard/openrms/internal/plugins"
 	"github.com/qvistgaard/openrms/internal/plugins/commentary"
+	"github.com/qvistgaard/openrms/internal/plugins/commentary/engines/elevenlabs"
 	"github.com/qvistgaard/openrms/internal/plugins/commentary/engines/playht"
 	"github.com/qvistgaard/openrms/internal/plugins/confirmation"
 	"github.com/qvistgaard/openrms/internal/plugins/flags"
@@ -64,7 +65,9 @@ func CommentaryPlugin(conf Config) (*commentary.Plugin, error) {
 	c := &commentary.Config{}
 	defaults.SetDefaults(c)
 	c.Plugin.Commentary.PlayHT = &playht.PlayHTConfig{}
+	c.Plugin.Commentary.ElevenLabs = &elevenlabs.ElevenLabsConfig{}
 	defaults.SetDefaults(c.Plugin.Commentary.PlayHT)
+	defaults.SetDefaults(c.Plugin.Commentary.ElevenLabs)
 	err := mapstructure.Decode(conf, c)
 	if err != nil {
 		return nil, errors.WithMessage(err, "failed to read fuel plugin configuration")
