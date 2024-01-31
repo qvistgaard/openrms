@@ -5,6 +5,7 @@ import (
 	"github.com/gopxl/beep/mp3"
 	"github.com/gopxl/beep/speaker"
 	"github.com/pkg/errors"
+	"github.com/qvistgaard/openrms/internal/plugins/commentary/engines/elevenlabs"
 	"github.com/qvistgaard/openrms/internal/plugins/commentary/engines/playht"
 	log "github.com/sirupsen/logrus"
 	"sync"
@@ -37,6 +38,8 @@ func New(config *Config) (*Plugin, error) {
 		switch p.config.Plugin.Commentary.Engine {
 		case "playht":
 			p.engine, err = playht.New(p.config.Plugin.Commentary.PlayHT)
+		case "elevenlabs":
+			p.engine, err = elevenlabs.New(p.config.Plugin.Commentary.ElevenLabs)
 		default:
 			return nil, errors.New("Unknown commentary engine: " + p.config.Plugin.Commentary.Engine)
 		}

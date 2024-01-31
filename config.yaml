@@ -164,10 +164,13 @@ car:
 
 plugins:
   commentary:
-    enabled: false
+    enabled: true
+    engine: elevenlabs
     playht:
-      apiKey:
-      userId:
+      apiKey: ""
+      userId: ""
+    elevenlabs:
+      apiKey: ""
   fuel:
     enabled: false
   race:
@@ -190,6 +193,8 @@ plugins:
       pause: true
   confirmation:
     enabled: true
+
+
 
 
 
