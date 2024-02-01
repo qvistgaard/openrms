@@ -84,13 +84,13 @@ func ConfirmationPlugin(conf Config) (*confirmation.Plugin, error) {
 	return confirmation.New(c)
 }
 
-func PitPlugin(conf Config, stops ...pit.SequencePlugin) (*pit.Plugin, error) {
+func PitPlugin(conf Config, comment *commentary.Plugin, stops ...pit.SequencePlugin) (*pit.Plugin, error) {
 	c := &pit.Config{}
 	err := mapstructure.Decode(conf, c)
 	if err != nil {
 		return nil, errors.WithMessage(err, "failed to read fuel plugin configuration")
 	}
-	return pit.New(c, stops...)
+	return pit.New(c, comment, stops...)
 }
 
 func FlagPlugin(conf Config, track *track.Track, race *race2.Race) (*flags.Plugin, error) {

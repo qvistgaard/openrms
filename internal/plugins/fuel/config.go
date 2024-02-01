@@ -11,6 +11,12 @@ type Config struct {
 		Defaults *CarSettings   `mapstructure:"defaults"`
 		Cars     []*CarSettings `mapstructure:"cars"`
 	}
+	Plugin struct {
+		Fuel struct {
+			Enabled    bool `mapstructure:"enabled"`
+			Commentary bool `mapstructure:"commentary" default:"true"`
+		} `mapstructure:"fuel"`
+	} `mapstructure:"plugins"`
 }
 
 // CarSettings represents the configuration settings for an individual car.

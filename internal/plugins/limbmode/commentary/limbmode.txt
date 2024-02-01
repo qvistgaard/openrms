@@ -1,20 +1,20 @@
-Looks like {{.DriverName}}'s {{.Color}} {{.Brand}}, car number {{.Number}} from {{.TeamName}}, is in limp mode. It's moving slower than a snail on holiday!
-Oh dear, {{.DriverName}} in the car number {{.Number}} has hit limp mode. That {{.Color}} {{.Brand}} is now as speedy as a tortoise in a marathon!
-The {{.Color}} {{.Brand}} of {{.TeamName}}, car number {{.Number}}, driven by {{.DriverName}}, seems to be taking a leisurely stroll in limp mode. Time for a pit stop, perhaps for a cuppa as well!
-Car number {{.Number}}'s {{.DriverName}} is experiencing the slot car equivalent of a leisurely Sunday drive. The {{.Color}} {{.Brand}} is in limp mode, probably enjoying the scenery!
-And {{.DriverName}} from {{.TeamName}} in the {{.Color}} {{.Brand}}, car number {{.Number}}, is in limp mode. They're moving at a pace that would make a sloth proud!
-Seems like {{.DriverName}} in the {{.Color}} {{.Brand}}, car number {{.Number}}, is having a bit of a slow moment in limp mode. Maybe they're trying to give the others a fighting chance?
-The {{.Color}} {{.Brand}} of {{.DriverName}}, car number {{.Number}} for {{.TeamName}}, is in limp mode. They might as well stop for a spot of tea at this speed!
-{{.DriverName}}'s car number {{.Number}}, a {{.Color}} {{.Brand}} from {{.TeamName}}, seems to be in no hurry at all in limp mode. A leisurely jaunt down the track!
-Car number {{.Number}}, driven by {{.DriverName}} for {{.TeamName}}, seems to have decided to take things slow in limp mode. That {{.Color}} {{.Brand}} is almost stationary!
-In a surprising turn of events, {{.DriverName}} of {{.TeamName}} in the {{.Color}} {{.Brand}}, car number {{.Number}}, has entered limp mode. It's like watching paint dry, but less exciting!
-{{.DriverName}} in the {{.Color}} {{.Brand}}, car number {{.Number}} for {{.TeamName}}, has gone into limp mode. They need to conserve energy to reach the pit.
-The {{.Color}} {{.Brand}} of {{.TeamName}}, driven by {{.DriverName}}, car number {{.Number}}, is now in limp mode. It's crucial to manage this phase strategically.
-Car number {{.Number}}, a {{.Color}} {{.Brand}} driven by {{.DriverName}} for {{.TeamName}}, has slowed significantly. They're in limp mode, conserving the last bits of energy.
-We're seeing {{.DriverName}} from {{.TeamName}} in car number {{.Number}} entering limp mode. The {{.Color}} {{.Brand}} is now moving at a reduced pace.
-{{.TeamName}}'s {{.DriverName}}, in the {{.Color}} {{.Brand}}, car number {{.Number}}, is conserving energy in limp mode. A tactical decision to make it to the next pit stop.
-The {{.Color}} {{.Brand}} of {{.DriverName}}, car number {{.Number}} from {{.TeamName}}, has reduced its speed. Limp mode is in effect as they approach the pit area.
-Car number {{.Number}}'s {{.DriverName}} from {{.TeamName}} is now in limp mode. The {{.Color}} {{.Brand}} is using minimal energy to continue the race.
-{{.DriverName}} in the car number {{.Number}}, a {{.Color}} {{.Brand}} for {{.TeamName}}, is conserving energy in limp mode. It's a critical moment for their race strategy.
-Limp mode activated for {{.DriverName}} in the {{.Color}} {{.Brand}}, car number {{.Number}} from {{.TeamName}}. This phase requires careful energy management.
-The {{.TeamName}}'s {{.DriverName}} in car number {{.Number}}, driving the {{.Color}} {{.Brand}}, is in limp mode. They must now focus on energy efficiency to reach the pit.
+Car {{.Number}} has entered what we affectionately call 'snail mode'. Time for a turbo boost, or maybe just a pit stop!
+The {{.Color}} {{.Brand}} is now limping more than my grandad without his cane. A quick pit might do the trick!
+Looks like {{.TeamName}}'s pride is practicing for the slow dance competition. Limp mode engaged!
+Car {{.Number}} is moving so slowly, it might start growing moss. Limp mode isn't exactly the fast lane to victory.
+The {{.Color}} {{.Brand}} has decided to take a leisurely stroll in limp mode. Perhaps it's admiring the track scenery?
+{{.Number}} is now in limp mode, giving a whole new meaning to 'taking it easy'. Might be time for a pit stop, eh?
+Who knew the {{.Color}} {{.Brand}} was a fan of minimalism? Limp mode has it going 'less is more' with the speed.
+Car {{.Number}} in limp mode is like watching paint dry. Exciting if you're into that sort of thing.
+The {{.TeamName}}'s racer has hit limp mode. They're now officially the track tortoise. Slow and steady, anyone?
+Limp mode for car {{.Number}}? More like 'limbo mode' – how low on power can you go before a pit stop?
+Looks like the {{.Color}} {{.Brand}} is auditioning for a role in a slo-mo action film. Limp mode activated!
+Car {{.Number}}'s so slow in limp mode, it could get overtaken by a brisk walker. Time to refuel and reboot!
+{{.TeamName}}'s strategy now appears to be 'embrace the pace'. Limp mode making them the calm in the storm.
+The {{.Color}} {{.Brand}} is taking a gentle jog in limp mode. Because who needs speed in a race, right?
+Car {{.Number}}: Now entering limp mode, because apparently, the race wasn't challenging enough already.
+Limp mode for {{.Number}} has it moving like it's trying not to spill a cup of tea. Very British, very slow.
+The {{.Color}} {{.Brand}} in limp mode is redefining 'energy saving'. Might as well turn off the engine and coast.
+{{.TeamName}}'s car in limp mode is like a teen waking up early. It's happening, but very, very reluctantly.
+Who activated 'chill mode' on car {{.Number}}? Oh, it's just limp mode. Had us fooled there for a second!
+Car {{.Number}} in limp mode is proof that patience is a virtue. Especially when you have no choice but to be patient!

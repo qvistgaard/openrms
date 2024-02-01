@@ -90,7 +90,7 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 		carState.average = carState.average.reportUsage(carState.consumed)
 
 		f := carState.fuel.Get() / carState.average.average
-		if f < 5 {
+		if f < 5 && p.config.Plugin.Fuel.Commentary {
 			line, err := utils.RandomLine(announcements, "commentary/out_of_fuel.txt")
 			if err == nil && !carState.announced {
 				template, _ := utils.ProcessTemplate(line, car.TemplateData())

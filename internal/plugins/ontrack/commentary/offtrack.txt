@@ -1,20 +1,20 @@
-Well, {{.DriverName}} in the {{.Color}} {{.Brand}} from {{.TeamName}}, car number {{.Number}}, has decided to take a brief tour of the countryside. Perhaps they're scouting for a picnic spot?
-It seems {{.DriverName}} of {{.TeamName}}, driving car number {{.Number}}, fancied a bit of off-road adventure in their {{.Color}} {{.Brand}}. Not quite the rally we expected!
-Oh dear, {{.DriverName}} in the {{.Color}} {{.Brand}}, car number {{.Number}} from {{.TeamName}}, appears to have mistaken the track for a dance floor and has stepped out of line.
-Car number {{.Number}}, the {{.Color}} {{.Brand}} of {{.TeamName}}, piloted by {{.DriverName}}, seems to be on a quest to find the end of the rainbow. Wrong sport, old chap!
-Looks like {{.DriverName}} from {{.TeamName}} in their {{.Color}} {{.Brand}}, car number {{.Number}}, is auditioning for a part in an off-road racing film. A bit too dramatic, I'd say!
-And {{.DriverName}} of {{.TeamName}}, driving the car number {{.Number}} {{.Color}} {{.Brand}}, just took a detour. Maybe they've spotted a lovely tea shop by the trackside?
-The {{.Color}} {{.Brand}} of {{.TeamName}}, car number {{.Number}}, with {{.DriverName}} at the wheel, is exploring the track limits. Quite the explorer, aren't they?
-Looks like {{.DriverName}} in car number {{.Number}} from {{.TeamName}} is trying a new track layout in their {{.Color}} {{.Brand}}. Innovation is key, but perhaps not here.
-Car number {{.Number}}, the {{.Color}} {{.Brand}} driven by {{.DriverName}} for {{.TeamName}}, is taking a scenic route. A bit of sightseeing, perhaps?
-{{.DriverName}} in the car number {{.Number}} {{.Color}} {{.Brand}} from {{.TeamName}} has opted for an unconventional path. Maybe they're just avoiding traffic?
-{{.DriverName}} of {{.TeamName}}, driving the {{.Color}} {{.Brand}}, car number {{.Number}}, has gone off the track. A quick recovery is needed.
-The {{.Color}} {{.Brand}} from {{.TeamName}}, driven by {{.DriverName}}, car number {{.Number}}, has left the track. They must regain control quickly.
-Car number {{.Number}}, the {{.Color}} {{.Brand}} of {{.TeamName}}, with {{.DriverName}} behind the wheel, has skidded off course. They need to focus on rejoining the race.
-We've seen {{.DriverName}} in the {{.Color}} {{.Brand}}, car number {{.Number}} for {{.TeamName}}, veer off the track. It's crucial to get back on course.
-{{.TeamName}}'s {{.DriverName}}, driving car number {{.Number}}, the {{.Color}} {{.Brand}}, has made an off-track excursion. A swift return to the track is essential.
-The {{.Color}} {{.Brand}}, car number {{.Number}}, driven by {{.DriverName}} for {{.TeamName}}, is now off the track. They need to recover quickly to stay in the race.
-Car number {{.Number}}, a {{.Color}} {{.Brand}} driven by {{.DriverName}} for {{.TeamName}}, has strayed from the track. A quick response is critical.
-{{.DriverName}}, in car number {{.Number}} for {{.TeamName}}, has lost track position in their {{.Color}} {{.Brand}}. They must focus on regaining their position.
-An off-track moment for {{.DriverName}} of {{.TeamName}} in the {{.Color}} {{.Brand}}, car number {{.Number}}. They need to regain control and rejoin the race.
-The {{.TeamName}}'s {{.Color}} {{.Brand}}, driven by {{.DriverName}}, car number {{.Number}}, has drifted off the track. It's vital to get back into the race as soon as possible.
+Car {{.Number}} has gone off for a bit of a wander. Must've seen something shiny off-track!
+The {{.Color}} {{.Brand}} speedster from {{.TeamName}} is off the track – taking the road less traveled, it seems.
+{{.TeamName}}'s pride, car {{.Number}}, just took a detour. Perhaps seeking a shortcut?
+Oops, looks like the {{.Color}} {{.Brand}} fancied a bit of off-roading. Rally aspirations, maybe?
+Car {{.Number}} is testing the track limits – and beyond. A bit too curious, if you ask me!
+The {{.Color}} {{.Brand}} contender is making friends with the barriers. A close encounter of the track kind!
+{{.TeamName}}'s {{.Number}} is playing hide and seek. Found you, off the track!
+And the {{.Color}} {{.Brand}} decides it's time to explore the wilderness. Adventure racing, anyone?
+Car {{.Number}}'s taking a brief excursion. Maybe it's on a quest for trackside snacks?
+The driver of {{.Number}} thinks they're in a rally. Surprise, this is circuit racing!
+Looks like {{.TeamName}}'s car wanted a closer look at the audience. Shy, but sociable!
+Car {{.Number}} is off the beaten path. Literally. Someone remind them where the track is!
+The {{.Color}} {{.Brand}} machine has left the circuit. Maybe it's chasing after a lost race marshal?
+Oops, {{.Number}} took a wrong turn at Albuquerque. This isn't Bugs Bunny's race!
+And {{.TeamName}}'s racer is off to explore the outer limits. Bold move, or just lost?
+{{.Color}} {{.Brand}} is doing a bit of landscaping. The track's that way, champ!
+Car {{.Number}} is off-track. Maybe it's looking for a quiet spot to take a break?
+The {{.Color}} {{.Brand}} just decided to go rogue. Off-track adventures are not recommended!
+Looks like car {{.Number}} is auditioning for a role in 'The Great Escape.' Off the track and into drama!
+{{.TeamName}}'s vehicle decided to take the scenic route. It's a race, not a tour!

@@ -173,14 +173,18 @@ plugins:
       apiKey: ""
   fuel:
     enabled: false
+    commentary: true
+
   race:
     enabled: true
   telemetry:
     enabled: true
   limb-mode:
     enabled: false
+    commentary: true
   pit:
     enabled: true
+    commentary: true
   ontrack:
     enabled: true
     flag: yellow # yellow, green or red

@@ -20,7 +20,8 @@ type Config struct {
 	}
 	Plugin struct {
 		LimbMode struct {
-			Enabled bool `mapstructure:"enabled"`
+			Enabled    bool `mapstructure:"enabled"`
+			Commentary bool `mapstructure:"commentary" default:"true"`
 		} `mapstructure:"limb-mode"`
 	} `mapstructure:"plugins"`
 }

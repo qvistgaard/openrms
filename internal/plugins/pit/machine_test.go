@@ -45,7 +45,7 @@ func (n NoopHandler) Current() observable.Observable[uint8] {
 }
 
 func Test_machine(t *testing.T) {
-	stateMachine := machine(&NoopHandler{})
+	stateMachine := machine(&NoopHandler{}, nil, nil, nil)
 
 	print(stateMachine.ToGraph())
 	var err error

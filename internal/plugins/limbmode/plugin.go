@@ -50,7 +50,7 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 
 	p.state[carId] = observable.Create(false).Filter(observable.DistinctBooleanChange())
 	p.state[carId].RegisterObserver(func(b bool) {
-		if b {
+		if b && p.config.Plugin.LimbMode.Commentary {
 			line, err := utils.RandomLine(announcements, "commentary/limbmode.txt")
 			if err == nil {
 				template, _ := utils.ProcessTemplate(line, car.TemplateData())
