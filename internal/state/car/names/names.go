@@ -2,6 +2,7 @@ package names
 
 import (
 	"embed"
+	"github.com/qvistgaard/openrms/internal/types"
 	"github.com/qvistgaard/openrms/internal/utils"
 	log "github.com/sirupsen/logrus"
 )
@@ -11,8 +12,8 @@ import (
 //go:embed manufactures.txt
 var names embed.FS
 
-func RandomDriver() string {
-	name, err := utils.RandomLine(names, "drivers.txt")
+func RandomDriver(id types.CarId) string {
+	name, err := utils.GetLine(names, "drivers.txt", int(id))
 	if err != nil {
 		log.Error(err)
 		return err.Error()
@@ -20,8 +21,8 @@ func RandomDriver() string {
 	return name
 }
 
-func RandomTeam() string {
-	name, err := utils.RandomLine(names, "teams.txt")
+func RandomTeam(id types.CarId) string {
+	name, err := utils.GetLine(names, "teams.txt", int(id))
 	if err != nil {
 		log.Error(err)
 		return err.Error()
@@ -38,8 +39,8 @@ func RandomColor() string {
 	return name
 }
 
-func RandomManufacture() string {
-	name, err := utils.RandomLine(names, "manufactures.txt")
+func RandomManufacture(id types.CarId) string {
+	name, err := utils.GetLine(names, "manufactures.txt", int(id))
 	if err != nil {
 		log.Error(err)
 		return err.Error()

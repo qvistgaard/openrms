@@ -11,6 +11,7 @@ import (
 )
 
 //go:embed commentary/start.txt
+//go:embed commentary/finished.txt
 var announcements embed.FS
 
 type Plugin struct {
@@ -44,11 +45,23 @@ func (p *Plugin) initObservableProperties() {
 func (p *Plugin) registerObservers() {
 	p.race.Duration().RegisterObserver(func(duration time.Duration) {
 		if p.Duration != nil && *p.Duration <= duration && p.status == race.Running {
+			line, err := utils.RandomLine(announcements, "commentary/finished.txt")
+			if err != nil {
+				log.Error(err)
+			} else {
+				p.commentary.Announce(line)
+			}
 			p.race.Stop()
 		}
 	})
 	p.race.Laps().RegisterObserver(func(laps uint32) {
 		if p.Laps != nil && *p.Laps <= laps && p.status == race.Running {
+			line, err := utils.RandomLine(announcements, "commentary/finished.txt")
+			if err != nil {
+				log.Error(err)
+			} else {
+				p.commentary.Announce(line)
+			}
 			p.race.Stop()
 		}
 	})

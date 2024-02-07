@@ -58,16 +58,16 @@ func (c *InMemory) Get(id types.CarId) (*car.Car, bool, bool) {
 
 		if c.config[id].Drivers == nil {
 			c.config[id].Drivers = &types.Drivers{
-				{Name: names.RandomDriver()},
+				{Name: names.RandomDriver(id)},
 			}
 		}
 		if c.config[id].Team == nil {
-			team := names.RandomTeam()
+			team := names.RandomTeam(id)
 			c.config[id].Team = &team
 		}
 
 		if c.config[id].Manufacturer == nil {
-			manufacturer := names.RandomManufacture()
+			manufacturer := names.RandomManufacture(id)
 			c.config[id].Manufacturer = &manufacturer
 		}
 		if c.config[id].Color == nil {
