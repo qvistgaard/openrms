@@ -1,7 +1,7 @@
-*red
-*blue
-*green
-*orange
+red
+blue
+green
+orange
 black
 white
 yellow
