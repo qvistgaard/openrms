@@ -4,6 +4,7 @@ import (
 	"github.com/qvistgaard/openrms/internal/drivers"
 	"github.com/qvistgaard/openrms/internal/drivers/devices/oxigen"
 	log "github.com/sirupsen/logrus"
+	"time"
 )
 
 func main() {
@@ -24,5 +25,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	time.Sleep(10 * time.Second)
 
 }
