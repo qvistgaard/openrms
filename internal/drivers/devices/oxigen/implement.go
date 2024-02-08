@@ -5,11 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"github.com/hashicorp/go-version"
-	"github.com/jacobsa/go-serial/serial"
 	"github.com/qvistgaard/openrms/internal/drivers"
 	"github.com/qvistgaard/openrms/internal/drivers/events"
 	"github.com/qvistgaard/openrms/internal/types"
 	log "github.com/sirupsen/logrus"
+	"github.com/tarm/goserial"
 	"go.bug.st/serial/enumerator"
 	"io"
 	"sync"
@@ -18,6 +18,7 @@ import (
 
 type Oxigen struct {
 	waitGroup sync.WaitGroup
+	ioSync    sync.WaitGroup
 
 	serial     io.ReadWriteCloser
 	version    string
@@ -60,17 +61,10 @@ func CreateUSBConnection(device *string) (io.ReadWriteCloser, error) {
 		oxigenPort = *device
 	}
 
-	options := serial.OpenOptions{
-		PortName:              oxigenPort,
-		BaudRate:              921600,
-		DataBits:              8,
-		StopBits:              1,
-		InterCharacterTimeout: 5,
-		MinimumReadSize:       1,
-	}
+	options := &serial.Config{Name: *device, Baud: 921600, ReadTimeout: time.Millisecond * 20}
 
 	// Open the port.
-	port, err := serial.Open(options)
+	port, err := serial.OpenPort(options)
 	if err != nil {
 		return nil, err
 	}
@@ -152,22 +146,27 @@ func (o *Oxigen) dataExchangeLoop(c chan<- drivers.Event) {
 	defer o.waitGroup.Done()
 
 	timer := []byte{0x00, 0x00, 0x00}
+	t := []byte{0x00, 0x00, 0x00}
 
 	for o.running {
-		err := o.tx(timer)
-		if err != nil {
-			log.Error(err)
-		}
+		bytesReceived := 0
 
-		t, err := o.rx(c)
-		if err != nil {
-			log.Error(err)
-		}
-		if t != nil {
-			timer = t
+		for bytesReceived == 0 {
+			err := o.tx(timer)
+			if err != nil {
+				log.Error(err)
+			}
+
+			bytesReceived, t, err = o.rx(c)
+			if err != nil {
+				bytesReceived = 0
+				log.Error(err)
+			}
+			if t != nil {
+				copy(timer, t)
+			}
 		}
 	}
-
 }
 
 func (o *Oxigen) cleanup() {
@@ -178,22 +177,28 @@ func (o *Oxigen) cleanup() {
 	log.Error(err)
 }
 
-func (o *Oxigen) rx(c chan<- drivers.Event) ([]byte, error) {
+func (o *Oxigen) rx(c chan<- drivers.Event) (int, []byte, error) {
 	buffer := make([]byte, 13)
 
 	r := io.LimitReader(o.serial, 13)
-	n, err := r.Read(buffer)
+	var err error
 
+	n, err := r.Read(buffer)
 	if err == nil {
 		if n == 13 {
 			log.WithField("message", fmt.Sprintf("%x", buffer)).
 				WithField("bytes", n).
 				Trace("received message from oxygen dongle")
 			o.event(c, buffer)
-			return buffer[9:12], nil
+			return n, buffer[9:12], nil
+		} else {
+			log.WithField("message", fmt.Sprintf("%x", buffer)).
+				WithField("bytes", n).
+				Trace("message with incorrect byte count received from oxygen dongle")
+			return n, nil, errors.New("message with incorrect byte count received from oxygen dongle")
 		}
 	}
-	return nil, err
+	return n, nil, err
 }
 
 func (o *Oxigen) sendCarCommand(car uint8, code byte, value uint8) {
@@ -202,6 +207,8 @@ func (o *Oxigen) sendCarCommand(car uint8, code byte, value uint8) {
 }
 
 func (o *Oxigen) tx(timer []byte) error {
+	log.Debug("enter tx")
+
 	select {
 	case cmd := <-o.commands:
 		if float32(len(o.commands)) > (float32(o.bufferSize) * 0.9) {
@@ -240,12 +247,13 @@ func (o *Oxigen) tx(timer []byte) error {
 		if err != nil {
 			return err
 		}
-		//time.Sleep(300 * time.Millisecond)
+		// time.Sleep(400 * time.Millisecond)
 	case <-time.After(5000 * time.Millisecond):
 		if !o.running {
 			return nil
 		}
 	}
+	log.Trace("exit tx")
 	return nil
 }
 
@@ -255,8 +263,10 @@ func (o *Oxigen) heartbeat() {
 
 	for o.running {
 		select {
-		case <-time.After(100 * time.Millisecond):
+		case <-time.After(20 * time.Millisecond):
+			// o.ioSync.Wait()
 			if len(o.commands) == 0 {
+				log.Trace("oxigen: sending keep-alive")
 				o.commands <- newEmptyCommand()
 				log.Trace("oxigen: sent keep-alive")
 			}

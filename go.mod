@@ -22,6 +22,7 @@ require (
 	github.com/qmuntal/stateless v1.6.8
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.8.4
+	github.com/tarm/goserial v0.0.0-20151007205400-b3440c3c6355
 	go.bug.st/serial v1.6.1
 	gopkg.in/yaml.v3 v3.0.1
 )
