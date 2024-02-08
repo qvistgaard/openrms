@@ -1,6 +1,7 @@
 package main
 
 import (
+	"embed"
 	"flag"
 	"github.com/madflojo/tasks"
 	"github.com/pkg/browser"
@@ -13,6 +14,9 @@ import (
 	"os"
 	"sync"
 )
+
+//go:embed files/config.yaml
+var announcements embed.FS
 
 func main() {
 	var err error

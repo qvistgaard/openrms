@@ -1,12 +1,12 @@
 # Configure logging level and files
 logging:
   # Details of logging output. Possible values are error, warn, info, debug or trace
-  level: trace
+  level: info
   # Where should openrms write the log file
   file: openrmsd.log
 
 implement:
-  plugin: generator
+  plugin: oxigen
 
   oxigen:
     # port: COM7 # Leave blank for auto detection
@@ -41,8 +41,6 @@ track:
 
 # Car behaviour
 car:
-  plugin: config
-
   # Default car behavior
   # All default values can be mapped to individual
   # cars in the car specific configuration section
@@ -164,7 +162,7 @@ car:
 
 plugins:
   commentary:
-    enabled: true
+    enabled: false
     engine: elevenlabs
     playht:
       apiKey: ""
@@ -172,7 +170,7 @@ plugins:
     elevenlabs:
       apiKey: ""
   fuel:
-    enabled: false
+    enabled: true
     commentary: true
 
   race:
@@ -180,7 +178,7 @@ plugins:
   telemetry:
     enabled: true
   limb-mode:
-    enabled: false
+    enabled: true
     commentary: true
   pit:
     enabled: true
