@@ -1,10 +1,31 @@
 package oxigen
 
 import (
+	"encoding/hex"
+	"fmt"
+	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
 )
+
+func Test(t *testing.T) {
+	start := time.Now().Add(-10 * time.Hour)
+
+	counter := packRaceCounter(start)
+	log.Info(start)
+	log.Info(time.Now())
+
+	log.WithFields(map[string]interface{}{
+		"sm":  fmt.Sprintf("%x", counter[len(counter)-3:]),
+		"x":   fmt.Sprintf("%x", counter),
+		"hex": fmt.Sprintf("%s", hex.Dump(counter)),
+	}).Info("sending message to oxygen dongle")
+
+	raceCounter := unpackRaceCounter([3]byte{counter[0], counter[1], counter[2]})
+	log.Info(raceCounter)
+
+}
 
 /*
 	func TestTestSendSingleCommandOnNoCarStateChanges(t *testing.T) {

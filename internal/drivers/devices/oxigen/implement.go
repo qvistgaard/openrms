@@ -1,6 +1,7 @@
 package oxigen
 
 import (
+	"encoding/binary"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -12,13 +13,13 @@ import (
 	"github.com/tarm/goserial"
 	"go.bug.st/serial/enumerator"
 	"io"
+	"strings"
 	"sync"
 	"time"
 )
 
 type Oxigen struct {
 	waitGroup sync.WaitGroup
-	ioSync    sync.WaitGroup
 
 	serial     io.ReadWriteCloser
 	version    string
@@ -29,6 +30,7 @@ type Oxigen struct {
 	track      *Track
 	race       *Race
 	running    bool
+	start      time.Time
 }
 
 func CreateUSBConnection(device *string) (io.ReadWriteCloser, error) {
@@ -44,9 +46,11 @@ func CreateUSBConnection(device *string) (io.ReadWriteCloser, error) {
 		for _, port := range ports {
 			log.WithField("port", port.Name).
 				WithField("usb", port.IsUSB).
+				WithField("vendor", port.VID).
+				WithField("product", port.PID).
 				WithField("name", port.Product).
 				Debug("found COM port")
-			if port.IsUSB && port.VID == "1FEE" && port.PID == "0002" {
+			if port.IsUSB && strings.ToUpper(port.VID) == "1FEE" && port.PID == "0002" {
 				oxigenPort = port.Name
 				log.WithField("port", oxigenPort).
 					WithField("vendor", port.VID).
@@ -60,8 +64,9 @@ func CreateUSBConnection(device *string) (io.ReadWriteCloser, error) {
 	} else {
 		oxigenPort = *device
 	}
+	log.WithField("port", oxigenPort).Info("Using oxigenport")
 
-	options := &serial.Config{Name: *device, Baud: 921600, ReadTimeout: time.Millisecond * 20}
+	options := &serial.Config{Name: oxigenPort, Baud: 115200, ReadTimeout: time.Millisecond * 20}
 
 	// Open the port.
 	port, err := serial.OpenPort(options)
@@ -80,6 +85,7 @@ func CreateImplement(serial io.ReadWriteCloser) (*Oxigen, error) {
 		cars:       make(map[types.CarId]Car),
 		track:      NewTrack(),
 		race:       NewRace(),
+		start:      time.Now(),
 	}
 
 	versionRequest := []byte{0x06, 0x06, 0x06, 0x06, 0x00, 0x00, 0x00} // Get dongle version bytecode
@@ -125,8 +131,8 @@ func (o *Oxigen) Race() drivers.Race {
 
 func (o *Oxigen) Start(c chan<- drivers.Event) error {
 	o.running = true
+	o.start = time.Now()
 	go o.dataExchangeLoop(c)
-	go o.heartbeat()
 	return nil
 }
 
@@ -145,26 +151,21 @@ func (o *Oxigen) dataExchangeLoop(c chan<- drivers.Event) {
 	defer o.cleanup()
 	defer o.waitGroup.Done()
 
-	timer := []byte{0x00, 0x00, 0x00}
-	t := []byte{0x00, 0x00, 0x00}
-
 	for o.running {
 		bytesReceived := 0
 
 		for bytesReceived == 0 {
-			err := o.tx(timer)
+			err := o.tx()
 			if err != nil {
 				log.Error(err)
 			}
 
-			bytesReceived, t, err = o.rx(c)
+			bytesReceived, err = o.rx(c)
 			if err != nil {
 				bytesReceived = 0
 				log.Error(err)
 			}
-			if t != nil {
-				copy(timer, t)
-			}
+
 		}
 	}
 }
@@ -177,7 +178,7 @@ func (o *Oxigen) cleanup() {
 	log.Error(err)
 }
 
-func (o *Oxigen) rx(c chan<- drivers.Event) (int, []byte, error) {
+func (o *Oxigen) rx(c chan<- drivers.Event) (int, error) {
 	buffer := make([]byte, 13)
 
 	r := io.LimitReader(o.serial, 13)
@@ -190,15 +191,15 @@ func (o *Oxigen) rx(c chan<- drivers.Event) (int, []byte, error) {
 				WithField("bytes", n).
 				Trace("received message from oxygen dongle")
 			o.event(c, buffer)
-			return n, buffer[9:12], nil
-		} else {
+			return n, nil
+		} else if n > 0 {
 			log.WithField("message", fmt.Sprintf("%x", buffer)).
 				WithField("bytes", n).
 				Trace("message with incorrect byte count received from oxygen dongle")
-			return n, nil, errors.New("message with incorrect byte count received from oxygen dongle")
+			return n, errors.New("message with incorrect byte count received from oxygen dongle")
 		}
 	}
-	return n, nil, err
+	return n, err
 }
 
 func (o *Oxigen) sendCarCommand(car uint8, code byte, value uint8) {
@@ -206,9 +207,7 @@ func (o *Oxigen) sendCarCommand(car uint8, code byte, value uint8) {
 	o.commands <- command
 }
 
-func (o *Oxigen) tx(timer []byte) error {
-	log.Debug("enter tx")
-
+func (o *Oxigen) tx() error {
 	select {
 	case cmd := <-o.commands:
 		if float32(len(o.commands)) > (float32(o.bufferSize) * 0.9) {
@@ -224,7 +223,7 @@ func (o *Oxigen) tx(timer []byte) error {
 
 		}
 
-		b := o.packCommand(cmd, timer)
+		b := o.packCommand(cmd, packRaceCounter(o.start))
 		if cmd.id != nil {
 			log.WithFields(map[string]interface{}{
 				"message": fmt.Sprintf("%x", b),
@@ -247,31 +246,18 @@ func (o *Oxigen) tx(timer []byte) error {
 		if err != nil {
 			return err
 		}
+	case <-time.After(20 * time.Millisecond):
+		if len(o.commands) == 0 {
+			log.Trace("oxigen: sending keep-alive")
+			o.commands <- newEmptyCommand()
+		}
 		// time.Sleep(400 * time.Millisecond)
 	case <-time.After(5000 * time.Millisecond):
 		if !o.running {
 			return nil
 		}
 	}
-	log.Trace("exit tx")
 	return nil
-}
-
-func (o *Oxigen) heartbeat() {
-	o.waitGroup.Add(1)
-	defer o.waitGroup.Done()
-
-	for o.running {
-		select {
-		case <-time.After(20 * time.Millisecond):
-			// o.ioSync.Wait()
-			if len(o.commands) == 0 {
-				log.Trace("oxigen: sending keep-alive")
-				o.commands <- newEmptyCommand()
-				log.Trace("oxigen: sent keep-alive")
-			}
-		}
-	}
 }
 
 func (o *Oxigen) event(c chan<- drivers.Event, b []byte) {
@@ -347,12 +333,32 @@ func (o *Oxigen) packCommand(c Command, timer []byte) []byte {
 }
 
 func unpackLapTime(high byte, low byte) time.Duration {
-	lt := float64((uint(high)*256)+uint(low)) / 99.25
+	be := binary.BigEndian.Uint64([]byte{0, 0, 0, 0, 0, 0, high, low})
+	lt := float64(be) / 99.25
 	ltd := time.Duration(lt * float64(time.Second))
 	return ltd
 }
 
 func unpackRaceTime(b [4]byte, lag byte) time.Duration {
-	rt := (uint(b[0]) * 16777216) + (uint(b[1]) * 65536) + (uint(b[2]) * 256) + uint(b[3]) - uint(lag)
+	be := make([]byte, 8)
+	copy(be[4:], b[:])
+
+	rt := binary.BigEndian.Uint64(be) - uint64(lag)
+	// rt := (uint(b[0]) * 16777216) + (uint(b[1]) * 65536) + (uint(b[2]) * 256) + uint(b[3]) - uint(lag)
 	return time.Duration(rt*10) * time.Millisecond
+}
+
+func packRaceCounter(start time.Time) []byte {
+	centiSeconds := time.Now().Sub(start).Milliseconds() / 10
+	be := make([]byte, 8)
+	binary.BigEndian.PutUint64(be, uint64(centiSeconds))
+	return be[len(be)-3:]
+}
+
+func unpackRaceCounter(b [3]byte) time.Duration {
+	be := make([]byte, 8)
+	copy(be[5:], b[:])
+
+	u := binary.BigEndian.Uint64(be)
+	return time.Duration(u*10) * time.Millisecond
 }
