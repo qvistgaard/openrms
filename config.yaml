@@ -6,7 +6,7 @@ logging:
   file: openrmsd.log
 
 implement:
-  plugin: oxigen
+  plugin: generator
 
   oxigen:
     # port: COM7 # Leave blank for auto detection
@@ -195,6 +195,7 @@ plugins:
       pause: true
   confirmation:
     enabled: true
+    commentary: true
 
 
 

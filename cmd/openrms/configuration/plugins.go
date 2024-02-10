@@ -75,13 +75,13 @@ func CommentaryPlugin(conf Config) (*commentary.Plugin, error) {
 	return commentary.New(c)
 }
 
-func ConfirmationPlugin(conf Config) (*confirmation.Plugin, error) {
+func ConfirmationPlugin(conf Config, commentary *commentary.Plugin) (*confirmation.Plugin, error) {
 	c := &confirmation.Config{}
 	err := mapstructure.Decode(conf, c)
 	if err != nil {
 		return nil, errors.WithMessage(err, "failed to read fuel plugin configuration")
 	}
-	return confirmation.New(c)
+	return confirmation.New(c, commentary)
 }
 
 func PitPlugin(conf Config, comment *commentary.Plugin, stops ...pit.SequencePlugin) (*pit.Plugin, error) {

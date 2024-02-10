@@ -6,6 +6,7 @@ import (
 	"github.com/qvistgaard/openrms/internal/plugins/commentary"
 	"github.com/qvistgaard/openrms/internal/plugins/flags"
 	"github.com/qvistgaard/openrms/internal/state/car"
+	"github.com/qvistgaard/openrms/internal/state/race"
 	"github.com/qvistgaard/openrms/internal/types"
 	"github.com/qvistgaard/openrms/internal/utils"
 	log "github.com/sirupsen/logrus"
@@ -22,6 +23,13 @@ type Plugin struct {
 	flagId           int
 	flag             flags.Flag
 	commentaryPlugin *commentary.Plugin
+	raceStatus       race.Status
+}
+
+func (p *Plugin) ConfigureRace(r *race.Race) {
+	r.Status().RegisterObserver(func(status race.Status) {
+		p.raceStatus = status
+	})
 }
 
 type state struct {
@@ -76,7 +84,7 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 				select {
 				case <-time.After(500 * time.Millisecond):
 					p.updateState(car.Id(), !b, s.inPit, s.enabled)
-					if b && p.config.Plugin.OnTrack.Commentary {
+					if b && p.config.Plugin.OnTrack.Commentary && p.raceStatus == race.Running {
 						line, _ := utils.RandomLine(announcements, "commentary/offtrack.txt")
 						template, err := utils.ProcessTemplate(line, car.TemplateData())
 						if err == nil {

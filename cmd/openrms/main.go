@@ -69,7 +69,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	confirmationPlugin, err := configuration.ConfirmationPlugin(cfg)
+	confirmationPlugin, err := configuration.ConfirmationPlugin(cfg, commentaryPlugin)
 	if err != nil {
 		log.Fatal(err)
 	}
