@@ -84,7 +84,7 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 				select {
 				case <-time.After(500 * time.Millisecond):
 					p.updateState(car.Id(), !b, s.inPit, s.enabled)
-					if b && p.config.Plugin.OnTrack.Commentary && p.raceStatus == race.Running {
+					if b && p.config.Plugin.OnTrack.Commentary && p.raceStatus.IsRaceActive() {
 						line, _ := utils.RandomLine(announcements, "commentary/offtrack.txt")
 						template, err := utils.ProcessTemplate(line, car.TemplateData())
 						if err == nil {

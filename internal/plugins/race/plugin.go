@@ -12,7 +12,7 @@ import (
 
 //go:embed commentary/start.txt
 //go:embed commentary/finished.txt
-//go:embed sounds/race-start-beeps-125125.mp3
+//go:embed sounds/beeps.mp3
 var announcements embed.FS
 
 type Plugin struct {
@@ -93,7 +93,7 @@ func (p *Plugin) registerObservers() {
 
 	p.confirmation.Confirmed().RegisterObserver(func(b bool) {
 		if b && (p.status == race.Stopped || p.status == race.Paused) {
-			open, _ := announcements.Open("sounds/race-start-beeps-125125.mp3")
+			open, _ := announcements.Open("sounds/beeps.mp3")
 			utils.PlayAudioFile(open, func() {
 				p.confirmed = true
 				p.race.Start()

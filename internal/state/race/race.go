@@ -9,6 +9,10 @@ import (
 
 type Status int
 
+func (s Status) IsRaceActive() bool {
+	return s == Paused || s == Running || s == Flagged
+}
+
 const (
 	Stopped Status = iota
 	Paused
