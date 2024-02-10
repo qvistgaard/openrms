@@ -12,6 +12,7 @@ import (
 
 //go:embed commentary/start.txt
 //go:embed commentary/finished.txt
+//go:embed commentary/ready.txt
 var announcements embed.FS
 
 type Plugin struct {
@@ -71,6 +72,14 @@ func (p *Plugin) registerObservers() {
 				p.confirmed = false
 				return true
 			}
+
+			line, err := utils.RandomLine(announcements, "commentary/ready.txt")
+			if err != nil {
+				log.Error(err)
+			} else {
+				p.commentary.Announce(line)
+			}
+
 			p.confirmation.Activate()
 			return false
 		}
@@ -79,6 +88,13 @@ func (p *Plugin) registerObservers() {
 				p.confirmed = false
 				return true
 			}
+			line, err := utils.RandomLine(announcements, "commentary/ready.txt")
+			if err != nil {
+				log.Error(err)
+			} else {
+				p.commentary.Announce(line)
+			}
+
 			p.confirmation.Activate()
 			return false
 		}

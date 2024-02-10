@@ -65,8 +65,12 @@ func (e *Engine) getVoice(name string) (*Voice, error) {
 				"xi-api-key": e.apiKey,
 			},
 		})
+
 		if err != nil {
 			return nil, errors.WithMessage(err, "Unable to load voices")
+		}
+		if !resp.Ok {
+			return nil, errors.New("Failed to load voices: " + resp.String())
 		}
 
 		err = resp.DownloadToFile(filename)
@@ -118,6 +122,10 @@ func (e *Engine) downloadSpeak(speak string) (*os.File, error) {
 				},
 			},
 		})
+
+		if !resp.Ok {
+			return nil, errors.New("Failed to load speak: " + resp.String())
+		}
 
 		err = resp.DownloadToFile(filename)
 
