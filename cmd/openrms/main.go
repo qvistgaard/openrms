@@ -1,7 +1,6 @@
 package main
 
 import (
-	"embed"
 	"flag"
 	"github.com/madflojo/tasks"
 	"github.com/pkg/browser"
@@ -15,19 +14,10 @@ import (
 	"sync"
 )
 
-//go:embed files/config.yaml
-var announcements embed.FS
-
 func main() {
 	var err error
 	var wg sync.WaitGroup
 
-	/*	wg.Add(1)
-		go func() {
-			defer wg.Done()
-			fn()
-		}()
-	*/
 	flagConfig := flag.String("config", "config.yaml", "OpenRMS Config file")
 	flagLogfile := flag.String("log-file", "openrms.log", "OpenRMS log file")
 	flagLoglevel := flag.String("log-level", "debug", "Log level")

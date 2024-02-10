@@ -9,7 +9,7 @@ implement:
   plugin: oxigen
 
   oxigen:
-    # port: COM7 # Leave blank for auto detection
+  # port: COM7 # Leave blank for auto detection
 
   generator:
     cars: 5
@@ -107,57 +107,12 @@ car:
 
 
   cars:
-    - id: 1
-      color: blue
-
-    - id: 2
-      number: 71
-      team: Martini Racing
-      manufacturer: Aston Martin
-      color: silver
-
     - id: 3
       number: 42
       team: Strakka Racing
       manufacturer: Mercedes A.M.G
       color: black
-      drivers:
-        - name: John Doe
-    - id: 4
-      color: white
-    - id: 5
-      color: yellow
-
-    - id: 6
-      number: 57
-      team: Rennsport
-      manufacturer: Porsche
-      color: orange
-      drivers:
-        - name: John Doe
-
-    - id: 7
-      max-speed: 30
-    - id: 8
       max-speed: 100
-      pit-lane:
-        max-speed: 28
-
-    - id: 9
-      max-speed: 100
-      team: Race Taxi
-      number: 9
-      manufacturer: Mercedes A.M.G
-      color: yellow
-      pit-lane:
-        max-speed: 28
-  #  - id: 1
-  #    max-speed: 100
-  #    fuel: 100
-  #    limb-mode:
-  #      max-speed: 100
-  #  - id: 2
-  #    max-speed: 100
 
 
 plugins:
@@ -168,7 +123,7 @@ plugins:
       apiKey: ""
       userId: ""
     elevenlabs:
-      apiKey: ""
+      apiKey: "c6a3bbdf0d18468757533e7bd1cf4351"
   fuel:
     enabled: true
     commentary: true

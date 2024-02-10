@@ -25,10 +25,10 @@ type Plugin struct {
 }
 
 type state struct {
-	ontrack           bool
-	enabled           bool
-	inPit             bool
-	ontrackTransition bool
+	ontrack bool
+	enabled bool
+	inPit   bool
+	cancel  chan bool
 }
 
 func New(c *Config, f *flags.Plugin, commentaryPlugin *commentary.Plugin) (*Plugin, error) {
@@ -62,24 +62,20 @@ func New(c *Config, f *flags.Plugin, commentaryPlugin *commentary.Plugin) (*Plug
 
 func (p *Plugin) ConfigureCar(car *car.Car) {
 	p.state[car.Id()] = state{
-		ontrack:           true,
-		ontrackTransition: false,
-		inPit:             false,
-		enabled:           true,
+		ontrack: true,
+		cancel:  make(chan bool),
+		inPit:   false,
+		enabled: true,
 	}
 
 	car.Deslotted().RegisterObserver(func(b bool) {
 		s := p.state[car.Id()]
 
-		// TEST this
-		if s.ontrackTransition {
-			s.ontrackTransition = b
+		if b {
 			go func() {
-				time.Sleep(500 * time.Millisecond)
-				if s.ontrackTransition {
-
+				select {
+				case <-time.After(500 * time.Millisecond):
 					p.updateState(car.Id(), !b, s.inPit, s.enabled)
-
 					if b && p.config.Plugin.OnTrack.Commentary {
 						line, _ := utils.RandomLine(announcements, "commentary/offtrack.txt")
 						template, err := utils.ProcessTemplate(line, car.TemplateData())
@@ -87,8 +83,13 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 							p.commentaryPlugin.OptionalAnnouncement(template)
 						}
 					}
+				case <-s.cancel:
+					return
 				}
 			}()
+		} else {
+			s.cancel <- true
+			p.updateState(car.Id(), !b, s.inPit, s.enabled)
 		}
 	})
 
