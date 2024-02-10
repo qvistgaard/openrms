@@ -9,6 +9,7 @@ import (
 	"github.com/qvistgaard/openrms/internal/types"
 	"github.com/qvistgaard/openrms/internal/utils"
 	log "github.com/sirupsen/logrus"
+	"time"
 )
 
 //go:embed commentary/offtrack.txt
@@ -24,9 +25,10 @@ type Plugin struct {
 }
 
 type state struct {
-	ontrack bool
-	enabled bool
-	inPit   bool
+	ontrack           bool
+	enabled           bool
+	inPit             bool
+	ontrackTransition bool
 }
 
 func New(c *Config, f *flags.Plugin, commentaryPlugin *commentary.Plugin) (*Plugin, error) {
@@ -60,21 +62,33 @@ func New(c *Config, f *flags.Plugin, commentaryPlugin *commentary.Plugin) (*Plug
 
 func (p *Plugin) ConfigureCar(car *car.Car) {
 	p.state[car.Id()] = state{
-		ontrack: true,
-		inPit:   false,
-		enabled: true,
+		ontrack:           true,
+		ontrackTransition: false,
+		inPit:             false,
+		enabled:           true,
 	}
 
 	car.Deslotted().RegisterObserver(func(b bool) {
 		s := p.state[car.Id()]
-		p.updateState(car.Id(), !b, s.inPit, s.enabled)
 
-		if b && p.config.Plugin.OnTrack.Commentary {
-			line, _ := utils.RandomLine(announcements, "commentary/offtrack.txt")
-			template, err := utils.ProcessTemplate(line, car.TemplateData())
-			if err == nil {
-				p.commentaryPlugin.OptionalAnnouncement(template)
-			}
+		// TEST this
+		if s.ontrackTransition {
+			s.ontrackTransition = b
+			go func() {
+				time.Sleep(500 * time.Millisecond)
+				if s.ontrackTransition {
+
+					p.updateState(car.Id(), !b, s.inPit, s.enabled)
+
+					if b && p.config.Plugin.OnTrack.Commentary {
+						line, _ := utils.RandomLine(announcements, "commentary/offtrack.txt")
+						template, err := utils.ProcessTemplate(line, car.TemplateData())
+						if err == nil {
+							p.commentaryPlugin.OptionalAnnouncement(template)
+						}
+					}
+				}
+			}()
 		}
 	})
 
