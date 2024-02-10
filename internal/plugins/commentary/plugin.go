@@ -2,11 +2,11 @@ package commentary
 
 import (
 	"github.com/gopxl/beep"
-	"github.com/gopxl/beep/mp3"
 	"github.com/gopxl/beep/speaker"
 	"github.com/pkg/errors"
 	"github.com/qvistgaard/openrms/internal/plugins/commentary/engines/elevenlabs"
 	"github.com/qvistgaard/openrms/internal/plugins/commentary/engines/playht"
+	"github.com/qvistgaard/openrms/internal/utils"
 	log "github.com/sirupsen/logrus"
 	"sync"
 	"time"
@@ -94,17 +94,20 @@ func (p *Plugin) play(paragraph string) error {
 		return err
 	}
 
-	streamer, format, err := mp3.Decode(stream)
 	if err != nil {
 		defer p.playerRunning.Unlock()
 		return err
 	}
-	resampled := beep.Resample(4, format.SampleRate, p.sampleRate, streamer)
-	speaker.Play(beep.Seq(resampled, beep.Callback(func() {
+	utils.PlayAudioFile(stream, func() {
 		defer p.playerRunning.Unlock()
-		streamer.Close()
-	})))
-	return nil
+	})
+
+	/*	resampled := beep.Resample(4, format.SampleRate, p.sampleRate, streamer)
+		speaker.Play(beep.Seq(resampled, beep.Callback(func() {
+			defer p.playerRunning.Unlock()
+			streamer.Close()
+		})))
+	*/return nil
 }
 
 func (p *Plugin) Priority() int {

@@ -12,6 +12,7 @@ import (
 
 //go:embed commentary/start.txt
 //go:embed commentary/finished.txt
+//go:embed sounds/race-start-beeps-125125.mp3
 var announcements embed.FS
 
 type Plugin struct {
@@ -92,14 +93,19 @@ func (p *Plugin) registerObservers() {
 
 	p.confirmation.Confirmed().RegisterObserver(func(b bool) {
 		if b && (p.status == race.Stopped || p.status == race.Paused) {
-			p.confirmed = true
-			p.race.Start()
-			line, err := utils.RandomLine(announcements, "commentary/start.txt")
-			if err != nil {
-				log.Error(err)
-			} else {
-				p.commentary.Announce(line)
-			}
+			open, _ := announcements.Open("sounds/race-start-beeps-125125.mp3")
+			utils.PlayAudioFile(open, func() {
+				p.confirmed = true
+				p.race.Start()
+				time.Sleep(100 * time.Millisecond)
+				line, err := utils.RandomLine(announcements, "commentary/start.txt")
+				if err != nil {
+					log.Error(err)
+				} else {
+					p.commentary.Announce(line)
+				}
+
+			})
 		}
 	})
 }

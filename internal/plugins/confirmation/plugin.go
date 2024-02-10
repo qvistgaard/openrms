@@ -48,7 +48,7 @@ func New(c *Config, commentary *commentary.Plugin) (*Plugin, error) {
 		active:     observable.Create(false).Filter(observable.DistinctBooleanChange()),
 		confirmed:  observable.Create(false).Filter(observable.DistinctBooleanChange()),
 		status:     observable.Create(Status{}),
-		timeout:    time.Second * 5,
+		timeout:    time.Second * 4,
 		mode:       Timer,
 		enabled:    c.Plugin.Confirmation.Enabled,
 		commentary: commentary,
