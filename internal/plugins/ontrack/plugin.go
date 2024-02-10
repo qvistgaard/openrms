@@ -71,7 +71,6 @@ func New(c *Config, f *flags.Plugin, commentaryPlugin *commentary.Plugin) (*Plug
 func (p *Plugin) ConfigureCar(car *car.Car) {
 	p.state[car.Id()] = state{
 		ontrack: true,
-		cancel:  make(chan bool),
 		inPit:   false,
 		enabled: true,
 	}
@@ -81,6 +80,7 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 
 		if b {
 			go func() {
+				s.cancel = make(chan bool)
 				select {
 				case <-time.After(500 * time.Millisecond):
 					p.updateState(car.Id(), !b, s.inPit, s.enabled)
@@ -92,11 +92,15 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 						}
 					}
 				case <-s.cancel:
+					close(s.cancel)
+					s.cancel = nil
 					return
 				}
 			}()
 		} else {
-			s.cancel <- true
+			if s.cancel != nil {
+				s.cancel <- true
+			}
 			p.updateState(car.Id(), !b, s.inPit, s.enabled)
 		}
 	})

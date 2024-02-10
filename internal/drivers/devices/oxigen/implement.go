@@ -163,7 +163,7 @@ func (o *Oxigen) dataExchangeLoop(c chan<- drivers.Event) {
 			bytesReceived, err = o.rx(c)
 			if err != nil {
 				bytesReceived = 0
-				log.Error(err)
+				// log.Trace(err)
 			}
 
 		}
