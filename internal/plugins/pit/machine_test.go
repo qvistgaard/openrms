@@ -45,9 +45,14 @@ func (n NoopHandler) Current() observable.Observable[uint8] {
 }
 
 func Test_machine(t *testing.T) {
-	stateMachine := machine(&NoopHandler{}, nil, nil, nil)
 
-	print(stateMachine.ToGraph())
+	config := Config{}
+	config.Plugin.Pit.Enabled = true
+	config.Plugin.Pit.Commentary = false
+
+	stateMachine := machine(&NoopHandler{}, nil, &config, nil)
+
+	// print(stateMachine.ToGraph())
 	var err error
 
 	err = stateMachine.Fire(triggerCarEnteredPitLane)

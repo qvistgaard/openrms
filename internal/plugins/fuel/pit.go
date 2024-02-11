@@ -1,6 +1,7 @@
 package fuel
 
 import (
+	log "github.com/sirupsen/logrus"
 	"time"
 )
 
@@ -13,12 +14,16 @@ func NewSequence(carState *state) *Sequence {
 }
 
 func (s *Sequence) Start() error {
+	log.Info("Refuelling started.")
 	full := false
 	for !full {
+		time.Sleep(250)
 		s.carState.consumed, full = calculateRefuellingValue(s.carState.consumed, s.carState.config.FlowRate/4)
 		s.carState.fuel.Update()
-		time.Sleep(250)
+		log.WithField("fuel", s.carState.fuel.Get()).Info("Refuelling.")
+
 	}
+	log.Info("Refuelling completed.")
 	return nil
 }
 

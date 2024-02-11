@@ -58,6 +58,7 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 			}
 		}
 		car.MaxSpeed().Update()
+		car.MaxSpeed().Publish()
 	})
 
 	car.MaxSpeed().Modifier(func(u uint8) (uint8, bool) {
@@ -74,6 +75,7 @@ func (p *Plugin) ConfigureRace(r *race.Race) {
 		if status == race.Stopped {
 			for _, o := range p.state {
 				o.Set(false)
+				o.Publish()
 			}
 		}
 	})

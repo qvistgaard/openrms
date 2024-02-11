@@ -33,7 +33,8 @@ type Plugin struct {
 
 // state represents the fuel state of an individual car.
 type state struct {
-	enabled   bool
+	enabled bool
+	// consumed is current amount of fuel consumed.
 	consumed  float32
 	machine   *stateless.StateMachine
 	fuel      observable.Observable[float32]
