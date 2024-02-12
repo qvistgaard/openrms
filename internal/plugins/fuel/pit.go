@@ -17,13 +17,13 @@ func (s *Sequence) Start() error {
 	log.Info("Refuelling started.")
 	full := false
 	for !full {
-		time.Sleep(250)
+		time.Sleep(250 * time.Millisecond)
 		s.carState.consumed, full = calculateRefuellingValue(s.carState.consumed, s.carState.config.FlowRate/4)
 		s.carState.fuel.Update()
 		log.WithField("fuel", s.carState.fuel.Get()).
 			WithField("consumed", s.carState.consumed).
 			WithField("full", full).
-			Info("Refuelling.")
+			Trace("Refuelling.")
 
 	}
 	log.Info("Refuelling completed.")
