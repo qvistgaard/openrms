@@ -223,10 +223,47 @@ func limpModeObserver(carId types.CarId, p *limbmode.Plugin) func(f float32) {
 	}
 }
 
-// ConfigureRace configures the fuel plugin for a race.
-// It registers an observer for monitoring the race status.
+// ConfigureRace sets up race-related configurations for the plugin, particularly focusing on
+// race status observation. It registers an observer function to monitor changes in the race's status.
+//
+// Parameters:
+// - r: A pointer to a `race.Race` instance, representing the race to be configured with this plugin.
+//
+// This method leverages the race's observable status feature to keep the plugin informed about
+// the race's current state. Upon any change in race status, the registered observer function
+// (raceStatusObserver) is invoked, allowing the plugin to respond appropriately to events such as
+// the race stopping.
+//
+// Usage:
+// Intended to be called during the race setup phase, this method equips the plugin with the
+// ability to react dynamically to changes in the race's lifecycle, ensuring relevant states
+// within the plugin are reset or updated in response to race events.
 func (p *Plugin) ConfigureRace(r *race.Race) {
-	r.Status().RegisterObserver(func(status race.Status) {
+	r.Status().RegisterObserver(raceStatusObserver(p))
+}
+
+// raceStatusObserver creates and returns a closure that acts as an observer for race status changes.
+// This observer is responsible for updating the plugin's internal state based on the current status
+// of the race, particularly resetting consumed fuel states upon race completion.
+//
+// Parameters:
+// - p: A pointer to a `Plugin` instance, which holds the state to be updated by this observer.
+//
+// Returns:
+//   - A function that takes a race.Status and performs actions based on that status. Specifically,
+//     when the race status changes to `race.Stopped`, this function resets the consumed fuel values
+//     for all cars managed by the plugin and triggers an update to reflect these resets.
+//
+// The observer function directly manipulates the internal state of the plugin in response to
+// race lifecycle events, ensuring that the plugin accurately reflects the current state of
+// the race and is ready for a new race start with reset fuel consumption values.
+//
+// Usage:
+// This function is not called directly but is passed as an argument to the race status
+// observable's RegisterObserver method, allowing it to be automatically invoked whenever
+// the race status changes.
+func raceStatusObserver(p *Plugin) func(status race.Status) {
+	return func(status race.Status) {
 		p.status = status
 		if status == race.Stopped {
 			for _, s := range p.state {
@@ -234,7 +271,7 @@ func (p *Plugin) ConfigureRace(r *race.Race) {
 				s.fuel.Update()
 			}
 		}
-	})
+	}
 }
 
 func (p *Plugin) ConfigurePitSequence(carId types.CarId) pit.Sequence {
