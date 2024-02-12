@@ -84,7 +84,7 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 	carState.config = *config
 
 	carState.machine = machine(handleUpdateFuelLevel(carState, config.TankSize, config.BurnRate))
-	carState.fuel = observable.Create(float32(config.TankSize))
+	carState.fuel = createFuelObserver(float32(carState.config.TankSize), fuelModifier(carState), limpModeObserver(carId, p.limbMode))
 
 	car.LastLap().RegisterObserver(func(lap types.Lap) {
 		p.usage[carId] = append(p.usage[carId], p.state[carId].consumed)
@@ -124,28 +124,6 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 			}
 		}
 	})
-
-	car.Pit().RegisterObserver(func(b bool) {
-		carState.consumed = 0
-		carState.announced = false
-		carState.fuel.Set(float32(config.TankSize))
-	})
-
-	// Register a modifier function to update the fuel level based on consumption.
-	// The modifier function subtracts the consumed fuel from the current fuel level.
-	// It has a priority of 1, ensuring it is applied before other modifiers.
-	carState.fuel.Modifier(func(f float32) (float32, bool) {
-		return f - carState.consumed, true
-	}, 1)
-
-	// Register an observer to check if the fuel level drops to or below zero.
-	// When this happens, it signals a limb mode activation for the car.
-	carState.fuel.RegisterObserver(func(f float32) {
-		if f <= 0 {
-			p.limbMode.LimbMode(carId).Set(true)
-		}
-	})
-
 }
 
 func (p *Plugin) InitializeCar(_ *car.Car) {
@@ -167,6 +145,82 @@ func (p *Plugin) Fuel(car types.CarId) (observable.Observable[float32], error) {
 		return f.fuel, nil
 	}
 	return nil, errors.New("car not found")
+}
+
+// createFuelObserver initializes and returns an observable fuel level value for a car,
+// with mechanisms to modify and observe the fuel level based on defined rules.
+//
+// Parameters:
+//   - tankSize: The initial size of the fuel tank, representing the starting fuel level.
+//   - modifier: A function that adjusts the fuel level based on certain criteria (e.g., consumption).
+//     This function should return the modified fuel level and a boolean indicating success.
+//   - limbmodeObserver: A function that observes changes in fuel level and performs actions based on
+//     those changes, such as activating limb mode if the fuel level drops too low.
+//
+// Returns:
+//   - An observable.Value[float32] instance representing the car's fuel level. This object allows
+//     registration of modifier and observer functions to dynamically manage fuel levels.
+//
+// The function uses an observable value to manage the fuel level, enabling real-time adjustments
+// and monitoring. Modifier functions are applied to adjust the fuel level as the simulation or
+// operation progresses, while observer functions can trigger additional actions based on fuel level changes.
+func createFuelObserver(tankSize float32, modifier func(f float32) (float32, bool), limbmodeObserver func(f float32)) *observable.Value[float32] {
+	fuel := observable.Create(tankSize)
+
+	// Register a modifier function to update the fuel level based on consumption.
+	// The modifier function subtracts the consumed fuel from the current fuel level.
+	// It has a priority of 1, ensuring it is applied before other modifiers.
+	fuel.Modifier(modifier, 1)
+
+	// Register an observer to check if the fuel level drops to or below zero.
+	// When this happens, it signals a limb mode activation for the car.
+	fuel.RegisterObserver(limbmodeObserver)
+
+	return fuel
+}
+
+// fuelModifier constructs a fuel level adjustment function based on a car's fuel consumption state.
+// This function is intended to be used as a modifier with the createFuelObserver function, allowing
+// dynamic adjustment of the fuel level during the simulation or operation of the car.
+//
+// Parameters:
+//   - carState: A pointer to the `state` struct, which encapsulates the car's fuel consumption data,
+//     including the amount of fuel already consumed.
+//
+// Returns:
+//   - A closure that takes the current fuel level (f float32) and returns the adjusted fuel level
+//     (after accounting for consumption) and a boolean indicating successful adjustment. This closure
+//     matches the signature expected by createFuelObserver's modifier parameter.
+//
+// The returned modifier function deducts the consumed fuel from the given fuel level, aiding in
+// the simulation of fuel consumption over time.
+func fuelModifier(carState *state) func(f float32) (float32, bool) {
+	return func(f float32) (float32, bool) {
+		return f - carState.consumed, true
+	}
+}
+
+// limpModeObserver creates a function to monitor the car's fuel level and activate limp mode if the fuel
+// level falls to or below zero. This observer function is designed for use with createFuelObserver,
+// allowing it to be registered as an observer for fuel level changes.
+//
+// Parameters:
+// - carId: The unique identifier for the car, used to determine which car's limp mode should be activated.
+// - p: A pointer to a limbmode.Plugin instance, enabling the function to set the car into limp mode.
+//
+// Returns:
+//   - A function that takes the current fuel level (f float32) and activates limp mode for the car
+//     identified by carId if the fuel level is zero or less. This function matches the signature expected
+//     by createFuelObserver's RegisterObserver method.
+//
+// When the fuel level drops to 0 or below, indicating the car has run out of fuel, this observer
+// triggers the limp mode to preserve the car's operational integrity.
+func limpModeObserver(carId types.CarId, p *limbmode.Plugin) func(f float32) {
+	return func(f float32) {
+		if f <= 0 {
+			p.LimbMode(carId).Set(true)
+		}
+	}
 }
 
 // ConfigureRace configures the fuel plugin for a race.
