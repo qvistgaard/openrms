@@ -2,33 +2,28 @@
 package fuel
 
 import (
-	"embed"
 	"errors"
 	"github.com/qmuntal/stateless"
-	"github.com/qvistgaard/openrms/internal/plugins/commentary"
 	"github.com/qvistgaard/openrms/internal/plugins/limbmode"
 	"github.com/qvistgaard/openrms/internal/plugins/pit"
+	"github.com/qvistgaard/openrms/internal/plugins/sound/system"
 	"github.com/qvistgaard/openrms/internal/state/car"
 	"github.com/qvistgaard/openrms/internal/state/observable"
 	"github.com/qvistgaard/openrms/internal/state/race"
 	"github.com/qvistgaard/openrms/internal/types"
-	"github.com/qvistgaard/openrms/internal/utils"
 	log "github.com/sirupsen/logrus"
 )
-
-//go:embed commentary/out_of_fuel.txt
-var announcements embed.FS
 
 // Plugin represents the fuel management plugin.
 // It provides functionality for monitoring and managing fuel levels in cars during a race.
 type Plugin struct {
-	config     Config
-	carConfig  map[types.CarId]CarSettings
-	state      map[types.CarId]*state
-	usage      map[types.CarId][]float32
-	status     race.Status
-	limbMode   *limbmode.Plugin
-	commentary *commentary.Plugin
+	config    Config
+	carConfig map[types.CarId]CarSettings
+	state     map[types.CarId]*state
+	usage     map[types.CarId][]float32
+	status    race.Status
+	limbMode  *limbmode.Plugin
+	sound     *system.Sound
 }
 
 // state represents the fuel state of an individual car.
@@ -44,13 +39,13 @@ type state struct {
 }
 
 // New creates a new instance of the fuel plugin.
-func New(config Config, limbMode *limbmode.Plugin, commentary *commentary.Plugin) (*Plugin, error) {
+func New(config Config, limbMode *limbmode.Plugin, sound *system.Sound) (*Plugin, error) {
 	return &Plugin{
-		config:     config,
-		limbMode:   limbMode,
-		commentary: commentary,
-		state:      make(map[types.CarId]*state),
-		usage:      make(map[types.CarId][]float32),
+		config:   config,
+		limbMode: limbMode,
+		sound:    sound,
+		state:    make(map[types.CarId]*state),
+		usage:    make(map[types.CarId][]float32),
 	}, nil
 }
 
@@ -89,17 +84,6 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 	car.LastLap().RegisterObserver(func(lap types.Lap) {
 		p.usage[carId] = append(p.usage[carId], p.state[carId].consumed)
 		carState.average = carState.average.reportUsage(carState.consumed)
-
-		f := carState.fuel.Get() / carState.average.average
-		if f < 5 && p.config.Plugin.Fuel.Commentary {
-			line, err := utils.RandomLine(announcements, "commentary/out_of_fuel.txt")
-			if err == nil && !carState.announced {
-				template, _ := utils.ProcessTemplate(line, car.TemplateData())
-				p.commentary.Announce(template)
-				carState.announced = true
-			}
-		}
-
 	})
 
 	car.Controller().TriggerValue().RegisterObserver(func(v uint8) {
@@ -145,6 +129,14 @@ func (p *Plugin) Fuel(car types.CarId) (observable.Observable[float32], error) {
 		return f.fuel, nil
 	}
 	return nil, errors.New("car not found")
+}
+
+func (p *Plugin) Average(car types.CarId) (float32, error) {
+	if f, ok := p.state[car]; ok {
+		return f.average.average, nil
+	}
+	return -1, errors.New("car not found")
+
 }
 
 // createFuelObserver initializes and returns an observable fuel level value for a car,

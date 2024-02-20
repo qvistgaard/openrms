@@ -14,7 +14,7 @@ type Config struct {
 	Plugin struct {
 		Fuel struct {
 			Enabled    bool `mapstructure:"enabled"`
-			Commentary bool `mapstructure:"commentary" default:"true"`
+			Commentary bool `mapstructure:"announcements" default:"true"`
 		} `mapstructure:"fuel"`
 	} `mapstructure:"plugins"`
 }

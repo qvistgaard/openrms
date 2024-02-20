@@ -1,6 +1,7 @@
 package telemetry
 
 import (
+	"github.com/qvistgaard/openrms/internal/state/car"
 	"github.com/qvistgaard/openrms/internal/types"
 	"sort"
 	"time"
@@ -26,6 +27,7 @@ type Entry struct {
 	Enabled         bool
 	PitStopSequence uint8
 	Color           string
+	car             *car.Car
 }
 
 type Race map[types.CarId]*Entry
@@ -49,6 +51,27 @@ func (r Race) Sort() []Entry {
 				return true
 			}
 			return false
+		} else {
+			return false
+		}
+	})
+	return sorted
+}
+
+func (r Race) FastestLap() []Entry {
+	sorted := make([]Entry, 0, len(r))
+	for _, v := range r {
+		sorted = append(sorted, *v)
+	}
+	sort.SliceStable(sorted, func(i, j int) bool {
+		if !sorted[i].Enabled && sorted[j].Enabled {
+			return false
+		} else if sorted[i].Enabled && !sorted[j].Enabled {
+			return true
+		}
+
+		if sorted[i].Best > sorted[j].Best {
+			return true
 		} else {
 			return false
 		}

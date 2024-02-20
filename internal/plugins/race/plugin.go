@@ -1,35 +1,34 @@
 package race
 
 import (
-	"embed"
-	"github.com/qvistgaard/openrms/internal/plugins/commentary"
+	"github.com/gopxl/beep"
 	"github.com/qvistgaard/openrms/internal/plugins/confirmation"
+	"github.com/qvistgaard/openrms/internal/plugins/race/sounds"
+	"github.com/qvistgaard/openrms/internal/plugins/sound/streamer"
+	"github.com/qvistgaard/openrms/internal/plugins/sound/system"
+	"github.com/qvistgaard/openrms/internal/state/observable"
 	"github.com/qvistgaard/openrms/internal/state/race"
-	"github.com/qvistgaard/openrms/internal/utils"
-	log "github.com/sirupsen/logrus"
 	"time"
 )
 
-//go:embed commentary/start.txt
-//go:embed commentary/finished.txt
-//go:embed sounds/beeps.mp3
-var announcements embed.FS
-
 type Plugin struct {
 	Duration     *time.Duration
+	maxDuration  observable.Observable[time.Duration]
 	Laps         *uint32
 	status       race.Status
 	confirmation *confirmation.Plugin
-	commentary   *commentary.Plugin
 	confirmed    bool
 	race         *race.Race
 	started      bool
+	fanfare      *streamer.Playback
+	sound        *system.Sound
 }
 
-func New(r *race.Race, confirmationPlugin *confirmation.Plugin, commentary *commentary.Plugin) (*Plugin, error) {
+func New(r *race.Race, confirmationPlugin *confirmation.Plugin, sound *system.Sound) (*Plugin, error) {
 	p := &Plugin{
 		confirmation: confirmationPlugin,
-		commentary:   commentary,
+		sound:        sound,
+		maxDuration:  observable.Create(time.Duration(0)),
 		race:         r,
 	}
 
@@ -45,25 +44,15 @@ func (p *Plugin) initObservableProperties() {
 
 func (p *Plugin) registerObservers() {
 	p.race.Duration().RegisterObserver(func(duration time.Duration) {
-		if p.Duration != nil && *p.Duration <= duration && p.status == race.Running {
-			line, err := utils.RandomLine(announcements, "commentary/finished.txt")
-			if err != nil {
-				log.Error(err)
-			} else {
-				p.commentary.Announce(line)
+		if p.Duration != nil && p.status == race.Running {
+			if *p.Duration <= duration {
+				p.stop()
 			}
-			p.race.Stop()
 		}
 	})
 	p.race.Laps().RegisterObserver(func(laps uint32) {
 		if p.Laps != nil && *p.Laps <= laps && p.status == race.Running {
-			line, err := utils.RandomLine(announcements, "commentary/finished.txt")
-			if err != nil {
-				log.Error(err)
-			} else {
-				p.commentary.Announce(line)
-			}
-			p.race.Stop()
+			p.stop()
 		}
 	})
 	p.race.Status().Filter(func(status race.Status, status2 race.Status) bool {
@@ -93,21 +82,22 @@ func (p *Plugin) registerObservers() {
 
 	p.confirmation.Confirmed().RegisterObserver(func(b bool) {
 		if b && (p.status == race.Stopped || p.status == race.Paused) {
-			open, _ := announcements.Open("sounds/beeps.mp3")
-			utils.PlayAudioFile(open, func() {
+			p.sound.PlayEffect(beep.Seq(sounds.Beeps(), beep.Callback(func() {
 				p.confirmed = true
 				p.race.Start()
-				time.Sleep(100 * time.Millisecond)
-				line, err := utils.RandomLine(announcements, "commentary/start.txt")
-				if err != nil {
-					log.Error(err)
-				} else {
-					p.commentary.Announce(line)
-				}
-
-			})
+				p.maxDuration.Set(*p.Duration)
+				p.fanfare = nil
+			})))
 		}
 	})
+}
+
+func (p *Plugin) stop() {
+	p.race.Stop()
+}
+
+func (p *Plugin) MaxDuration() observable.Observable[time.Duration] {
+	return p.maxDuration
 }
 
 func (p *Plugin) ConfigureRace(_ *race.Race) {

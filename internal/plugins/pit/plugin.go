@@ -1,31 +1,27 @@
 package pit
 
 import (
-	"embed"
 	"github.com/qmuntal/stateless"
-	"github.com/qvistgaard/openrms/internal/plugins/commentary"
+	"github.com/qvistgaard/openrms/internal/plugins/sound/system"
 	"github.com/qvistgaard/openrms/internal/state/car"
 	"github.com/qvistgaard/openrms/internal/state/observable"
 	"github.com/qvistgaard/openrms/internal/types"
 	log "github.com/sirupsen/logrus"
 )
 
-//go:embed commentary/pit_stop_complete.txt
-var announcements embed.FS
-
 type Plugin struct {
-	state      map[types.CarId]*state
-	pitstops   []SequencePlugin
-	config     *Config
-	commentary *commentary.Plugin
+	state    map[types.CarId]*state
+	pitstops []SequencePlugin
+	config   *Config
+	sound    *system.Sound
 }
 
-func New(c *Config, commentary *commentary.Plugin, stops ...SequencePlugin) (*Plugin, error) {
+func New(c *Config, sound *system.Sound, stops ...SequencePlugin) (*Plugin, error) {
 	return &Plugin{
-		config:     c,
-		state:      make(map[types.CarId]*state),
-		pitstops:   stops,
-		commentary: commentary,
+		config:   c,
+		state:    make(map[types.CarId]*state),
+		pitstops: stops,
+		sound:    sound,
 	}, nil
 }
 
@@ -44,7 +40,7 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 	}
 	p.state[carId] = &state{
 		handler: handler,
-		machine: machine(handler, p.commentary, p.config, car),
+		machine: machine(handler),
 	}
 	carState := p.state[carId]
 

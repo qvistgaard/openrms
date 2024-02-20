@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"github.com/madflojo/tasks"
 	"github.com/pkg/browser"
@@ -17,6 +18,7 @@ import (
 func main() {
 	var err error
 	var wg sync.WaitGroup
+	var ctx = context.Background()
 
 	flagConfig := flag.String("config", "config.yaml", "OpenRMS Config file")
 	flagLogfile := flag.String("log-file", "openrms.log", "OpenRMS log file")
@@ -64,38 +66,43 @@ func main() {
 			log.Fatal(err)
 		}*/
 
-	commentaryPlugin, err := configuration.CommentaryPlugin(cfg)
+	soundSystem, err := configuration.SoundSystem(ctx, cfg)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	confirmationPlugin, err := configuration.ConfirmationPlugin(cfg, commentaryPlugin)
+	confirmationPlugin, err := configuration.ConfirmationPlugin(cfg)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	racePlugin, err := configuration.RacePlugin(cfg, race, confirmationPlugin, commentaryPlugin)
+	racePlugin, err := configuration.RacePlugin(cfg, race, confirmationPlugin, soundSystem)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	limpModePlugin, err := configuration.LimbModePlugin(cfg, commentaryPlugin)
+	limpModePlugin, err := configuration.LimbModePlugin(cfg, soundSystem)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fuelPlugin, err := configuration.FuelPlugin(cfg, limpModePlugin, commentaryPlugin)
+	fuelPlugin, err := configuration.FuelPlugin(cfg, limpModePlugin, soundSystem)
 	if err != nil {
 		log.Fatal(err)
 	}
-	pitPlugin, _ := configuration.PitPlugin(cfg, commentaryPlugin, fuelPlugin, limpModePlugin)
+	pitPlugin, _ := configuration.PitPlugin(cfg, soundSystem, fuelPlugin, limpModePlugin)
 	leaderboardPlugin := telemetry.New(fuelPlugin, limpModePlugin, pitPlugin)
 	flagPlugin, err := configuration.FlagPlugin(cfg, track, race)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	ontrackPlugin, _ := configuration.OnTrackPlugin(cfg, flagPlugin, commentaryPlugin)
+	ontrackPlugin, _ := configuration.OnTrackPlugin(cfg, flagPlugin, soundSystem)
+
+	sound, err := configuration.SoundPlugin(cfg, soundSystem, leaderboardPlugin, race, confirmationPlugin, limpModePlugin, fuelPlugin, pitPlugin, ontrackPlugin, racePlugin)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	plugins, err := configuration.Plugins(cfg)
 	if err != nil {
@@ -109,6 +116,7 @@ func main() {
 	plugins.Append(flagPlugin)
 	plugins.Append(confirmationPlugin)
 	plugins.Append(ontrackPlugin)
+	plugins.Append(sound)
 
 	repository, err := configuration.CarRepository(cfg, driver, plugins)
 	if err != nil {

@@ -1,0 +1,20 @@
+Car {{.Number}} is running on hope and a prayer. Time to refuel or start paddling!
+The {{.Color}} {{.Brand}} is so close to running out of juice, it's eyeing up the pit lane like it's a watering hole.
+Looks like {{.TeamName}}'s pride is about to hit E. Not for 'Excellent' but 'Empty'!
+{{.Number}} is about to learn what 'running on fumes' truly means. Spoiler: it doesn't mean going faster.
+The {{.Color}} {{.Brand}} is on a diet – a fuel diet. Time to bulk up at the pit stop.
+Car {{.Number}}'s fuel light is blinking more than a nervous first-time driver at a roundabout.
+Who knew {{.TeamName}}'s strategy involved playing chicken with the fuel gauge?
+The {{.Color}} {{.Brand}} is so low on fuel, it's considering alternative energy sources. Anyone got a solar panel?
+{{.Number}} is squeezing the last drops out like it's the end of a toothpaste tube. Pit stop, pronto!
+Seems car {{.Number}} might start drafting behind a butterfly for better fuel economy.
+The {{.Color}} {{.Brand}} fuel gauge is more pessimistic than a weather forecast. Time for a refill!
+Car {{.Number}} is about to turn the pit lane into a drive-thru. Super-size that fuel order!
+{{.TeamName}}'s racer is playing a dangerous game of fuel roulette. Let's hope they don't hit zero!
+The fuel strategy for {{.Number}}? Run it till you can hear the tank echo. Bold move!
+Looks like the {{.Color}} {{.Brand}} is about to coast into the pits on fumes – and hope!
+Car {{.Number}}: so low on fuel, they're drafting off paper planes. Desperate times!
+The {{.Color}} {{.Brand}} is getting a fuel-saving masterclass right now. Lesson one: Don't run out.
+{{.TeamName}}'s {{.Number}} is flirting with the fuel light like it's a game. Flirt back, and you're walking!
+Who needs fuel when you have determination? {{.Number}} does. Desperately.
+Car {{.Number}}'s fuel strategy is like my diet plan – starts well, then desperately needs a refill.

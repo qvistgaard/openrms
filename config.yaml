@@ -12,7 +12,7 @@ implement:
     # port: COM7 # Leave blank for auto detection
 
   generator:
-    cars: 5
+    cars: 1
     interval: 1000
 
 # configure the track, this will define of openrms & oxigen
@@ -161,14 +161,16 @@ car:
 
 
 plugins:
-  commentary:
-    enabled: false
-    engine: elevenlabs
-    playht:
-      apiKey: ""
-      userId: ""
-    elevenlabs:
-      apiKey: ""
+  sound:
+    enabled: true
+    announcements:
+      enabled: true
+      engine: elevenlabs
+      playht:
+        apiKey: ""
+        userId: ""
+      elevenlabs:
+        apiKey: "c6a3bbdf0d18468757533e7bd1cf4351"
   fuel:
     enabled: true
     commentary: true
@@ -195,7 +197,7 @@ plugins:
       pause: true
   confirmation:
     enabled: true
-    commentary: true
+    announcements: true
 
 
 

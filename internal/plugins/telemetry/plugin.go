@@ -15,6 +15,8 @@ import (
 
 type Plugin struct {
 	listener       observable.Observable[Race]
+	leader         observable.Observable[types.CarId]
+	fastest        observable.Observable[types.CarId]
 	telemetry      Race
 	fuelPlugin     *fuel.Plugin
 	limbModePlugin *limbmode.Plugin
@@ -25,6 +27,8 @@ type Plugin struct {
 func New(fuelPlugin *fuel.Plugin, limbModePlugin *limbmode.Plugin, pitPlugin *pit.Plugin) *Plugin {
 	return &Plugin{
 		listener:       observable.Create(make(Race)),
+		leader:         observable.Create(types.CarId(0)),
+		fastest:        observable.Create(types.CarId(0)),
 		telemetry:      make(Race),
 		fuelPlugin:     fuelPlugin,
 		limbModePlugin: limbModePlugin,
@@ -41,17 +45,16 @@ func (p *Plugin) Name() string {
 }
 
 func (p *Plugin) ConfigureCar(car *car.Car) {
-
 	id := car.Id()
 	if entry, ok := p.telemetry[id]; !ok {
 		entry = &Entry{
+			car:    car,
 			Id:     car.Id(),
 			Number: car.Number(),
 			Color:  car.Color(),
 		}
 		p.telemetry[id] = entry
 		p.updateLeaderboard()
-
 	}
 
 	if f, err := p.fuelPlugin.Fuel(id); err == nil {
@@ -130,7 +133,7 @@ func (p *Plugin) ConfigureRace(r *race.Race) {
 			}
 			p.status = race.Running
 		}
-		if status == race.Stopped {
+		if status == race.Stopped && p.status == race.Running {
 			p.status = status
 			err := report(p.telemetry)
 			if err != nil {
@@ -148,6 +151,25 @@ func (p *Plugin) RegisterObserver(observer observable.Observer[Race]) {
 	p.listener.RegisterObserver(observer)
 }
 
+func (p *Plugin) Leader() observable.Observable[types.CarId] {
+	return p.leader
+}
+
+func (p *Plugin) FastestLap() observable.Observable[types.CarId] {
+	return p.fastest
+}
+
 func (p *Plugin) updateLeaderboard() {
 	p.listener.Set(p.telemetry)
+
+	go func() {
+		leader := p.telemetry.Sort()
+		if len(leader) > 0 {
+			p.leader.Set(leader[0].Id)
+		}
+		fastest := p.telemetry.FastestLap()
+		if len(fastest) > 0 {
+			p.fastest.Set(fastest[0].Id)
+		}
+	}()
 }

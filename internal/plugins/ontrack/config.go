@@ -5,7 +5,7 @@ type Config struct {
 		OnTrack struct {
 			Enabled    bool   `mapstructure:"enabled"`
 			Flag       string `mapstructure:"flag" default:"red"`
-			Commentary bool   `mapstructure:"commentary" default:"true"`
+			Commentary bool   `mapstructure:"announcements" default:"true"`
 		} `mapstructure:"ontrack"`
 	} `mapstructure:"plugins"`
 }

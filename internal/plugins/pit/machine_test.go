@@ -50,7 +50,7 @@ func Test_machine(t *testing.T) {
 	config.Plugin.Pit.Enabled = true
 	config.Plugin.Pit.Commentary = false
 
-	stateMachine := machine(&NoopHandler{}, nil, &config, nil)
+	stateMachine := machine(&NoopHandler{})
 
 	// print(stateMachine.ToGraph())
 	var err error

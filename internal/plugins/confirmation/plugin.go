@@ -1,20 +1,14 @@
 package confirmation
 
 import (
-	"embed"
 	"github.com/pkg/errors"
-	"github.com/qvistgaard/openrms/internal/plugins/commentary"
 	"github.com/qvistgaard/openrms/internal/state/car"
 	"github.com/qvistgaard/openrms/internal/state/observable"
 	"github.com/qvistgaard/openrms/internal/types"
-	"github.com/qvistgaard/openrms/internal/utils"
 	log "github.com/sirupsen/logrus"
 	"slices"
 	"time"
 )
-
-//go:embed commentary/ready.txt
-var announcements embed.FS
 
 type Mode uint8
 
@@ -32,7 +26,6 @@ type Plugin struct {
 	active        observable.Observable[bool]
 	status        observable.Observable[Status]
 	enabled       bool
-	commentary    *commentary.Plugin
 	config        *Config
 }
 
@@ -43,16 +36,15 @@ type Status struct {
 	TotalTime            time.Duration
 }
 
-func New(c *Config, commentary *commentary.Plugin) (*Plugin, error) {
+func New(c *Config) (*Plugin, error) {
 	p := &Plugin{
-		active:     observable.Create(false).Filter(observable.DistinctBooleanChange()),
-		confirmed:  observable.Create(false).Filter(observable.DistinctBooleanChange()),
-		status:     observable.Create(Status{}),
-		timeout:    time.Second * 3,
-		mode:       Timer,
-		enabled:    c.Plugin.Confirmation.Enabled,
-		commentary: commentary,
-		config:     c,
+		active:    observable.Create(false).Filter(observable.DistinctBooleanChange()),
+		confirmed: observable.Create(false).Filter(observable.DistinctBooleanChange()),
+		status:    observable.Create(Status{}),
+		timeout:   time.Second * 3,
+		mode:      Timer,
+		enabled:   c.Plugin.Confirmation.Enabled,
+		config:    c,
 	}
 
 	if c.Plugin.Confirmation.Timeout != nil {
@@ -109,15 +101,6 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 func (p *Plugin) Activate() error {
 	if p.active.Get() {
 		return errors.New("Confirmation already in progress")
-	}
-
-	if p.config.Plugin.Confirmation.Commentary {
-		line, err := utils.RandomLine(announcements, "commentary/ready.txt")
-		if err != nil {
-			log.Error(err)
-		} else {
-			p.commentary.Announce(line)
-		}
 	}
 	log.Info("Confirmation process started")
 

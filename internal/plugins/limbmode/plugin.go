@@ -1,27 +1,22 @@
 package limbmode
 
 import (
-	"embed"
-	"github.com/qvistgaard/openrms/internal/plugins/commentary"
 	"github.com/qvistgaard/openrms/internal/plugins/pit"
+	"github.com/qvistgaard/openrms/internal/plugins/sound/system"
 	"github.com/qvistgaard/openrms/internal/state/car"
 	"github.com/qvistgaard/openrms/internal/state/observable"
 	"github.com/qvistgaard/openrms/internal/state/race"
 	"github.com/qvistgaard/openrms/internal/types"
-	"github.com/qvistgaard/openrms/internal/utils"
 )
 
-//go:embed commentary/limbmode.txt
-var announcements embed.FS
-
 type Plugin struct {
-	state      map[types.CarId]observable.Observable[bool]
-	carConfig  map[types.CarId]*LimbModeConfig
-	config     *Config
-	commentary *commentary.Plugin
+	state     map[types.CarId]observable.Observable[bool]
+	carConfig map[types.CarId]*LimbModeConfig
+	config    *Config
+	sound     *system.Sound
 }
 
-func New(config *Config, commentary *commentary.Plugin) (*Plugin, error) {
+func New(config *Config, sound *system.Sound) (*Plugin, error) {
 	carConfig := map[types.CarId]*LimbModeConfig{}
 	for _, v := range config.Car.Cars {
 		if v.LimbMode == nil {
@@ -34,10 +29,10 @@ func New(config *Config, commentary *commentary.Plugin) (*Plugin, error) {
 	}
 
 	return &Plugin{
-		config:     config,
-		carConfig:  carConfig,
-		commentary: commentary,
-		state:      make(map[types.CarId]observable.Observable[bool]),
+		config:    config,
+		carConfig: carConfig,
+		sound:     sound,
+		state:     make(map[types.CarId]observable.Observable[bool]),
 	}, nil
 }
 
@@ -50,13 +45,6 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 
 	p.state[carId] = observable.Create(false).Filter(observable.DistinctBooleanChange())
 	p.state[carId].RegisterObserver(func(b bool) {
-		if b && p.config.Plugin.LimbMode.Commentary {
-			line, err := utils.RandomLine(announcements, "commentary/limbmode.txt")
-			if err == nil {
-				template, _ := utils.ProcessTemplate(line, car.TemplateData())
-				p.commentary.Announce(template)
-			}
-		}
 		car.MaxSpeed().Update()
 		car.MaxSpeed().Publish()
 	})

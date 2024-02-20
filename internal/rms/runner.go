@@ -39,32 +39,16 @@ func Create(waitGroup *sync.WaitGroup, implement drivers.Driver, plugins *plugin
 	}
 }
 
-/*func (r *Runner) eventLoop() error {
-	defer func() {
-		r.wg.Done()
-		log.Fatal("rms: Eventloop died")
-	}()
-	log.Info("rms: started race OpenRMS connector.")
-	err := r.implement.EventLoop()
-	log.Println(err)
-	return err
-}*/
-
 func (r *Runner) processEvents() error {
 	log.Info("rms: started event processor.")
 
-	// r.postprocessors.Init(background)
 	r.track.Initialize()
 
 	for _, rule := range r.plugins.Race() {
 		rule.ConfigureRace(r.race)
 	}
-	/*	for _, rule := range r.plugins.Race() {
-		rule.InitializeRaceState(r.race, background)
-	}*/
 
 	r.race.Initialize()
-	// r.race.Init(background)
 
 	ec := make(chan drivers.Event, 1024)
 	err := r.implement.Start(ec)

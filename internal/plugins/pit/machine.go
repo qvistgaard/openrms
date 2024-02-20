@@ -3,10 +3,7 @@ package pit
 import (
 	"context"
 	"github.com/qmuntal/stateless"
-	"github.com/qvistgaard/openrms/internal/plugins/commentary"
-	car "github.com/qvistgaard/openrms/internal/state/car"
 	"github.com/qvistgaard/openrms/internal/types"
-	"github.com/qvistgaard/openrms/internal/utils"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -46,7 +43,7 @@ func logPitStateChangeAction(carId types.CarId, state MachineState, logline stri
 	}
 }
 
-func machine(h Handler, commentary *commentary.Plugin, config *Config, c *car.Car) *stateless.StateMachine {
+func machine(h Handler) *stateless.StateMachine {
 	carId := h.Id()
 	m := stateless.NewStateMachineWithMode(stateCarNotInPitLane, stateless.FiringImmediate)
 	m.Configure(stateCarNotInPitLane).
@@ -83,7 +80,7 @@ func machine(h Handler, commentary *commentary.Plugin, config *Config, c *car.Ca
 
 	m.Configure(stateCarPitStopComplete).
 		OnEntry(logPitStateChangeAction(carId, stateCarPitStopActive, "Pit stop complete")).
-		OnEntry(handleOnOnComplete(h, commentary, config, c)).
+		OnEntry(handleOnOnComplete(h)).
 		Permit(triggerCarExitedPitLane, stateCarNotInPitLane)
 
 	return m
@@ -113,15 +110,8 @@ func handleOnCarStart(_ *stateless.StateMachine, h Handler) func(ctx context.Con
 	}
 }
 
-func handleOnOnComplete(h Handler, p *commentary.Plugin, config *Config, c *car.Car) func(ctx context.Context, args ...any) error {
+func handleOnOnComplete(h Handler) func(ctx context.Context, args ...any) error {
 	return func(ctx context.Context, args ...any) error {
-		if config.Plugin.Pit.Commentary {
-			line, err := utils.RandomLine(announcements, "commentary/pit_stop_complete.txt")
-			if err == nil {
-				template, _ := utils.ProcessTemplate(line, c.TemplateData())
-				p.Announce(template)
-			}
-		}
 		return h.OnComplete()
 	}
 }

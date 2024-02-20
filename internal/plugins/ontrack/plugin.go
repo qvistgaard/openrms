@@ -1,29 +1,26 @@
 package ontrack
 
 import (
-	"embed"
 	"github.com/pkg/errors"
-	"github.com/qvistgaard/openrms/internal/plugins/commentary"
 	"github.com/qvistgaard/openrms/internal/plugins/flags"
+	"github.com/qvistgaard/openrms/internal/plugins/sound/system"
 	"github.com/qvistgaard/openrms/internal/state/car"
+	"github.com/qvistgaard/openrms/internal/state/observable"
 	"github.com/qvistgaard/openrms/internal/state/race"
 	"github.com/qvistgaard/openrms/internal/types"
-	"github.com/qvistgaard/openrms/internal/utils"
 	log "github.com/sirupsen/logrus"
 	"time"
 )
 
-//go:embed commentary/offtrack.txt
-var announcements embed.FS
-
 type Plugin struct {
-	config           *Config
-	flagPlugin       *flags.Plugin
-	state            map[types.CarId]state
-	flagId           int
-	flag             flags.Flag
-	commentaryPlugin *commentary.Plugin
-	raceStatus       race.Status
+	config     *Config
+	flagPlugin *flags.Plugin
+	state      map[types.CarId]state
+	ontrack    map[types.CarId]observable.Observable[bool]
+	flagId     int
+	flag       flags.Flag
+	sound      *system.Sound
+	raceStatus race.Status
 }
 
 func (p *Plugin) ConfigureRace(r *race.Race) {
@@ -39,7 +36,7 @@ type state struct {
 	cancel  chan bool
 }
 
-func New(c *Config, f *flags.Plugin, commentaryPlugin *commentary.Plugin) (*Plugin, error) {
+func New(c *Config, f *flags.Plugin, sound *system.Sound) (*Plugin, error) {
 	var flag flags.Flag
 	switch c.Plugin.OnTrack.Flag {
 	case "green":
@@ -53,11 +50,12 @@ func New(c *Config, f *flags.Plugin, commentaryPlugin *commentary.Plugin) (*Plug
 	}
 
 	plugin := &Plugin{
-		config:           c,
-		flagPlugin:       f,
-		commentaryPlugin: commentaryPlugin,
-		flag:             flag,
-		state:            make(map[types.CarId]state),
+		config:     c,
+		flagPlugin: f,
+		sound:      sound,
+		flag:       flag,
+		state:      make(map[types.CarId]state),
+		ontrack:    make(map[types.CarId]observable.Observable[bool]),
 	}
 
 	if !f.Enabled() && c.Plugin.OnTrack.Enabled {
@@ -75,6 +73,8 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 		enabled: true,
 	}
 
+	p.ontrack[car.Id()] = observable.Create(true)
+
 	car.Deslotted().RegisterObserver(func(b bool) {
 		s := p.state[car.Id()]
 
@@ -84,13 +84,6 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 				select {
 				case <-time.After(500 * time.Millisecond):
 					p.updateState(car.Id(), !b, s.inPit, s.enabled)
-					if b && p.config.Plugin.OnTrack.Commentary && p.raceStatus.IsRaceActive() {
-						line, _ := utils.RandomLine(announcements, "commentary/offtrack.txt")
-						template, err := utils.ProcessTemplate(line, car.TemplateData())
-						if err == nil {
-							p.commentaryPlugin.OptionalAnnouncement(template)
-						}
-					}
 				case <-s.cancel:
 					close(s.cancel)
 					s.cancel = nil
@@ -122,6 +115,7 @@ func (p *Plugin) updateState(id types.CarId, ontrack bool, inPit bool, enabled b
 		inPit:   inPit,
 		enabled: enabled,
 	}
+	p.ontrack[id].Set(ontrack)
 
 	count := 0
 	for _, s := range p.state {
@@ -146,6 +140,10 @@ func (p *Plugin) updateFlagPluginStatus(count int) {
 		p.flagPlugin.Clear(p.flagId)
 		p.flagId = -1
 	}
+}
+
+func (p *Plugin) Ontrack(id types.CarId) observable.Observable[bool] {
+	return p.ontrack[id]
 }
 
 func (p *Plugin) InitializeCar(_ *car.Car) {
