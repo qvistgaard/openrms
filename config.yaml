@@ -170,7 +170,7 @@ plugins:
         apiKey: ""
         userId: ""
       elevenlabs:
-        apiKey: "c6a3bbdf0d18468757533e7bd1cf4351"
+        apiKey: ""
   fuel:
     enabled: true
     commentary: true
