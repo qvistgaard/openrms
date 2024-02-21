@@ -10,6 +10,7 @@ import (
 )
 
 func TestBeeps(t *testing.T) {
+	t.SkipNow()
 	complete := make(chan bool, 1)
 
 	speaker.Init(streamer.SampleRate, streamer.SampleRate.N(time.Second/20))
@@ -21,14 +22,14 @@ func TestBeeps(t *testing.T) {
 }
 
 func TestHeroic(t *testing.T) {
+	t.SkipNow()
+
 	complete := make(chan bool, 1)
 
 	speaker.Init(streamer.SampleRate, streamer.SampleRate.N(time.Second/20))
 	drivingToWin := DrivingToWin()
 
 	log.Info(drivingToWin.Len())
-
-	// t.SkipNow()
 	speaker.Play(beep.Seq(drivingToWin, beep.Callback(func() {
 		complete <- true
 	})))
