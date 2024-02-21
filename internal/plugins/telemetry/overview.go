@@ -27,6 +27,8 @@ type Entry struct {
 	Enabled         bool
 	PitStopSequence uint8
 	Color           string
+	DeslotsTotal    uint32
+	DeslotsLap      uint32
 	car             *car.Car
 }
 

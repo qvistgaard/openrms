@@ -140,6 +140,8 @@ func (p *Plugin) registerObservers(telemetry *telemetry.Plugin, r *race.Race, co
 				Random:   true,
 				Data:     p.tracker.cars[id].TemplateData(),
 			})
+		} else {
+			log.Info("Leader updated within the first minute of the race. ignoring")
 		}
 	})
 
@@ -177,7 +179,7 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 
 			log.WithField("average", a).WithField("fuel", u.Get()).WithField("left", f).Info("Average usage")
 
-			if f < 5 {
+			if a > 0 && f < 5 {
 				p.sound.Announce(&announcer.ReadFileTemplateAnnouncement{
 					Fs:       announcements,
 					Filename: "announcements/out_of_fuel.txt",

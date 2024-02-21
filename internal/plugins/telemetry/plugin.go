@@ -4,6 +4,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/qvistgaard/openrms/internal/plugins/fuel"
 	"github.com/qvistgaard/openrms/internal/plugins/limbmode"
+	"github.com/qvistgaard/openrms/internal/plugins/ontrack"
 	"github.com/qvistgaard/openrms/internal/plugins/pit"
 	"github.com/qvistgaard/openrms/internal/state/car"
 	"github.com/qvistgaard/openrms/internal/state/observable"
@@ -22,9 +23,10 @@ type Plugin struct {
 	limbModePlugin *limbmode.Plugin
 	status         race.Status
 	pitPlugin      *pit.Plugin
+	ontrack        *ontrack.Plugin
 }
 
-func New(fuelPlugin *fuel.Plugin, limbModePlugin *limbmode.Plugin, pitPlugin *pit.Plugin) *Plugin {
+func New(fuelPlugin *fuel.Plugin, limbModePlugin *limbmode.Plugin, pitPlugin *pit.Plugin, ontrack *ontrack.Plugin) *Plugin {
 	return &Plugin{
 		listener:       observable.Create(make(Race)),
 		leader:         observable.Create(types.CarId(0)).Filter(observable.DistinctComparableChange[types.CarId]()),
@@ -33,6 +35,7 @@ func New(fuelPlugin *fuel.Plugin, limbModePlugin *limbmode.Plugin, pitPlugin *pi
 		fuelPlugin:     fuelPlugin,
 		limbModePlugin: limbModePlugin,
 		pitPlugin:      pitPlugin,
+		ontrack:        ontrack,
 	}
 }
 
@@ -101,10 +104,18 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 
 	})
 
+	p.ontrack.Ontrack(id).RegisterObserver(func(b bool) {
+		if b {
+			p.telemetry[id].DeslotsLap = p.telemetry[id].DeslotsLap + 1
+			p.telemetry[id].DeslotsTotal = p.telemetry[id].DeslotsTotal + 1
+		}
+	})
+
 	car.LastLap().RegisterObserver(func(lap types.Lap) {
 		p.telemetry[id].Laps = append(p.telemetry[id].Laps, lap)
 		p.telemetry[id].Delta = time.Duration(lap.Time.Nanoseconds() - p.telemetry[id].Last.Time.Nanoseconds())
 		p.telemetry[id].Last = lap
+		p.telemetry[id].DeslotsLap = 0
 		if p.telemetry[id].Best == 0 || p.telemetry[id].Last.Time < p.telemetry[id].Best {
 			p.telemetry[id].Best = p.telemetry[id].Last.Time
 		}
