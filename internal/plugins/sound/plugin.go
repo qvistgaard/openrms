@@ -51,6 +51,7 @@ type tracker struct {
 	finalRise         *streamer.Playback
 	finalRiseDuration time.Duration
 	finalRisePlaying  bool
+	duration          time.Duration
 }
 
 func New(config *system.Config, sound *system.Sound, telemetry *telemetry.Plugin, race *race.Race, confirmation *confirmation.Plugin, limbMode *limbmode.Plugin, fuel *fuel.Plugin, pit *pit.Plugin, ontrack *ontrack.Plugin, plugin *race2.Plugin) (*Plugin, error) {
@@ -107,6 +108,8 @@ func (p *Plugin) registerObservers(telemetry *telemetry.Plugin, r *race.Race, co
 
 	r.Duration().RegisterObserver(func(duration time.Duration) {
 		if p.tracker.raceState == race.Running && p.tracker.maxDuration > 0 {
+			p.tracker.duration = duration
+
 			timeUntilCompletion := p.tracker.maxDuration - duration
 
 			if p.tracker.finalRise == nil {
@@ -129,12 +132,14 @@ func (p *Plugin) registerObservers(telemetry *telemetry.Plugin, r *race.Race, co
 	})
 
 	p.telemetry.Leader().RegisterObserver(func(id types.CarId) {
-		p.sound.Announce(&announcer.ReadFileTemplateAnnouncement{
-			Fs:       announcements,
-			Filename: "announcements/leading.txt",
-			Random:   true,
-			Data:     p.tracker.cars[id].TemplateData(),
-		})
+		if p.tracker.raceState == race.Running && p.tracker.duration > 1*time.Minute {
+			p.sound.Announce(&announcer.ReadFileTemplateAnnouncement{
+				Fs:       announcements,
+				Filename: "announcements/leading.txt",
+				Random:   true,
+				Data:     p.tracker.cars[id].TemplateData(),
+			})
+		}
 	})
 
 }
@@ -152,19 +157,23 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 	})
 
 	car.LastLap().RegisterObserver(func(lap types.Lap) {
-		p.sound.PlayEffect(sounds.Lap())
+		if p.tracker.raceState == race.Running {
+			if lap.Number > 0 {
+				p.sound.PlayEffect(sounds.Lap())
+			}
 
-		u, err := p.fuel.Fuel(car.Id())
-		a, err := p.fuel.Average(car.Id())
-		if err != nil {
-			f := u.Get() / a
-			if f < 5 {
-				p.sound.Announce(&announcer.ReadFileTemplateAnnouncement{
-					Fs:       announcements,
-					Filename: "announcements/out_of_fuel.txt",
-					Random:   true,
-					Data:     car.TemplateData(),
-				})
+			u, err := p.fuel.Fuel(car.Id())
+			a, err := p.fuel.Average(car.Id())
+			if err != nil {
+				f := u.Get() / a
+				if f < 5 {
+					p.sound.Announce(&announcer.ReadFileTemplateAnnouncement{
+						Fs:       announcements,
+						Filename: "announcements/out_of_fuel.txt",
+						Random:   true,
+						Data:     car.TemplateData(),
+					})
+				}
 			}
 		}
 	})

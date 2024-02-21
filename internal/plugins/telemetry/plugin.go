@@ -27,8 +27,8 @@ type Plugin struct {
 func New(fuelPlugin *fuel.Plugin, limbModePlugin *limbmode.Plugin, pitPlugin *pit.Plugin) *Plugin {
 	return &Plugin{
 		listener:       observable.Create(make(Race)),
-		leader:         observable.Create(types.CarId(0)),
-		fastest:        observable.Create(types.CarId(0)),
+		leader:         observable.Create(types.CarId(0)).Filter(observable.DistinctComparableChange[types.CarId]()),
+		fastest:        observable.Create(types.CarId(0)).Filter(observable.DistinctComparableChange[types.CarId]()),
 		telemetry:      make(Race),
 		fuelPlugin:     fuelPlugin,
 		limbModePlugin: limbModePlugin,
