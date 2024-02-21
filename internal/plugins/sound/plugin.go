@@ -16,6 +16,7 @@ import (
 	"github.com/qvistgaard/openrms/internal/state/car"
 	"github.com/qvistgaard/openrms/internal/state/race"
 	"github.com/qvistgaard/openrms/internal/types"
+	log "github.com/sirupsen/logrus"
 	"time"
 )
 
@@ -163,17 +164,26 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 			}
 
 			u, err := p.fuel.Fuel(car.Id())
+			if err != nil {
+				log.Error(err)
+				return
+			}
 			a, err := p.fuel.Average(car.Id())
 			if err != nil {
-				f := u.Get() / a
-				if f < 5 {
-					p.sound.Announce(&announcer.ReadFileTemplateAnnouncement{
-						Fs:       announcements,
-						Filename: "announcements/out_of_fuel.txt",
-						Random:   true,
-						Data:     car.TemplateData(),
-					})
-				}
+				log.Error(err)
+				return
+			}
+			f := u.Get() / a
+
+			log.WithField("average", a).WithField("fuel", u.Get()).WithField("left", f).Info("Average usage")
+
+			if f < 5 {
+				p.sound.Announce(&announcer.ReadFileTemplateAnnouncement{
+					Fs:       announcements,
+					Filename: "announcements/out_of_fuel.txt",
+					Random:   true,
+					Data:     car.TemplateData(),
+				})
 			}
 		}
 	})

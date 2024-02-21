@@ -135,9 +135,9 @@ func (e *Engine) downloadSpeak(speak string) (*os.File, error) {
 			return nil, errors.WithMessage(err, "Unable to load speak")
 		}
 
-		log.WithField("filename", filename).Info("Speak successfully created")
+		log.WithField("filename", filename).WithField("speak", speak).Info("Speak successfully created")
 	} else {
-		log.WithField("filename", filename).Info("Speak exists, using cached version")
+		log.WithField("filename", filename).WithField("speak", speak).Info("Speak exists, using cached version")
 	}
 
 	open, err := os.Open(filename)

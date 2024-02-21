@@ -9,11 +9,12 @@ import (
 	"time"
 )
 
-func TestBeeps(t *testing.T) {
+func TestLap(t *testing.T) {
 	t.SkipNow()
 	complete := make(chan bool, 1)
 
 	speaker.Init(streamer.SampleRate, streamer.SampleRate.N(time.Second/20))
+	log.Info("Start Playing")
 	speaker.Play(beep.Seq(Lap(), beep.Callback(func() {
 		complete <- true
 	})))
