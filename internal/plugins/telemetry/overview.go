@@ -72,7 +72,7 @@ func (r Race) FastestLap() []Entry {
 			return true
 		}
 
-		if sorted[i].Best > sorted[j].Best {
+		if sorted[i].Best < sorted[j].Best {
 			return true
 		} else {
 			return false
