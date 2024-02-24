@@ -34,6 +34,20 @@ type Entry struct {
 
 type Race map[types.CarId]*Entry
 
+// Sort organizes the race entries based on their position and timing, prioritizing enabled entries.
+//
+// The sorting criteria are as follows:
+// 1. Entries that are enabled (`Enabled == true`) are prioritized over those that are not enabled.
+// 2. Among enabled entries, those with a greater 'Last.Number' (representing the position or lap number) are prioritized.
+// 3. If 'Last.Number' is the same between two entries, the one with a smaller 'Last.RaceTimer'
+//    (indicating a faster time for that lap/position) is prioritized.
+//
+// Returns:
+// - A slice of `Entry` structs sorted according to the criteria above.
+//
+// This function is useful for determining the current standings of the race, especially when
+// entries need to be displayed in order of their race position and timing.
+
 func (r Race) Sort() []Entry {
 	sorted := make([]Entry, 0, len(r))
 	for _, v := range r {
@@ -60,6 +74,19 @@ func (r Race) Sort() []Entry {
 	return sorted
 }
 
+// FastestLap identifies the race entries with the fastest single lap times, prioritizing enabled entries.
+//
+// The sorting criteria are as follows:
+// 1. Entries that are enabled (`Enabled == true`) are prioritized over those that are not enabled.
+// 2. Among enabled entries, those with a smaller 'Best' value (representing the fastest lap time) are prioritized.
+//
+// Returns:
+// - A slice of `Entry` structs sorted by the fastest lap times, with enabled entries taking precedence.
+//
+// This function is particularly useful for highlighting performances within the race, such as
+// awarding a fastest lap bonus or for statistical analysis post-race. It allows for a quick
+// identification of which entries had the best single-lap performance while considering the
+// entry's enabled status.
 func (r Race) FastestLap() []Entry {
 	sorted := make([]Entry, 0, len(r))
 	for _, v := range r {
