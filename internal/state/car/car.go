@@ -183,6 +183,7 @@ func (c *Car) UpdateFromEvent(event drivers.Event) {
 	case events.ControllerTriggerValueEvent:
 		c.Controller().TriggerValue().Set(uint8(e.TriggerValue()))
 	case events.Lap:
+		log.Info("New Lap Received", e)
 		if c.Laps().Set(e.Number()) {
 			c.LastLap().Set(types.Lap{e.Number(), e.Time(), e.Recorded()})
 		}

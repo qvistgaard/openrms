@@ -162,6 +162,7 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 	car.LastLap().RegisterObserver(func(lap types.Lap) {
 		if p.tracker.raceState == race.Running {
 			if lap.Number > 0 {
+				log.Info("Playing Lap sound")
 				p.sound.PlayEffect(sounds.Lap())
 			}
 
