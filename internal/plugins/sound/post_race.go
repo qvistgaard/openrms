@@ -22,30 +22,34 @@ func (p *Plugin) postRaceSequence() {
 func (p *Plugin) announceResults() {
 	leader := p.telemetry.Leader()
 
-	i := rand.Intn(2) + 2
-	time.AfterFunc(time.Duration(i)*time.Second, func() {
-		p.sound.Announce(&announcer.ReadFileTemplateAnnouncement{
-			Fs:       announcements,
-			Filename: "announcements/result.txt",
-			Random:   true,
-			Data:     p.tracker.cars[leader.Get()].TemplateData(),
-		}, beep.Callback(func() {
-			p.announceFastestLap()
-		}))
-	})
+	if leader != nil {
+		i := rand.Intn(2) + 2
+		time.AfterFunc(time.Duration(i)*time.Second, func() {
+			p.sound.Announce(&announcer.ReadFileTemplateAnnouncement{
+				Fs:       announcements,
+				Filename: "announcements/result.txt",
+				Random:   true,
+				Data:     p.tracker.cars[leader.Get()].TemplateData(),
+			}, beep.Callback(func() {
+				p.announceFastestLap()
+			}))
+		})
+	}
 }
 
 func (p *Plugin) announceFastestLap() {
 	fastest := p.telemetry.FastestLap()
-	i := rand.Intn(2) + 2
-	time.AfterFunc(time.Duration(i)*time.Second, func() {
-		p.sound.Announce(&announcer.ReadFileTemplateAnnouncement{
-			Fs:       announcements,
-			Filename: "announcements/fastest_lap.txt",
-			Random:   true,
-			Data:     p.tracker.cars[fastest.Get()].TemplateData(),
+	if fastest != nil {
+		i := rand.Intn(2) + 2
+		time.AfterFunc(time.Duration(i)*time.Second, func() {
+			p.sound.Announce(&announcer.ReadFileTemplateAnnouncement{
+				Fs:       announcements,
+				Filename: "announcements/fastest_lap.txt",
+				Random:   true,
+				Data:     p.tracker.cars[fastest.Get()].TemplateData(),
+			})
 		})
-	})
+	}
 }
 
 func (p *Plugin) startPostRaceMusic() *time.Timer {
