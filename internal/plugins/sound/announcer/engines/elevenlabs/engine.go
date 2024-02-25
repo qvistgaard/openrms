@@ -154,7 +154,9 @@ func (e *Engine) Announce(announcement announcer.Announcement) (*streamer.Playba
 	downloadSpeak, err := e.downloadSpeak(announcement.Get())
 
 	fromFs, err := streamer.LoadMp3FromFsFile(downloadSpeak)
-	fromFs.Gain(1.5)
+	if err != nil {
+		fromFs.Gain(1.5)
+	}
 	return fromFs, err
 
 }
