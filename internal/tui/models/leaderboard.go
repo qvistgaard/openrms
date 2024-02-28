@@ -182,7 +182,7 @@ func (l Leaderboard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		case "e":
 			return l, func() tea.Msg {
-				carIdString := strings.TrimSpace(l.rows[l.table.Cursor()][2])
+				carIdString := strconv.Itoa(int(l.rowsId[l.table.Cursor()]))
 				return commands.ToggleEnableDisableCar{
 					CarId: carIdString,
 				}
