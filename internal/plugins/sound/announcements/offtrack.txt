@@ -11,7 +11,6 @@ The driver of {{.Number}} thinks they're in a rally. Surprise, this is circuit r
 Looks like {{.TeamName}}'s car wanted a closer look at the audience. Shy, but sociable!
 Car {{.Number}} is off the beaten path. Literally. Someone remind them where the track is!
 The {{.Color}} {{.Brand}} machine has left the circuit. Maybe it's chasing after a lost race marshal?
-Oops, {{.Number}} took a wrong turn at Albuquerque. This isn't Bugs Bunny's race!
 And {{.TeamName}}'s racer is off to explore the outer limits. Bold move, or just lost?
 {{.Color}} {{.Brand}} is doing a bit of landscaping. The track's that way, champ!
 Car {{.Number}} is off-track. Maybe it's looking for a quiet spot to take a break?

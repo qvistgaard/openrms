@@ -30,6 +30,7 @@ import (
 //go:embed announcements/result.txt
 //go:embed announcements/start.txt
 //go:embed announcements/fastest_lap.txt
+//go:embed announcements/race_fastest_lap.txt
 var announcements embed.FS
 
 type Plugin struct {
@@ -142,6 +143,19 @@ func (p *Plugin) registerObservers(telemetry *telemetry.Plugin, r *race.Race, co
 			})
 		} else {
 			log.Info("Leader updated within the first minute of the race. ignoring")
+		}
+	})
+
+	p.telemetry.FastestLap().RegisterObserver(func(id types.CarId) {
+		if p.tracker.raceState == race.Running && p.tracker.duration > 1*time.Minute {
+			p.sound.Announce(&announcer.ReadFileTemplateAnnouncement{
+				Fs:       announcements,
+				Filename: "announcements/race_fastest_lap.txt",
+				Random:   true,
+				Data:     p.tracker.cars[id].TemplateData(),
+			})
+		} else {
+			log.Info("fastest lap updated within the first minute of the race. ignoring")
 		}
 	})
 
