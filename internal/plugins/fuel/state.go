@@ -41,7 +41,8 @@ func machine(fuelUpdate func(ctx context.Context, args ...any) error) *stateless
 		Permit(triggerCarDeslotted, stateCarDeslotted)
 
 	m.Configure(stateCarDeslotted).
-		Permit(triggerCarOnTrack, stateCarOnTrack)
+		Permit(triggerCarOnTrack, stateCarOnTrack).
+		Ignore(triggerUpdateFuelLevel)
 	return m
 }
 
