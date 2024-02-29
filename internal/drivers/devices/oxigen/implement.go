@@ -165,7 +165,7 @@ func (o *Oxigen) dataExchangeLoop(c chan<- drivers.Event) {
 				bytesReceived = 0
 				// log.Trace(err)
 			}
-			time.Sleep(100 * time.Millisecond)
+			time.Sleep(250 * time.Millisecond)
 
 		}
 	}
