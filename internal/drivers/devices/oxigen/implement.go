@@ -158,6 +158,7 @@ func (o *Oxigen) dataExchangeLoop(c chan<- drivers.Event) {
 			err := o.tx()
 			if err != nil {
 				log.Error(err)
+				time.Sleep(100 * time.Millisecond)
 			}
 
 			bytesReceived, err = o.rx(c)
@@ -246,7 +247,7 @@ func (o *Oxigen) tx() error {
 		if err != nil {
 			return err
 		}
-	case <-time.After(20 * time.Millisecond):
+	case <-time.After(500 * time.Millisecond):
 		if len(o.commands) == 0 {
 			log.Trace("oxigen: sending keep-alive")
 			o.commands <- newEmptyCommand()
