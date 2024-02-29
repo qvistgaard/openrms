@@ -152,6 +152,9 @@ func (e *Engine) downloadSpeak(speak string) (*os.File, error) {
 
 func (e *Engine) Announce(announcement announcer.Announcement) (*streamer.Playback, error) {
 	downloadSpeak, err := e.downloadSpeak(announcement.Get())
+	if err != nil {
+		return nil, err
+	}
 
 	fromFs, err := streamer.LoadMp3FromFsFile(downloadSpeak)
 	if err != nil {
