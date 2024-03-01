@@ -21,16 +21,19 @@ import (
 type Oxigen struct {
 	waitGroup sync.WaitGroup
 
-	serial     io.ReadWriteCloser
-	version    string
-	commands   chan Command
-	bufferSize int
-	mutex      sync.Mutex
-	cars       map[types.CarId]Car
-	track      *Track
-	race       *Race
-	running    bool
-	start      time.Time
+	serial       io.ReadWriteCloser
+	version      string
+	commands     chan Command
+	bufferSize   int
+	mutex        sync.Mutex
+	cars         map[types.CarId]Car
+	track        *Track
+	race         *Race
+	running      bool
+	start        time.Time
+	links        map[types.CarId]controllerLink
+	expire       chan types.CarId
+	readInterval int
 }
 
 func CreateUSBConnection(device *string) (io.ReadWriteCloser, error) {
@@ -66,7 +69,7 @@ func CreateUSBConnection(device *string) (io.ReadWriteCloser, error) {
 	}
 	log.WithField("port", oxigenPort).Info("Using oxigenport")
 
-	options := &serial.Config{Name: oxigenPort, Baud: 115200, ReadTimeout: time.Millisecond * 20}
+	options := &serial.Config{Name: oxigenPort, Baud: 115200, ReadTimeout: time.Millisecond * 100}
 
 	// Open the port.
 	port, err := serial.OpenPort(options)
@@ -79,13 +82,16 @@ func CreateUSBConnection(device *string) (io.ReadWriteCloser, error) {
 func CreateImplement(serial io.ReadWriteCloser) (*Oxigen, error) {
 	var err error
 	o := &Oxigen{
-		serial:     serial,
-		commands:   make(chan Command, 1024),
-		bufferSize: 1024,
-		cars:       make(map[types.CarId]Car),
-		track:      NewTrack(),
-		race:       NewRace(),
-		start:      time.Now(),
+		serial:       serial,
+		commands:     make(chan Command, 1024),
+		bufferSize:   1024,
+		cars:         make(map[types.CarId]Car),
+		track:        NewTrack(),
+		race:         NewRace(),
+		start:        time.Now(),
+		links:        make(map[types.CarId]controllerLink),
+		expire:       make(chan types.CarId),
+		readInterval: 100,
 	}
 
 	versionRequest := []byte{0x06, 0x06, 0x06, 0x06, 0x00, 0x00, 0x00} // Get dongle version bytecode
@@ -160,15 +166,23 @@ func (o *Oxigen) dataExchangeLoop(c chan<- drivers.Event) {
 				log.Error(err)
 			}
 
+			o.rxCoolDown()
 			bytesReceived, err = o.rx(c)
-			if err != nil {
+			if err != nil || bytesReceived == 0 {
+				if len(o.links) > 0 {
+					o.readInterval = o.readInterval + 10
+					log.WithField("interval", o.readInterval).Warn("Read error from dongle. adjusting cooldown interval")
+				} else {
+					break
+				}
 				bytesReceived = 0
-				// log.Trace(err)
 			}
-			time.Sleep(250 * time.Millisecond)
-
 		}
 	}
+}
+
+func (o *Oxigen) rxCoolDown() {
+	time.Sleep(time.Duration(o.readInterval/(len(o.links)+1)) * time.Millisecond)
 }
 
 func (o *Oxigen) cleanup() {
@@ -262,11 +276,15 @@ func (o *Oxigen) tx() error {
 }
 
 func (o *Oxigen) event(c chan<- drivers.Event, b []byte) {
+	id := types.IdFromUint(b[1])
+	o.renewLink(id)
+
 	rt := unpackRaceTime([4]byte{b[9], b[10], b[11], b[12]}, b[4])
 	lt := unpackLapTime(b[2], b[3])
 	lapNumber := (uint32(b[6]) * 256) + uint32(b[5])
 
-	car := NewCar(o, types.IdFromUint(b[1]))
+	car := NewCar(o, id)
+
 	c <- events.NewControllerTriggerValueEvent(car, float64(0x7F&b[7]))
 	c <- events.NewControllerTrackCallButton(car, 0x08&b[0] == 0x08)
 	c <- events.NewLap(car, lapNumber, lt, rt)
@@ -302,6 +320,21 @@ func (o *Oxigen) event(c chan<- drivers.Event, b []byte) {
 			}
 	*/
 	// return e
+}
+
+func (o *Oxigen) renewLink(id types.CarId) {
+	if _, ok := o.links[id]; !ok {
+		o.links[id] = controllerLink{
+			id:     id,
+			expire: o.expire,
+			renew:  make(chan bool),
+		}
+		o.readInterval = 100
+		log.WithField("id", id).Info("New controller link detected")
+		controllerLink := o.links[id]
+		go controllerLink.timeout()
+	}
+	o.links[id].renew <- true
 }
 
 func (o *Oxigen) packCommand(c Command, timer []byte) []byte {
