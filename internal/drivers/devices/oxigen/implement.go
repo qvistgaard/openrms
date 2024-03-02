@@ -192,7 +192,7 @@ func (o *Oxigen) sendMessage(nextMessage []byte) error {
 		return err
 	}
 	log.WithFields(map[string]interface{}{
-		"message": fmt.Sprintf("%x", b),
+		"message": fmt.Sprintf("%x", nextMessage),
 		"size":    fmt.Sprintf("%d", l),
 		"buffer":  len(o.commands),
 	}).Trace("send message to oxygen dongle")
