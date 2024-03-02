@@ -160,26 +160,43 @@ func (o *Oxigen) dataExchangeLoop(c chan<- drivers.Event) {
 
 	for o.running {
 		bytesReceived := 0
+		nextMessage, err := o.tx()
+		if err != nil {
+			panic(err)
+		}
 
 		for bytesReceived == 0 {
-			err := o.tx()
+			err = o.sendMessage(nextMessage)
 			if err != nil {
 				log.Error(err)
-			}
-
-			o.rxCoolDown()
-			bytesReceived, err = o.rx(c)
-			if err != nil || bytesReceived == 0 {
-				if len(o.links) > 0 {
-					o.readInterval = o.readInterval + 10
-					log.WithField("interval", o.readInterval).Warn("Read error from dongle. adjusting cooldown interval")
-				} else {
-					break
+			} else {
+				o.rxCoolDown()
+				bytesReceived, err = o.rx(c)
+				if err != nil || bytesReceived == 0 {
+					if len(o.links) > 0 {
+						o.readInterval = o.readInterval + 10
+						log.WithField("interval", o.readInterval).Warn("Read error from dongle. adjusting cooldown interval")
+					} else {
+						break
+					}
+					bytesReceived = 0
 				}
-				bytesReceived = 0
 			}
 		}
 	}
+}
+
+func (o *Oxigen) sendMessage(nextMessage []byte) error {
+	l, err := o.serial.Write(nextMessage)
+	if err != nil {
+		return err
+	}
+	log.WithFields(map[string]interface{}{
+		"message": fmt.Sprintf("%x", b),
+		"size":    fmt.Sprintf("%d", l),
+		"buffer":  len(o.commands),
+	}).Trace("send message to oxygen dongle")
+	return nil
 }
 
 func (o *Oxigen) rxCoolDown() {
@@ -223,7 +240,7 @@ func (o *Oxigen) sendCarCommand(car uint8, code byte, value uint8) {
 	o.commands <- command
 }
 
-func (o *Oxigen) tx() error {
+func (o *Oxigen) tx() ([]byte, error) {
 	select {
 	case cmd := <-o.commands:
 		if float32(len(o.commands)) > (float32(o.bufferSize) * 0.9) {
@@ -250,19 +267,9 @@ func (o *Oxigen) tx() error {
 			}).Debug("sending message to oxygen dongle")
 		}
 
-		l, err := o.serial.Write(b)
-		if err != nil {
-			panic(err)
-		}
-		log.WithFields(map[string]interface{}{
-			"message": fmt.Sprintf("%x", b),
-			"size":    fmt.Sprintf("%d", l),
-			"buffer":  len(o.commands),
-		}).Trace("send message to oxygen dongle")
-		if err != nil {
-			return err
-		}
-	case <-time.After(100 * time.Millisecond):
+		return b, nil
+
+	case <-time.After(10 * time.Millisecond):
 		if len(o.commands) == 0 {
 			log.Trace("oxigen: sending keep-alive")
 			o.commands <- newEmptyCommand()
@@ -270,10 +277,10 @@ func (o *Oxigen) tx() error {
 		// time.Sleep(400 * time.Millisecond)
 	case <-time.After(5000 * time.Millisecond):
 		if !o.running {
-			return nil
+			return nil, nil
 		}
 	}
-	return nil
+	return nil, nil
 }
 
 func (o *Oxigen) event(c chan<- drivers.Event, b []byte) {

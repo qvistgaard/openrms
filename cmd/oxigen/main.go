@@ -6,6 +6,8 @@ import (
 	serial "github.com/tarm/goserial"
 	"go.bug.st/serial/enumerator"
 	"io"
+	"os"
+	"runtime/pprof"
 	"strings"
 	"time"
 )
@@ -13,6 +15,17 @@ import (
 func main() {
 	log.SetLevel(log.InfoLevel)
 	log.SetReportCaller(true)
+
+	f, err := os.Create("profile.gproff")
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = pprof.StartCPUProfile(f)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer pprof.StopCPUProfile()
+	defer f.Close() // error handling omitted for example
 
 	var oxigenPort string
 
@@ -32,7 +45,7 @@ func main() {
 		panic(err)
 	}
 
-	c := &serial.Config{Name: oxigenPort, Baud: 115200, ReadTimeout: time.Millisecond * 100}
+	c := &serial.Config{Name: oxigenPort, Baud: 115200, ReadTimeout: time.Millisecond * 50}
 	connection, err := serial.OpenPort(c)
 	if err != nil {
 		log.Fatal(err)
@@ -62,11 +75,11 @@ func main() {
 
 		i := 0
 		for i == 0 {
-
 			_, err := write(send, connection)
 			if err != nil {
 				log.Error(err)
 			}
+
 			// log.WithField("bytes", bytes).Info("wrote")
 
 			time.Sleep(time.Duration(i2) / time.Duration(len(links)+1) * time.Millisecond)
