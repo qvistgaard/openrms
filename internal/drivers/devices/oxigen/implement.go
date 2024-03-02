@@ -154,6 +154,7 @@ func (o *Oxigen) Stop() error {
 func (o *Oxigen) dataExchangeLoop(c chan<- drivers.Event) {
 	o.waitGroup.Add(1)
 
+	defer log.Error("DEL died")
 	defer o.cleanup()
 	defer o.waitGroup.Done()
 

@@ -82,7 +82,9 @@ func (p *Plugin) registerObservers() {
 
 	p.confirmation.Confirmed().RegisterObserver(func(b bool) {
 		if b && (p.status == race.Stopped || p.status == race.Paused) {
-			p.sound.PlayEffect(beep.Seq(sounds.Beeps(), beep.Callback(func() {
+			beeps := sounds.Beeps()
+			p.sound.PlayEffect(beep.Seq(beeps, beep.Callback(func() {
+				beeps.Close()
 				p.confirmed = true
 				p.race.Start()
 				p.maxDuration.Set(*p.Duration)

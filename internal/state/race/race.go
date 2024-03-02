@@ -4,6 +4,7 @@ import (
 	"github.com/qvistgaard/openrms/internal/drivers"
 	"github.com/qvistgaard/openrms/internal/drivers/events"
 	"github.com/qvistgaard/openrms/internal/state/observable"
+	log "github.com/sirupsen/logrus"
 	"time"
 )
 
@@ -104,6 +105,8 @@ func (r *Race) Status() observable.Observable[Status] {
 }
 
 func (r *Race) UpdateFromEvent(event drivers.Event) {
+	start := time.Now()
+
 	switch e := event.(type) {
 	case events.Lap:
 		r.laps.Set(e.Number())
@@ -112,6 +115,8 @@ func (r *Race) UpdateFromEvent(event drivers.Event) {
 	if r.raceStatus == Running {
 		r.duration.Set(calculateRaceDuration(r.raceDuration, r.raceStart, time.Now()))
 	}
+	log.WithField("event", event).Tracef("race.UpdateFromEvent: processing time: %s", time.Now().Sub(start))
+
 }
 
 func (r *Race) Initialize() {

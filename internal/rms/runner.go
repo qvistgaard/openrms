@@ -8,7 +8,6 @@ import (
 	"github.com/qvistgaard/openrms/internal/state/track"
 	log "github.com/sirupsen/logrus"
 	"sync"
-	"time"
 )
 
 type Runner struct {
@@ -62,7 +61,7 @@ func (r *Runner) processEvents() error {
 	for {
 		select {
 		case e := <-ec:
-			start := time.Now()
+			// start := time.Now()
 			if e.Car() != nil {
 				id := e.Car().Id()
 				if id > 0 {
@@ -72,7 +71,7 @@ func (r *Runner) processEvents() error {
 				}
 			}
 			go r.race.UpdateFromEvent(e)
-			log.Tracef("processing time: %s", time.Now().Sub(start))
+			// log.Tracef("processing time: %s", time.Now().Sub(start))
 		}
 	}
 }

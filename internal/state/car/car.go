@@ -9,6 +9,7 @@ import (
 	"github.com/qvistgaard/openrms/internal/types"
 	log "github.com/sirupsen/logrus"
 	"reflect"
+	"time"
 )
 
 func NewCar(implementer drivers.Driver, settings *Settings, defaults *Settings, id types.CarId) *Car {
@@ -179,6 +180,7 @@ func (c *Car) Disable() bool {
 }
 
 func (c *Car) UpdateFromEvent(event drivers.Event) {
+	start := time.Now()
 	switch e := event.(type) {
 	case events.ControllerTriggerValueEvent:
 		c.Controller().TriggerValue().Set(uint8(e.TriggerValue()))
@@ -200,6 +202,7 @@ func (c *Car) UpdateFromEvent(event drivers.Event) {
 			WithField("event", reflect.TypeOf(e).Elem().Name()).
 			WithField("car", e.Car().Id()).Warn("Received unhandled event")
 	}
+	log.WithField("event", event).Tracef("car.UpdateFromEvent: processing time: %s", time.Now().Sub(start))
 }
 
 func (c *Car) Initialize() {

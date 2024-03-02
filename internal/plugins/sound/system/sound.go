@@ -99,9 +99,11 @@ func (p *Sound) PlayMusic(stream *streamer.Playback, callback ...func()) error {
 	}
 	p.nowPlaying = stream
 	p.play(beep.Seq(stream, beep.Callback(func() {
+		stream.Close()
 		for _, f := range callback {
 			f()
 		}
+
 	})))
 	return nil
 
@@ -133,6 +135,9 @@ func (p *Sound) Announce(paragraph announcer.Announcement, streamers ...beep.Str
 	}
 
 	allStreamers = append(allStreamers, announce)
+	allStreamers = append(allStreamers, beep.Callback(func() {
+		announce.Close()
+	}))
 	allStreamers = append(allStreamers, streamers...)
 
 	p.queue <- beep.Seq(allStreamers...)
