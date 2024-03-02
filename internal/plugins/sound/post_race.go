@@ -10,16 +10,18 @@ import (
 )
 
 func (p *Plugin) postRaceSequence() {
-	err := p.sound.Announce(&announcer.ReadFileTemplateAnnouncement{
-		Fs:       announcements,
-		Filename: "announcements/finished.txt",
-		Random:   true,
-	}, beep.Callback(func() {
-		p.startPostRaceMusic()
-		p.announceResults()
-	}))
-	if err != nil {
-		log.Error(err)
+	if p.config.Plugin.Sound.Enabled {
+		err := p.sound.Announce(&announcer.ReadFileTemplateAnnouncement{
+			Fs:       announcements,
+			Filename: "announcements/finished.txt",
+			Random:   true,
+		}, beep.Callback(func() {
+			p.startPostRaceMusic()
+			p.announceResults()
+		}))
+		if err != nil {
+			log.Error(err)
+		}
 	}
 }
 

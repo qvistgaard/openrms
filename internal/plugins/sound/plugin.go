@@ -2,6 +2,7 @@ package sound
 
 import (
 	"embed"
+	"github.com/gopxl/beep"
 	"github.com/qvistgaard/openrms/internal/plugins/confirmation"
 	"github.com/qvistgaard/openrms/internal/plugins/fuel"
 	"github.com/qvistgaard/openrms/internal/plugins/limbmode"
@@ -72,12 +73,13 @@ func New(config *system.Config, sound *system.Sound, telemetry *telemetry.Plugin
 		},
 	}
 
-	p.registerObservers(telemetry, race, confirmation, limbMode, plugin)
-
+	if p.config.Plugin.Sound.Enabled {
+		p.registerObservers(race, confirmation, plugin)
+	}
 	return p, nil
 }
 
-func (p *Plugin) registerObservers(telemetry *telemetry.Plugin, r *race.Race, confirmation *confirmation.Plugin, mode *limbmode.Plugin, racePlugin *race2.Plugin) {
+func (p *Plugin) registerObservers(r *race.Race, confirmation *confirmation.Plugin, racePlugin *race2.Plugin) {
 	r.Status().RegisterObserver(func(status race.Status) {
 		if status == race.Stopped && p.tracker.raceState == race.Running {
 			p.postRaceSequence()
@@ -162,70 +164,76 @@ func (p *Plugin) registerObservers(telemetry *telemetry.Plugin, r *race.Race, co
 }
 
 func (p *Plugin) ConfigureCar(car *car.Car) {
-	p.tracker.cars[car.Id()] = car
-	p.limbmode.LimbMode(car.Id()).RegisterObserver(func(b bool) {
-		if b {
-			p.sound.Announce(&announcer.ReadFileTemplateAnnouncement{
-				Fs:       announcements,
-				Filename: "announcements/limbmode.txt",
-				Random:   true,
+	if p.config.Plugin.Sound.Enabled {
+		car.LastLap().RegisterObserver(func(lap types.Lap) {
+			if p.tracker.raceState == race.Running {
+				if lap.Number > 0 {
+					log.Info("Playing Lap sound")
+					playback := sounds.Lap()
+					p.sound.PlayEffect(beep.Seq(playback, beep.Callback(func() {
+						playback.Close()
+					})))
+				}
+
+				u, err := p.fuel.Fuel(car.Id())
+				if err != nil {
+					log.Error(err)
+					return
+				}
+				a, err := p.fuel.Average(car.Id())
+				if err != nil {
+					log.Error(err)
+					return
+				}
+				f := u.Get() / a
+
+				if a > 0 && f < 5 && p.config.Plugin.Sound.Announcements.Enabled {
+					p.sound.Announce(&announcer.ReadFileTemplateAnnouncement{
+						Fs:       announcements,
+						Filename: "announcements/out_of_fuel.txt",
+						Random:   true,
+						Data:     car.TemplateData(),
+					})
+				}
+			}
+		})
+
+		if p.config.Plugin.Sound.Announcements.Enabled {
+			p.tracker.cars[car.Id()] = car
+			p.limbmode.LimbMode(car.Id()).RegisterObserver(func(b bool) {
+				if b {
+					p.sound.Announce(&announcer.ReadFileTemplateAnnouncement{
+						Fs:       announcements,
+						Filename: "announcements/limbmode.txt",
+						Random:   true,
+					})
+				}
+			})
+
+			p.pit.Active(car.Id()).RegisterObserver(func(b bool) {
+				if !b {
+					p.sound.Announce(&announcer.ReadFileTemplateAnnouncement{
+						Fs:       announcements,
+						Filename: "announcements/pit_stop_complete.txt",
+						Random:   true,
+						Data:     car.TemplateData(),
+					})
+				}
+			})
+
+			p.ontrack.Ontrack(car.Id()).RegisterObserver(func(b bool) {
+				if !b && p.tracker.raceState == race.Running {
+					p.sound.OptionalAnnouncement(&announcer.ReadFileTemplateAnnouncement{
+						Fs:       announcements,
+						Filename: "announcements/offtrack.txt",
+						Random:   true,
+						Data:     car.TemplateData(),
+					})
+				}
 			})
 		}
-	})
+	}
 
-	car.LastLap().RegisterObserver(func(lap types.Lap) {
-		if p.tracker.raceState == race.Running {
-			if lap.Number > 0 {
-				log.Info("Playing Lap sound")
-				p.sound.PlayEffect(sounds.Lap())
-			}
-
-			u, err := p.fuel.Fuel(car.Id())
-			if err != nil {
-				log.Error(err)
-				return
-			}
-			a, err := p.fuel.Average(car.Id())
-			if err != nil {
-				log.Error(err)
-				return
-			}
-			f := u.Get() / a
-
-			log.WithField("average", a).WithField("fuel", u.Get()).WithField("left", f).Info("Average usage")
-
-			if a > 0 && f < 5 {
-				p.sound.Announce(&announcer.ReadFileTemplateAnnouncement{
-					Fs:       announcements,
-					Filename: "announcements/out_of_fuel.txt",
-					Random:   true,
-					Data:     car.TemplateData(),
-				})
-			}
-		}
-	})
-
-	p.pit.Active(car.Id()).RegisterObserver(func(b bool) {
-		if !b {
-			p.sound.Announce(&announcer.ReadFileTemplateAnnouncement{
-				Fs:       announcements,
-				Filename: "announcements/pit_stop_complete.txt",
-				Random:   true,
-				Data:     car.TemplateData(),
-			})
-		}
-	})
-
-	p.ontrack.Ontrack(car.Id()).RegisterObserver(func(b bool) {
-		if !b && p.tracker.raceState == race.Running {
-			p.sound.OptionalAnnouncement(&announcer.ReadFileTemplateAnnouncement{
-				Fs:       announcements,
-				Filename: "announcements/offtrack.txt",
-				Random:   true,
-				Data:     car.TemplateData(),
-			})
-		}
-	})
 }
 
 func (p *Plugin) InitializeCar(car *car.Car) {
