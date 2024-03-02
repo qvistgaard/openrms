@@ -12,6 +12,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"io"
 	"os"
+	"runtime/pprof"
 	"sync"
 )
 
@@ -26,7 +27,17 @@ func main() {
 	flagBrowser := flag.Bool("open-browser", false, "Open browser on launch")
 	flagDriver := flag.String("driver", "", "Driver")
 	tuiFlag := flag.Bool("tui", true, "Enable or disable tui")
+	profilerFlag := flag.String("profiler", "", "Enable or disable tui")
 	flag.Parse()
+
+	if *profilerFlag != "" {
+		f, err := os.Create(*profilerFlag)
+		if err != nil {
+			log.Fatal(err)
+		}
+		pprof.StartCPUProfile(f)
+		defer pprof.StopCPUProfile()
+	}
 
 	level, err := log.ParseLevel(*flagLoglevel)
 	if err != nil {
