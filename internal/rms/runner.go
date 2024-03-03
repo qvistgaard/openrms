@@ -49,7 +49,7 @@ func (r *Runner) processEvents() error {
 
 	r.race.Initialize()
 
-	ec := make(chan drivers.Event, 1024)
+	ec := make(chan drivers.Event, 2048)
 	err := r.implement.Start(ec)
 	if err != nil {
 		return err

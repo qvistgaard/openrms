@@ -109,16 +109,14 @@ func (d *Driver3x) writeAndRead(command Command, events chan<- drivers.Event) {
 			log.Error("Failed to read from buffer", err)
 			return
 		}
-		if err != nil || len(read) > 0 {
+		if err == nil || len(read) > 0 {
 			for _, slice := range read {
-				/*				fmt.Printf("%v ", 0x40&slice[8] == 0x40)
-								fmt.Printf("%08b %08b ", slice[4], slice[8])
-								fmt.Printf("Slice %d: %v\n", i, slice)*/
 				d.updateLink(events, slice)
 				d.event(events, slice)
 			}
 			return
 		}
+
 	}
 }
 

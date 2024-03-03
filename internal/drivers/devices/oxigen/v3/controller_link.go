@@ -21,7 +21,6 @@ func (l *controllerLink) timeout() {
 			log.WithField("id", l.id).Warn("Controller link timed out")
 			return
 		case <-l.renew:
-			log.WithField("id", l.id).Trace("controller link renewed")
 
 		}
 	}

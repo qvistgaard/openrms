@@ -23,12 +23,16 @@ const (
 )
 
 func newCar(driver *Driver3x, id types.CarId) drivers.Car {
-	return Car{id, driver}
+	return Car{id, driver, 255, 0, 255 >> 1, 255}
 }
 
 type Car struct {
-	id       types.CarId
-	driver3x *Driver3x
+	id           types.CarId
+	driver3x     *Driver3x
+	maxBreaking  uint8
+	minSpeed     uint8
+	maxSpeed     uint8
+	pitLaneSpeed uint8
 }
 
 func (c Car) Id() types.CarId {
@@ -36,45 +40,45 @@ func (c Car) Id() types.CarId {
 }
 
 func (c Car) SetMaxBreaking(percent uint8) {
-	toByte := percentageToByte(percent)
+	c.maxBreaking = percentageToByte(percent)
 	log.WithField("drivers", "driver3x").
 		WithField("car", c.Id()).
 		WithField("max-breaking", percent).
 		WithField("cmd", carMaxBreakingCode).
-		WithField("hex", fmt.Sprintf("%x", toByte)).
+		WithField("hex", fmt.Sprintf("%x", c.maxBreaking)).
 		Info("set car max breaking")
-	c.driver3x.sendCarCommand(uint8(c.Id()), carMaxBreakingCode, toByte)
+	c.driver3x.sendCarCommand(uint8(c.Id()), carMaxBreakingCode, c.maxBreaking)
 }
 
 func (c Car) SetMinSpeed(percent uint8) {
-	toByte := percentageToByte(percent) >> 1
+	c.minSpeed = percentageToByte(percent) >> 1
 	log.WithField("drivers", "driver3x").
 		WithField("car", c.Id()).
 		WithField("min-speed", percent).
 		WithField("cmd", carMinSpeedCode).
-		WithField("hex", fmt.Sprintf("%x", toByte)).
+		WithField("hex", fmt.Sprintf("%x", c.minSpeed)).
 		Info("set car min speed")
-	c.driver3x.sendCarCommand(uint8(c.Id()), carMinSpeedCode, toByte)
+	c.driver3x.sendCarCommand(uint8(c.Id()), carMinSpeedCode, c.minSpeed)
 }
 
 func (c Car) SetMaxSpeed(percent uint8) {
-	toByte := percentageToByte(percent)
+	c.maxSpeed = percentageToByte(percent)
 	log.WithField("drivers", "driver3x").
 		WithField("car", c.Id()).
 		WithField("max-speed", percent).
 		WithField("cmd", carMaxSpeedCode).
-		WithField("hex", fmt.Sprintf("%x", toByte)).
+		WithField("hex", fmt.Sprintf("%x", c.maxSpeed)).
 		Info("set car max speed")
-	c.driver3x.sendCarCommand(uint8(c.Id()), carMaxSpeedCode, toByte)
+	c.driver3x.sendCarCommand(uint8(c.Id()), carMaxSpeedCode, c.maxSpeed)
 }
 
 func (c Car) SetPitLaneMaxSpeed(percent uint8) {
-	toByte := percentageToByte(percent)
+	c.pitLaneSpeed = percentageToByte(percent)
 	log.WithField("drivers", "driver3x").
 		WithField("car", c.Id()).
 		WithField("max-speed", percent).
 		WithField("cmd", carPitLaneSpeedCode).
-		WithField("hex", fmt.Sprintf("%x", toByte)).
+		WithField("hex", fmt.Sprintf("%x", c.pitLaneSpeed)).
 		Info("set car pit lane max speed")
-	c.driver3x.sendCarCommand(uint8(c.Id()), carPitLaneSpeedCode, toByte)
+	c.driver3x.sendCarCommand(uint8(c.Id()), carPitLaneSpeedCode, c.pitLaneSpeed)
 }
