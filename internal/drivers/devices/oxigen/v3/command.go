@@ -34,16 +34,16 @@ func (c Command) pack(timer []byte, race *Race, track *Track) []byte {
 	}
 
 	return []byte{
-		0x03 | 0x20 | 0x00, //  0 o.race.status | o.track.pitLane.lapCounting | o.track.pitLane.lapCountingOption,
-		0xff,               //  1 o.track.maxSpeed,
-		controller,         //  2 link ID
-		cmd,                //  3 Command value
-		parameter,          //  4 command argument
-		0x00,               //  5 unused
-		0x00,               //  6 unused
-		0x00,               //  7 unused
-		timer[0],           //  8 Race timer
-		timer[1],           //  9 Race timer
-		timer[2],           // 10 Race timer
+		race.status | track.pitLane.lapCounting | track.pitLane.lapCountingOption, //  0 o.race.status | o.track.pitLane.lapCounting | o.track.pitLane.lapCountingOption,
+		track.maxSpeed, //  1 o.track.maxSpeed,
+		controller,     //  2 link ID
+		cmd,            //  3 Command value
+		parameter,      //  4 command argument
+		0x00,           //  5 unused
+		0x00,           //  6 unused
+		0x00,           //  7 unused
+		timer[0],       //  8 Race timer
+		timer[1],       //  9 Race timer
+		timer[2],       // 10 Race timer
 	}
 }

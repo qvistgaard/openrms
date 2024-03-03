@@ -95,9 +95,17 @@ func (d *Driver3x) removeLink(link types.CarId) {
 
 func (d *Driver3x) writeAndRead(command Command, events chan<- drivers.Event) {
 	for {
-		d.write(command)
+		_, err := d.write(command)
+		if err != nil {
+			log.Error("Failed to write command to dongle", err)
+			return
+		}
 
 		read, err := d.Read()
+		if err != nil && read == nil {
+			log.Error("Failed to read from buffer", err)
+			return
+		}
 		if err != nil || len(read) > 0 {
 			for _, slice := range read {
 				/*				fmt.Printf("%v ", 0x40&slice[8] == 0x40)
@@ -134,7 +142,6 @@ func (d *Driver3x) Read() ([]dongleRxMessage, error) {
 
 		n, err := d.serial.Read(buffer)
 		if err != nil {
-			log.Error(err)
 			return nil, err
 		}
 
@@ -144,11 +151,11 @@ func (d *Driver3x) Read() ([]dongleRxMessage, error) {
 
 		if n == 0 {
 			if len(d.links) == 0 {
-				return nil, errors.New("empty message from dongle and no links available")
+				return []dongleRxMessage{}, errors.New("empty message from dongle and no links available")
 			}
 			d.readInterval = d.readInterval + 10
 			log.WithField("interval", d.readInterval).Error("Read timeout, increasing read interval")
-			return nil, errors.New("empty message from dongle")
+			return []dongleRxMessage{}, errors.New("empty message from dongle")
 		}
 
 		messages = append(messages, buffer[:n]...)
