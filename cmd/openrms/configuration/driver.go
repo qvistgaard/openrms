@@ -31,7 +31,7 @@ type DriverConfiguration struct {
 //	driverName := "oxigen"
 //
 //	// Initialize the drivers based on the configuration.
-//	drivers, err := Driver(driverConfig, &driverName)
+//	drivers, err := Driver3x(driverConfig, &driverName)
 //	if err != nil {
 //	    log.Fatal("Failed to initialize the drivers: ", err)
 //	}

@@ -1,4 +1,4 @@
-package oxigen
+package v3
 
 import (
 	"github.com/qvistgaard/openrms/internal/types"
@@ -13,6 +13,7 @@ type controllerLink struct {
 }
 
 func (l *controllerLink) timeout() {
+	log.WithField("id", l.id).Info("new controller link detected")
 	for {
 		select {
 		case <-time.After(1 * time.Second):
@@ -20,6 +21,8 @@ func (l *controllerLink) timeout() {
 			log.WithField("id", l.id).Warn("Controller link timed out")
 			return
 		case <-l.renew:
+			log.WithField("id", l.id).Trace("controller link renewed")
+
 		}
 	}
 }

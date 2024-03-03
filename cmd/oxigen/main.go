@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/binary"
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	serial "github.com/tarm/goserial"
@@ -60,6 +61,7 @@ func main() {
 	links := make(map[uint32]link)
 	expire := make(chan uint32)
 	i2 := 100
+	start := time.Now()
 
 	go func() {
 		for {
@@ -85,7 +87,7 @@ func main() {
 			time.Sleep(time.Duration(i2) / time.Duration(len(links)+1) * time.Millisecond)
 
 			var id uint32
-			_, i, id = read(connection, timer)
+			_, i, id = read(connection, packRaceCounter(start))
 			if i == 0 {
 				i2 = i2 + 10
 				log.WithField("interval", i2).Error("timeout")
@@ -131,9 +133,16 @@ func (l *link) timeout() {
 	}
 }
 
+func packRaceCounter(start time.Time) []byte {
+	centiSeconds := time.Now().Sub(start).Milliseconds() / 10
+	be := make([]byte, 8)
+	binary.BigEndian.PutUint64(be, uint64(centiSeconds))
+	return be[len(be)-3:]
+}
+
 func read(connection io.ReadWriteCloser, timer []byte) (error, int, uint32) {
-	buffer := make([]byte, 13)
-	r := io.LimitReader(connection, 13)
+	buffer := make([]byte, 52)
+	r := io.LimitReader(connection, 52)
 	n := 0
 	var err error
 

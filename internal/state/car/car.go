@@ -197,6 +197,8 @@ func (c *Car) UpdateFromEvent(event drivers.Event) {
 		c.Pit().Set(e.InPit())
 	case events.Deslotted:
 		c.Deslotted().Set(e.Deslotted())
+	case events.Enabled:
+		c.Enabled().Set(e.Enabled())
 	default:
 		log.WithField("package", reflect.TypeOf(e).Elem().PkgPath()).
 			WithField("event", reflect.TypeOf(e).Elem().Name()).

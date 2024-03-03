@@ -1,10 +1,22 @@
-package oxigen
+package v3
 
 import (
 	"fmt"
 	"github.com/stretchr/testify/assert"
 	"testing"
+	"time"
 )
+
+func TestLapTimeUnpack(t *testing.T) {
+	lapTime := unpackLapTime(0, 1)
+	assert.Equal(t, int64(10), lapTime.Milliseconds())
+}
+
+func TestUnpackRaceTime(t *testing.T) {
+	raceTime := unpackRaceTime([4]byte{0, 0, 0, 100}, 0)
+	// log.Infof("%s, %f", raceTime.String(), raceTime.Seconds())
+	assert.Equal(t, time.Second, raceTime)
+}
 
 func Test_Conversion(t *testing.T) {
 	toByte := percentageToByte(100)

@@ -1,4 +1,4 @@
-package oxigen
+package v3
 
 import (
 	"github.com/qvistgaard/openrms/internal/drivers"
