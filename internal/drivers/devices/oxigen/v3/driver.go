@@ -103,6 +103,9 @@ func (d *Driver3x) writeAndRead(command Command, events chan<- drivers.Event) {
 
 		read, err := d.Read()
 		if err != nil && read == nil {
+			if err.Error() == "EOF" {
+				return
+			}
 			log.Error("Failed to read from buffer", err)
 			return
 		}
@@ -125,10 +128,15 @@ func (d *Driver3x) write(command Command) (int, error) {
 
 	n, err := d.serial.Write(pack)
 
-	log.WithField("message", fmt.Sprintf("%v", pack)).
+	field := log.WithField("message", fmt.Sprintf("%v", pack)).
 		WithField("bytes", n).
-		WithField("time", time.Now()).
-		Trace("send message to dongle")
+		WithField("car", command.id)
+
+	if command.id != nil {
+		field.Debug("send message to dongle")
+	} else {
+		field.Trace("send message to dongle")
+	}
 
 	return n, err
 }
