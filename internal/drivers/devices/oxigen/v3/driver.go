@@ -113,17 +113,17 @@ func (d *Driver3x) writeAndRead(command Command, events chan<- drivers.Event) {
 		}
 
 		if err := d.serial.Drain(); err != nil {
-			log.Printf("Failed to drain after writing command: %v", err)
+			log.Warn("Failed to drain after writing command: %v", err)
 			return
 		}
 
 		read, err := d.Read()
 		if errors.Is(err, errors.New("EOF")) {
 			// Consider whether EOF should actually terminate the loop
-			log.Printf("EOF encountered: %v", err)
+			log.Trace("EOF encountered: %v", err)
 			return
 		} else if err != nil {
-			log.Printf("Failed to read from buffer: %v", err)
+			log.Trace("Failed to read from buffer: %v", err)
 			return
 		}
 
@@ -161,7 +161,7 @@ func (d *Driver3x) Read() ([]dongleRxMessage, error) {
 	buffer := make([]byte, 52)
 
 	for len(messages) == 0 || len(messages)%13 != 0 {
-		time.Sleep(time.Duration(d.readInterval) / time.Duration(len(d.links)+1) * time.Millisecond)
+		// time.Sleep(time.Duration(d.readInterval) / time.Duration(len(d.links)+1) * time.Millisecond)
 
 		n, err := d.serial.Read(buffer)
 		if err != nil {
@@ -169,21 +169,24 @@ func (d *Driver3x) Read() ([]dongleRxMessage, error) {
 			return nil, err
 		}
 
-		log.WithField("message", fmt.Sprintf("%v", buffer)).
-			WithField("bytes", n).
-			Trace("received message from dongle")
+		/*		log.WithField("message", fmt.Sprintf("%v", buffer)).
+				WithField("bytes", n).
+				Debug("part received message from dongle")*/
 
 		if n == 0 {
 			if len(d.links) == 0 {
 				return []dongleRxMessage{}, errors.New("empty message from dongle and no links available")
 			}
-			d.readInterval = d.readInterval + 10
-			log.WithField("interval", d.readInterval).Error("Read timeout, increasing read interval")
+			/*			d.readInterval = d.readInterval + 10
+						log.WithField("interval", d.readInterval).Error("Read timeout, increasing read interval")*/
 			return []dongleRxMessage{}, errors.New("empty message from dongle")
 		}
 
 		messages = append(messages, buffer[:n]...)
 	}
+	log.WithField("message", fmt.Sprintf("%v", messages)).
+		WithField("bytes", len(messages)).
+		Debug("received message from dongle")
 	return d.splitMessages(messages), nil
 }
 
