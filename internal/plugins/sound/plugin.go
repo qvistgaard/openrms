@@ -206,6 +206,7 @@ func (p *Plugin) ConfigureCar(car *car.Car) {
 						Fs:       announcements,
 						Filename: "announcements/limbmode.txt",
 						Random:   true,
+						Data:     car.TemplateData(),
 					})
 				}
 			})
