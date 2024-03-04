@@ -9,6 +9,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"go.bug.st/serial"
 	"math/rand"
+	"syscall"
 	"time"
 )
 
@@ -112,14 +113,21 @@ func (d *Driver3x) writeAndRead(command Command, events chan<- drivers.Event) {
 			return
 		}
 
-		if err := d.serial.Drain(); err != nil {
-			log.Warn("Failed to drain after writing command: %v", err)
-			return
+		for {
+			if err := d.serial.Drain(); err != nil {
+				var errno syscall.Errno
+				if errors.As(err, &errno) && errors.Is(errno, syscall.EINTR) {
+					log.Warn("Failed to drain after writing command. retrying...: ", err)
+					continue
+				}
+				log.Warn("Failed to drain after writing command: ", err)
+			} else {
+				break
+			}
 		}
 
 		read, err := d.Read()
 		if errors.Is(err, errors.New("EOF")) {
-			// Consider whether EOF should actually terminate the loop
 			log.Trace("EOF encountered: %v", err)
 			return
 		} else if err != nil {
@@ -242,30 +250,31 @@ func (d *Driver3x) sendCarCommand(car uint8, code byte, value uint8) {
 }
 
 func (d *Driver3x) sendStoredCarState() {
-	if len(d.cars) > 0 {
-		cars := []types.CarId{}
-		for id, _ := range d.cars {
-			cars = append(cars, id)
+	if len(d.cars) == 0 {
+		return // Early return if there are no cars
+	}
+
+	var randomCarId types.CarId
+	var i int
+	randomInt := rand.Intn(len(d.cars))
+	for id := range d.cars {
+		if i == randomInt {
+			randomCarId = id
+			break
 		}
-		var intn int
-		if len(cars) > 1 {
-			intn = rand.Intn(len(cars) - 1)
-		} else {
-			intn = 0
-		}
-		fn := rand.Intn(3)
-		carId := cars[intn]
-		car := d.cars[carId]
-		switch fn {
-		case 0:
-			car.SendMaxBreaking()
-		case 1:
-			car.sendMinSpeed()
-		case 2:
-			car.SendMaxSpeed()
-		case 3:
-			car.sendPitLaneMaxSpeed()
-		}
+		i++
+	}
+
+	car := d.cars[randomCarId]
+	switch rand.Intn(4) {
+	case 0:
+		car.sendMaxBreaking()
+	case 1:
+		car.sendMinSpeed()
+	case 2:
+		car.sendMaxSpeed()
+	case 3:
+		car.sendPitLaneMaxSpeed()
 	}
 
 }

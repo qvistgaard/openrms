@@ -46,10 +46,10 @@ func (c *Car) SetMaxBreaking(percent uint8) {
 		WithField("cmd", carMaxBreakingCode).
 		WithField("hex", fmt.Sprintf("%x", c.maxBreaking)).
 		Info("set car max breaking")
-	c.SendMaxBreaking()
+	c.sendMaxBreaking()
 }
 
-func (c *Car) SendMaxBreaking() {
+func (c *Car) sendMaxBreaking() {
 	c.driver3x.sendCarCommand(uint8(c.Id()), carMaxBreakingCode, c.maxBreaking)
 }
 
@@ -76,10 +76,10 @@ func (c *Car) SetMaxSpeed(percent uint8) {
 		WithField("cmd", carMaxSpeedCode).
 		WithField("hex", fmt.Sprintf("%x", c.maxSpeed)).
 		Info("set car max speed")
-	c.SendMaxSpeed()
+	c.sendMaxSpeed()
 }
 
-func (c *Car) SendMaxSpeed() {
+func (c *Car) sendMaxSpeed() {
 	c.driver3x.sendCarCommand(uint8(c.Id()), carMaxSpeedCode, c.maxSpeed)
 }
 
