@@ -21,6 +21,10 @@ func unpackRaceTime(b [4]byte, lag byte) time.Duration {
 	return time.Duration(rt*10) * time.Millisecond
 }
 
+func unpackPitStatus(b dongleRxMessage) bool {
+	return 0x40&b[8] == 0x40
+}
+
 func packRaceCounter(start time.Time) []byte {
 	centiSeconds := time.Now().Sub(start).Milliseconds() / 10
 	be := make([]byte, 8)

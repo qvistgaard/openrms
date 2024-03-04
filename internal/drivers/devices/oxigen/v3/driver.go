@@ -8,6 +8,7 @@ import (
 	"github.com/qvistgaard/openrms/internal/types"
 	log "github.com/sirupsen/logrus"
 	"io"
+	"math/rand"
 	"time"
 )
 
@@ -15,6 +16,7 @@ type Driver3x struct {
 	serial       io.ReadWriteCloser
 	start        time.Time
 	links        map[types.CarId]controllerLink
+	cars         map[types.CarId]*Car
 	expire       chan types.CarId
 	readInterval int
 	version      string
@@ -32,10 +34,11 @@ func CreateDriver(serial io.ReadWriteCloser) (drivers.Driver, error) {
 		race:   NewRace(),
 		start:  time.Now(),
 		links:  make(map[types.CarId]controllerLink),
+		cars:   make(map[types.CarId]*Car),
 		expire: make(chan types.CarId),
 		tx:     make(chan Command, 1024),
 
-		readInterval: 100,
+		readInterval: 320,
 	}
 	return o, nil
 }
@@ -53,8 +56,10 @@ func (d *Driver3x) Stop() error {
 }
 
 func (d *Driver3x) Car(car types.CarId) drivers.Car {
-	return newCar(d, car)
-
+	if _, ok := d.cars[car]; !ok {
+		d.cars[car] = newCar(d, car)
+	}
+	return d.cars[car]
 }
 
 func (d *Driver3x) Track() drivers.Track {
@@ -71,6 +76,10 @@ func (d *Driver3x) linkUpdateLoop(e chan<- drivers.Event) {
 		case link := <-d.expire:
 			d.removeLink(link)
 			e <- events.NewEnabled(newCar(d, link), false)
+		case <-time.After(100 * time.Millisecond):
+			if len(d.tx) == 0 {
+				d.sendStoredCarState()
+			}
 		}
 	}
 
@@ -86,6 +95,7 @@ func (d *Driver3x) communicationLoop(events chan<- drivers.Event) {
 				d.tx <- newEmptyCommand()
 			}
 		}
+
 	}
 }
 
@@ -148,6 +158,7 @@ func (d *Driver3x) Read() ([]dongleRxMessage, error) {
 
 		n, err := d.serial.Read(buffer)
 		if err != nil {
+			log.Error(err)
 			return nil, err
 		}
 
@@ -181,7 +192,7 @@ func (d *Driver3x) event(c chan<- drivers.Event, b dongleRxMessage) {
 	c <- events.NewControllerTriggerValueEvent(car, float64(0x7F&b[7]))
 	c <- events.NewControllerTrackCallButton(car, 0x08&b[0] == 0x08)
 	c <- events.NewLap(car, lapNumber, lt, rt)
-	c <- events.NewInPit(car, 0x40&b[8] == 0x40)
+	c <- events.NewInPit(car, unpackPitStatus(b))
 	// TODO: Deprecate and remove
 	c <- events.NewDeslotted(car, !(0x80&b[7] == 0x80))
 	c <- events.NewOnTrack(car, 0x80&b[7] == 0x80)
@@ -207,7 +218,7 @@ func (d *Driver3x) updateLink(e chan<- drivers.Event, message [13]byte) {
 			expire: d.expire,
 			renew:  make(chan bool),
 		}
-		d.readInterval = 100
+		d.readInterval = 320
 		l := d.links[linkId]
 		go l.timeout()
 		e <- events.NewEnabled(newCar(d, linkId), true)
@@ -218,4 +229,33 @@ func (d *Driver3x) updateLink(e chan<- drivers.Event, message [13]byte) {
 func (d *Driver3x) sendCarCommand(car uint8, code byte, value uint8) {
 	command := newCommand(&car, code, value)
 	d.tx <- command
+}
+
+func (d *Driver3x) sendStoredCarState() {
+	if len(d.cars) > 0 {
+		cars := []types.CarId{}
+		for id, _ := range d.cars {
+			cars = append(cars, id)
+		}
+		var intn int
+		if len(cars) > 1 {
+			intn = rand.Intn(len(cars) - 1)
+		} else {
+			intn = 0
+		}
+		fn := rand.Intn(3)
+		carId := cars[intn]
+		car := d.cars[carId]
+		switch fn {
+		case 0:
+			car.SendMaxBreaking()
+		case 1:
+			car.sendMinSpeed()
+		case 2:
+			car.SendMaxSpeed()
+		case 3:
+			car.sendPitLaneMaxSpeed()
+		}
+	}
+
 }
