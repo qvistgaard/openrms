@@ -7,13 +7,13 @@ import (
 	"github.com/qvistgaard/openrms/internal/drivers/events"
 	"github.com/qvistgaard/openrms/internal/types"
 	log "github.com/sirupsen/logrus"
-	"io"
+	"go.bug.st/serial"
 	"math/rand"
 	"time"
 )
 
 type Driver3x struct {
-	serial       io.ReadWriteCloser
+	serial       serial.Port
 	start        time.Time
 	links        map[types.CarId]controllerLink
 	cars         map[types.CarId]*Car
@@ -27,9 +27,10 @@ type Driver3x struct {
 
 type dongleRxMessage [13]byte
 
-func CreateDriver(serial io.ReadWriteCloser) (drivers.Driver, error) {
+func CreateDriver(connection serial.Port) (drivers.Driver, error) {
+	connection.SetReadTimeout(10 * time.Millisecond)
 	o := &Driver3x{
-		serial: serial,
+		serial: connection,
 		track:  NewTrack(),
 		race:   NewRace(),
 		start:  time.Now(),
@@ -76,10 +77,10 @@ func (d *Driver3x) linkUpdateLoop(e chan<- drivers.Event) {
 		case link := <-d.expire:
 			d.removeLink(link)
 			e <- events.NewEnabled(newCar(d, link), false)
-		case <-time.After(100 * time.Millisecond):
-			if len(d.tx) == 0 {
-				d.sendStoredCarState()
-			}
+			/*		case <-time.After(100 * time.Millisecond):
+					if len(d.tx) == 0 {
+						d.sendStoredCarState()
+					}*/
 		}
 	}
 
@@ -111,14 +112,21 @@ func (d *Driver3x) writeAndRead(command Command, events chan<- drivers.Event) {
 			return
 		}
 
-		read, err := d.Read()
-		if err != nil && read == nil {
-			if err.Error() == "EOF" {
-				return
-			}
-			log.Error("Failed to read from buffer", err)
+		if err := d.serial.Drain(); err != nil {
+			log.Printf("Failed to drain after writing command: %v", err)
 			return
 		}
+
+		read, err := d.Read()
+		if errors.Is(err, errors.New("EOF")) {
+			// Consider whether EOF should actually terminate the loop
+			log.Printf("EOF encountered: %v", err)
+			return
+		} else if err != nil {
+			log.Printf("Failed to read from buffer: %v", err)
+			return
+		}
+
 		if err == nil || len(read) > 0 {
 			for _, slice := range read {
 				d.updateLink(events, slice)
@@ -126,7 +134,6 @@ func (d *Driver3x) writeAndRead(command Command, events chan<- drivers.Event) {
 			}
 			return
 		}
-
 	}
 }
 

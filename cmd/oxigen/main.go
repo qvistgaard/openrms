@@ -2,31 +2,20 @@ package main
 
 import (
 	"encoding/binary"
+	"encoding/hex"
 	"fmt"
 	log "github.com/sirupsen/logrus"
-	serial "github.com/tarm/goserial"
+	"go.bug.st/serial"
 	"go.bug.st/serial/enumerator"
 	"io"
-	"os"
-	"runtime/pprof"
 	"strings"
+	"sync"
 	"time"
 )
 
 func main() {
 	log.SetLevel(log.InfoLevel)
 	log.SetReportCaller(true)
-
-	f, err := os.Create("profile.gproff")
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = pprof.StartCPUProfile(f)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer pprof.StopCPUProfile()
-	defer f.Close() // error handling omitted for example
 
 	var oxigenPort string
 
@@ -46,13 +35,40 @@ func main() {
 		panic(err)
 	}
 
-	c := &serial.Config{Name: oxigenPort, Baud: 115200, ReadTimeout: time.Millisecond * 50}
-	connection, err := serial.OpenPort(c)
+	/*
+		c := &serial.Config{Name: oxigenPort, Baud: 115200  ReadTimeout: time.Millisecond * 10}
+		connection, err := serial.OpenPort(c)
+		if err != nil {
+			log.Fatal(err)
+		}
+	*/
+	mode := &serial.Mode{
+		BaudRate: 115200,
+	}
+	connection, err := serial.Open(oxigenPort, mode)
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = connection.SetReadTimeout(time.Millisecond * 10)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	timer := []byte{0x00, 0x00, 0x01}
+	versionRequest := []byte{0x06, 0x06, 0x06, 0x06, 0x00, 0x00, 0x00} // Get dongle version bytecode
+	_, err = connection.Write(versionRequest)
+	if err != nil {
+		log.Panic(err)
+		err = connection.Close()
+		if err != nil {
+			log.Panic(err)
+		}
+	}
+	connection.Drain()
+	versionResponse := make([]byte, 5)
+	_, err = io.ReadFull(connection, versionResponse)
+	log.Info(fmt.Sprintf("%d.%d", versionResponse[0], versionResponse[1]))
+
+	timer := []byte{0x01, 0x01, 0x01}
 
 	if err != nil {
 		panic(err)
@@ -72,6 +88,8 @@ func main() {
 			}
 		}
 	}()
+	var lock sync.Mutex
+
 	for true {
 		send := pack(timer)
 
@@ -81,6 +99,7 @@ func main() {
 			if err != nil {
 				log.Error(err)
 			}
+			connection.Drain()
 
 			// log.WithField("bytes", bytes).Info("wrote")
 
@@ -92,6 +111,7 @@ func main() {
 				i2 = i2 + 10
 				log.WithField("interval", i2).Error("timeout")
 			} else {
+				lock.Lock()
 				if _, ok := links[id]; !ok {
 					links[id] = link{
 						id:     id,
@@ -103,6 +123,7 @@ func main() {
 					l := links[id]
 					go l.timeout()
 				}
+				lock.Unlock()
 				links[id].renew <- true
 			}
 		}
@@ -128,7 +149,7 @@ func (l *link) timeout() {
 			log.WithField("id", l.id).Info("Car timeout")
 			return
 		case <-l.renew:
-			log.WithField("id", l.id).Info("Renew")
+			// log.WithField("id", l.id).Info("Renew")
 		}
 	}
 }
@@ -151,20 +172,23 @@ func read(connection io.ReadWriteCloser, timer []byte) (error, int, uint32) {
 		log.Error(err)
 		return err, n, 0
 	}
-	/*	log.WithField("message", fmt.Sprintf("%x", buffer)).
+	log. // WithField("message", fmt.Sprintf("%v", buffer)).
+		WithField("message", fmt.Sprintf("%x", buffer)).
+		WithField("hex", fmt.Sprintf("%s", hex.EncodeToString(buffer))).
+		WithField("bits", fmt.Sprintf("%08b ", buffer[0])).
 		WithField("bytes", n).
 		WithField("time", time.Now()).
-		Info("received message from dongle")*/
-
-	timer = buffer[9:12]
+		Info("received message from dongle")
+	// timer = buffer[9:12]
 	return nil, n, uint32(buffer[1])
 }
 
 func write(send []byte, connection io.ReadWriteCloser) (int, error) {
-	/*	log.WithFields(map[string]interface{}{
+	log.WithFields(map[string]interface{}{
 		"message": fmt.Sprintf("%x", send),
+		"byte0":   fmt.Sprintf("%08b", send[0]),
 		"size":    fmt.Sprintf("%d", len(send)),
-	}).Trace("send message to dongle")*/
+	}).Info("send message to dongle")
 
 	len, err := connection.Write(send)
 	if err != nil {
@@ -186,6 +210,7 @@ func pack(timer []byte) []byte {
 		0x00,
 		0x00,
 		0x00,
+		0x00,     // unused
 		0x00,     // unused
 		0x00,     // unused
 		timer[0], // timer
