@@ -106,21 +106,26 @@ func (d *Driver3x) removeLink(link types.CarId) {
 }
 
 func (d *Driver3x) writeAndRead(command Command, events chan<- drivers.Event) {
+	var i = 0
 	for {
-		_, err := d.write(command)
+		i++
+		_, err := d.write(command, i)
 		if err != nil {
-			log.Error("Failed to write command to dongle", err)
-			return
+			log.WithField("try", i).
+				Error("Failed to write command to dongle", err)
+			continue
 		}
 
 		for {
 			if err := d.serial.Drain(); err != nil {
 				var errno syscall.Errno
 				if errors.As(err, &errno) && errors.Is(errno, syscall.EINTR) {
-					log.Warn("Failed to drain after writing command. retrying...: ", err)
+					log.WithField("try", i).
+						Warn("Failed to drain after writing command. retrying...: ", err)
 					continue
 				}
-				log.Warn("Failed to drain after writing command: ", err)
+				log.WithField("try", i).
+					Warn("Failed to drain after writing command: ", err)
 			} else {
 				break
 			}
@@ -128,11 +133,13 @@ func (d *Driver3x) writeAndRead(command Command, events chan<- drivers.Event) {
 
 		read, err := d.Read()
 		if errors.Is(err, errors.New("EOF")) {
-			log.Trace("EOF encountered: %v", err)
-			return
+			log.WithField("try", i).
+				Tracef("EOF encountered: %v", err)
+			continue
 		} else if err != nil {
-			log.Trace("Failed to read from buffer: %v", err)
-			return
+			log.WithField("try", i).
+				Tracef("Failed to read from buffer: %v", err)
+			continue
 		}
 
 		if err == nil || len(read) > 0 {
@@ -145,20 +152,23 @@ func (d *Driver3x) writeAndRead(command Command, events chan<- drivers.Event) {
 	}
 }
 
-func (d *Driver3x) write(command Command) (int, error) {
+func (d *Driver3x) write(command Command, i int) (int, error) {
 	timer := packRaceCounter(d.start)
 	pack := command.pack(timer, d.race, d.track)
 
 	n, err := d.serial.Write(pack)
 
 	field := log.WithField("message", fmt.Sprintf("%v", pack)).
+		WithField("try", i).
 		WithField("bytes", n).
 		WithField("car", command.id)
 
 	if command.id != nil {
-		field.Debug("send message to dongle")
+		field.WithField("try", i).
+			Debug("send message to dongle")
 	} else {
-		field.Trace("send message to dongle")
+		field.WithField("try", i).
+			Trace("send message to dongle")
 	}
 
 	return n, err
