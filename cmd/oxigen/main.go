@@ -103,7 +103,7 @@ func main() {
 
 			// log.WithField("bytes", bytes).Info("wrote")
 
-			time.Sleep(time.Duration(i2) / time.Duration(len(links)+1) * time.Millisecond)
+			// time.Sleep(time.Duration(i2) / time.Duration(len(links)+1) * time.Millisecond)
 
 			var id uint32
 			_, i, id = read(connection, packRaceCounter(start))

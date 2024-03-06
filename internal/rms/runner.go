@@ -66,7 +66,7 @@ func (r *Runner) processEvents() error {
 				id := e.Car().Id()
 				if id > 0 {
 					if c, ok, _ := r.cars.Get(id); ok {
-						go c.UpdateFromEvent(e)
+						c.UpdateFromEvent(e)
 					}
 				}
 			}

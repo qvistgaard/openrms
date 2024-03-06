@@ -215,10 +215,10 @@ func (d *Driver3x) event(c chan<- drivers.Event, b dongleRxMessage) {
 
 	car := newCar(d, id)
 
+	c <- events.NewInPit(car, unpackPitStatus(b))
 	c <- events.NewControllerTriggerValueEvent(car, float64(0x7F&b[7]))
 	c <- events.NewControllerTrackCallButton(car, 0x08&b[0] == 0x08)
 	c <- events.NewLap(car, lapNumber, lt, rt)
-	c <- events.NewInPit(car, unpackPitStatus(b))
 	// TODO: Deprecate and remove
 	c <- events.NewDeslotted(car, !(0x80&b[7] == 0x80))
 	c <- events.NewOnTrack(car, 0x80&b[7] == 0x80)
