@@ -80,10 +80,10 @@ func (d *Driver3x) linkUpdateLoop(e chan<- drivers.Event) {
 		case link := <-d.expire:
 			d.removeLink(link)
 			e <- events.NewEnabled(newCar(d, link), false)
-			/*		case <-time.After(100 * time.Millisecond):
-					if len(d.tx) == 0 {
-						d.sendStoredCarState()
-					}*/
+		case <-time.After(100 * time.Millisecond):
+			if len(d.tx) == 0 {
+				d.sendStoredCarState()
+			}
 		}
 	}
 
@@ -109,6 +109,7 @@ func (d *Driver3x) removeLink(link types.CarId) {
 func (d *Driver3x) writeAndRead(command Command, events chan<- drivers.Event) {
 	for {
 		_, err := d.write(command)
+		time.Sleep(100 * time.Millisecond)
 		if err != nil {
 			log.Error("Failed to write command to dongle", err)
 			continue
@@ -130,7 +131,7 @@ func (d *Driver3x) writeAndRead(command Command, events chan<- drivers.Event) {
 	}
 
 	for {
-		time.Sleep(50 * time.Millisecond)
+		// time.Sleep(100 * time.Millisecond)
 		read, err := d.Read()
 		if errors.Is(err, errors.New("EOF")) {
 			log.Tracef("EOF encountered: %v", err)
@@ -138,8 +139,10 @@ func (d *Driver3x) writeAndRead(command Command, events chan<- drivers.Event) {
 		} else if errors.Is(noLinksError, err) {
 			return
 		} else if err != nil {
+			time.Sleep(time.Duration(d.readInterval) / time.Duration(len(d.links)+1) * time.Millisecond)
+
 			log.Tracef("Failed to read from buffer: %v", err)
-			continue
+			return
 		}
 
 		if err == nil || len(read) > 0 {
@@ -176,8 +179,6 @@ func (d *Driver3x) Read() ([]dongleRxMessage, error) {
 	buffer := make([]byte, 52)
 
 	for len(messages) == 0 || len(messages)%13 != 0 {
-		// time.Sleep(time.Duration(d.readInterval) / time.Duration(len(d.links)+1) * time.Millisecond)
-
 		n, err := d.serial.Read(buffer)
 		if err != nil {
 			log.Error(err)
@@ -192,8 +193,8 @@ func (d *Driver3x) Read() ([]dongleRxMessage, error) {
 			if len(d.links) == 0 {
 				return []dongleRxMessage{}, noLinksError
 			}
-			/*			d.readInterval = d.readInterval + 10
-						log.WithField("interval", d.readInterval).Error("Read timeout, increasing read interval")*/
+			d.readInterval = d.readInterval + 10
+			/*			log.WithField("interval", d.readInterval).Error("Read timeout, increasing read interval")*/
 			return []dongleRxMessage{}, errors.New("empty message from dongle")
 		}
 

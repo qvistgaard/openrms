@@ -16,7 +16,7 @@ func (l *controllerLink) timeout() {
 	log.WithField("id", l.id).Info("new controller link detected")
 	for {
 		select {
-		case <-time.After(30 * time.Second):
+		case <-time.After(5 * time.Second):
 			l.expire <- l.id
 			log.WithField("id", l.id).Warn("Controller link timed out")
 			return
