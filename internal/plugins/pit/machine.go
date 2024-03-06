@@ -53,6 +53,7 @@ func machine(h Handler) *stateless.StateMachine {
 	m.Configure(stateCarInPitLane).
 		OnEntry(logPitStateChangeAction(carId, stateCarInPitLane, "car entered pit lane")).
 		Permit(triggerCarMoving, stateCarMoving).
+		Permit(triggerCarStopped, stateCarStopped).
 		Permit(triggerCarExitedPitLane, stateCarNotInPitLane)
 
 	m.Configure(stateCarMoving).
