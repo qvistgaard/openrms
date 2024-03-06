@@ -9,7 +9,7 @@ import (
 )
 
 func TestDriver3xCommunications(t *testing.T) {
-	log.SetLevel(log.TraceLevel)
+	log.SetLevel(log.DebugLevel)
 	log.SetReportCaller(false)
 
 	connection, err := serial.CreateUSBConnection(nil)

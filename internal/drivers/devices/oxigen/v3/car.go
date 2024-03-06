@@ -22,7 +22,7 @@ const (
 )
 
 func newCar(driver *Driver3x, id types.CarId) *Car {
-	return &Car{id: id, driver3x: driver, maxBreaking: 255, maxSpeed: 255 >> 1, pitLaneSpeed: 255}
+	return &Car{id: id, driver3x: driver, maxBreaking: 255, minSpeed: 0, maxSpeed: 255, pitLaneSpeed: 255}
 }
 
 type Car struct {

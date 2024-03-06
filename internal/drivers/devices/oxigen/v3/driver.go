@@ -26,10 +26,12 @@ type Driver3x struct {
 	track        *Track
 }
 
+var noLinksError = errors.New("empty message from dongle and no links available")
+
 type dongleRxMessage [13]byte
 
 func CreateDriver(connection serial.Port) (drivers.Driver, error) {
-	connection.SetReadTimeout(10 * time.Millisecond)
+	connection.SetReadTimeout(50 * time.Millisecond)
 	o := &Driver3x{
 		serial: connection,
 		track:  NewTrack(),
@@ -106,39 +108,37 @@ func (d *Driver3x) removeLink(link types.CarId) {
 }
 
 func (d *Driver3x) writeAndRead(command Command, events chan<- drivers.Event) {
-	var i = 0
 	for {
-		i++
-		_, err := d.write(command, i)
+		_, err := d.write(command)
 		if err != nil {
-			log.WithField("try", i).
-				Error("Failed to write command to dongle", err)
+			log.Error("Failed to write command to dongle", err)
 			continue
+		} else {
+			break
 		}
-
-		for {
-			if err := d.serial.Drain(); err != nil {
-				var errno syscall.Errno
-				if errors.As(err, &errno) && errors.Is(errno, syscall.EINTR) {
-					log.WithField("try", i).
-						Warn("Failed to drain after writing command. retrying...: ", err)
-					continue
-				}
-				log.WithField("try", i).
-					Warn("Failed to drain after writing command: ", err)
-			} else {
-				break
+	}
+	for {
+		if err := d.serial.Drain(); err != nil {
+			var errno syscall.Errno
+			if errors.As(err, &errno) && errors.Is(errno, syscall.EINTR) {
+				log.Warn("Failed to drain after writing command. retrying...: ", err)
+				continue
 			}
+			log.Warn("Failed to drain after writing command: ", err)
+		} else {
+			break
 		}
+	}
 
+	for {
 		read, err := d.Read()
 		if errors.Is(err, errors.New("EOF")) {
-			log.WithField("try", i).
-				Tracef("EOF encountered: %v", err)
+			log.Tracef("EOF encountered: %v", err)
 			continue
+		} else if errors.Is(noLinksError, err) {
+			return
 		} else if err != nil {
-			log.WithField("try", i).
-				Tracef("Failed to read from buffer: %v", err)
+			log.Tracef("Failed to read from buffer: %v", err)
 			continue
 		}
 
@@ -152,23 +152,20 @@ func (d *Driver3x) writeAndRead(command Command, events chan<- drivers.Event) {
 	}
 }
 
-func (d *Driver3x) write(command Command, i int) (int, error) {
+func (d *Driver3x) write(command Command) (int, error) {
 	timer := packRaceCounter(d.start)
 	pack := command.pack(timer, d.race, d.track)
 
 	n, err := d.serial.Write(pack)
 
 	field := log.WithField("message", fmt.Sprintf("%v", pack)).
-		WithField("try", i).
 		WithField("bytes", n).
 		WithField("car", command.id)
 
 	if command.id != nil {
-		field.WithField("try", i).
-			Debug("send message to dongle")
+		field.Debug("send message to dongle")
 	} else {
-		field.WithField("try", i).
-			Trace("send message to dongle")
+		field.Trace("send message to dongle")
 	}
 
 	return n, err
@@ -193,7 +190,7 @@ func (d *Driver3x) Read() ([]dongleRxMessage, error) {
 
 		if n == 0 {
 			if len(d.links) == 0 {
-				return []dongleRxMessage{}, errors.New("empty message from dongle and no links available")
+				return []dongleRxMessage{}, noLinksError
 			}
 			/*			d.readInterval = d.readInterval + 10
 						log.WithField("interval", d.readInterval).Error("Read timeout, increasing read interval")*/

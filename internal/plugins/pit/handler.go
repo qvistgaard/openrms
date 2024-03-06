@@ -49,7 +49,7 @@ func (p *DefaultHandler) OnCarStop(startPitStop StartPitStop) error {
 	go func() {
 		log.WithField("car", p.Id()).Info("waiting for automatic pit stop confirmation")
 		select {
-		case <-time.After(5 * time.Second):
+		case <-time.After(3 * time.Second):
 			log.WithField("car", p.Id()).Info("pit stop automatically confirmed")
 			err := startPitStop()
 			if err != nil {
