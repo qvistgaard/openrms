@@ -99,7 +99,6 @@ func (d *Driver3x) communicationLoop(events chan<- drivers.Event) {
 				d.tx <- newEmptyCommand()
 			}
 		}
-
 	}
 }
 
@@ -131,6 +130,7 @@ func (d *Driver3x) writeAndRead(command Command, events chan<- drivers.Event) {
 	}
 
 	for {
+		time.Sleep(50 * time.Millisecond)
 		read, err := d.Read()
 		if errors.Is(err, errors.New("EOF")) {
 			log.Tracef("EOF encountered: %v", err)
