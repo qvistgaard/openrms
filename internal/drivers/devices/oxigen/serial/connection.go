@@ -43,7 +43,10 @@ func CreateUSBConnection(device *string) (serial.Port, error) {
 	/*	options := &serial.Config{Name: oxigenPort, Baud: 115200, ReadTimeout: time.Millisecond * 50}
 	 */
 	mode := &serial.Mode{
-		BaudRate: 115200,
+		BaudRate: 9600,
+		Parity:   serial.NoParity,
+		StopBits: serial.OneStopBit,
+		DataBits: 8,
 	}
 
 	// Open the port.

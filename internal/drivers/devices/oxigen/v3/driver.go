@@ -109,7 +109,6 @@ func (d *Driver3x) removeLink(link types.CarId) {
 func (d *Driver3x) writeAndRead(command Command, events chan<- drivers.Event) {
 	for {
 		_, err := d.write(command)
-		time.Sleep(100 * time.Millisecond)
 		if err != nil {
 			log.Error("Failed to write command to dongle", err)
 			continue
@@ -139,7 +138,7 @@ func (d *Driver3x) writeAndRead(command Command, events chan<- drivers.Event) {
 		} else if errors.Is(noLinksError, err) {
 			return
 		} else if err != nil {
-			time.Sleep(time.Duration(d.readInterval) / time.Duration(len(d.links)+1) * time.Millisecond)
+			// time.Sleep(time.Duration(d.readInterval) / time.Duration(len(d.links)+1) * time.Millisecond)
 
 			log.Tracef("Failed to read from buffer: %v", err)
 			return
@@ -193,7 +192,7 @@ func (d *Driver3x) Read() ([]dongleRxMessage, error) {
 			if len(d.links) == 0 {
 				return []dongleRxMessage{}, noLinksError
 			}
-			d.readInterval = d.readInterval + 10
+			// d.readInterval = d.readInterval + 10
 			/*			log.WithField("interval", d.readInterval).Error("Read timeout, increasing read interval")*/
 			return []dongleRxMessage{}, errors.New("empty message from dongle")
 		}

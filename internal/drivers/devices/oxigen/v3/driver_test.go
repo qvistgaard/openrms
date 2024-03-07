@@ -1,6 +1,7 @@
 package v3
 
 import (
+	"fmt"
 	"github.com/qvistgaard/openrms/internal/drivers"
 	"github.com/qvistgaard/openrms/internal/drivers/devices/oxigen/serial"
 	log "github.com/sirupsen/logrus"
@@ -27,7 +28,7 @@ func TestDriver3xCommunications(t *testing.T) {
 	for {
 		select {
 		case data := <-received:
-			log.WithField("data", data).Info("Data received")
+			log.WithField("data", fmt.Sprintf("%+v", data)).Info("Data received")
 		}
 	}
 
