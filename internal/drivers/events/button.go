@@ -26,7 +26,7 @@ type GenericButton struct {
 //
 // returns: An instance of Button, specifically a GenericButton.
 func NewGenericButton(car drivers.Car, pressed bool) Button {
-	return &GenericButton{NewGenericEvent(car), pressed}
+	return GenericButton{NewGenericEvent(car), pressed}
 }
 
 // Pressed implements the Pressed method of the Button interface.
