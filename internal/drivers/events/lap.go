@@ -20,7 +20,7 @@ type GenericLap struct {
 }
 
 func NewLap(car drivers.Car, number uint32, time time.Duration, recorded time.Duration) Lap {
-	return &GenericLap{Event: NewGenericEvent(car), number: number, time: time, recorded: recorded}
+	return GenericLap{Event: NewGenericEvent(car), number: number, time: time, recorded: recorded}
 }
 
 func (g GenericLap) Number() uint32 {

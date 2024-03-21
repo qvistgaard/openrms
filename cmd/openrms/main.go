@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"flag"
+	"github.com/go-echarts/statsview"
+	"github.com/go-echarts/statsview/viewer"
 	"github.com/madflojo/tasks"
 	"github.com/pkg/browser"
 	"github.com/qvistgaard/openrms/cmd/openrms/configuration"
@@ -12,7 +14,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"io"
 	"os"
-	"runtime/pprof"
 	"sync"
 )
 
@@ -21,26 +22,19 @@ func main() {
 	var wg sync.WaitGroup
 	var ctx = context.Background()
 
+	viewer.SetConfiguration(viewer.WithTheme(viewer.ThemeWesteros), viewer.WithMaxPoints(500))
+	mgr := statsview.New()
+
+	// Start() runs a HTTP server at `localhost:18066` by default.
+	go mgr.Start()
+
 	flagConfig := flag.String("config", "config.yaml", "OpenRMS Config file")
 	flagLogfile := flag.String("log-file", "openrms.log", "OpenRMS log file")
 	flagLoglevel := flag.String("log-level", "debug", "Log level")
 	flagBrowser := flag.Bool("open-browser", false, "Open browser on launch")
 	flagDriver := flag.String("driver", "", "Driver")
 	tuiFlag := flag.Bool("tui", true, "Enable or disable tui")
-	profilerFlag := flag.String("profiler", "", "Enable or disable tui")
 	flag.Parse()
-
-	if *profilerFlag != "" {
-		f, err := os.Create(*profilerFlag)
-		if err != nil {
-			log.Fatal(err)
-		}
-		err = pprof.StartCPUProfile(f)
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer pprof.StopCPUProfile()
-	}
 
 	level, err := log.ParseLevel(*flagLoglevel)
 	if err != nil {

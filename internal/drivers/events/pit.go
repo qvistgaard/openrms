@@ -13,7 +13,7 @@ type GenericInPit struct {
 }
 
 func NewInPit(car drivers.Car, inPit bool) InPit {
-	return &GenericInPit{NewGenericEvent(car), inPit}
+	return GenericInPit{NewGenericEvent(car), inPit}
 }
 
 func (g GenericInPit) InPit() bool {

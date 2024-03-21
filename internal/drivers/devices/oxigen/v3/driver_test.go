@@ -1,17 +1,31 @@
 package v3
 
 import (
-	"fmt"
+	"github.com/go-echarts/statsview"
+	"github.com/go-echarts/statsview/viewer"
 	"github.com/qvistgaard/openrms/internal/drivers"
 	"github.com/qvistgaard/openrms/internal/drivers/devices/oxigen/serial"
-	log "github.com/sirupsen/logrus"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"
+	_ "net/http/pprof"
+	"os"
+	"runtime/debug"
 	"testing"
+	"time"
 )
 
 func TestDriver3xCommunications(t *testing.T) {
-	log.SetLevel(log.TraceLevel)
-	log.SetReportCaller(false)
+	viewer.SetConfiguration(viewer.WithTheme(viewer.ThemeWesteros), viewer.WithMaxPoints(1000))
+	mgr := statsview.New()
+	mgr.Register(viewer.NewGoroutinesViewer())
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+	// Start() runs a HTTP server at `localhost:18066` by default.
+	go mgr.Start()
+
+	zerolog.SetGlobalLevel(zerolog.TraceLevel)
+
+	debug.SetMemoryLimit(1907088)
 
 	connection, err := serial.CreateUSBConnection(nil)
 	assert.Nil(t, err)
@@ -25,11 +39,23 @@ func TestDriver3xCommunications(t *testing.T) {
 
 	implement.Start(received)
 
-	for {
-		select {
-		case data := <-received:
-			log.WithField("data", fmt.Sprintf("%+v", data)).Info("Data received")
+	// var mem runtime.MemStats
+	go func() {
+		for {
+			select {
+			case <-received:
+
+				/*				runtime.ReadMemStats(&mem)
+								log.Info().
+									Int("channel", len(received)).
+									Uint64("objects", mem.HeapObjects).
+									Uint64("alloc", mem.HeapAlloc).
+									Uint64("mem", mem.TotalAlloc).
+									Msg("Data received")*/
+			}
 		}
-	}
+	}()
+
+	<-time.After(600 * time.Second)
 
 }

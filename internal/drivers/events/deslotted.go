@@ -15,7 +15,7 @@ type GenericDeslotted struct {
 // NewDeslotted
 // Deprecated: use on track instead
 func NewDeslotted(car drivers.Car, deslotted bool) Deslotted {
-	return &GenericDeslotted{NewGenericEvent(car), deslotted}
+	return GenericDeslotted{NewGenericEvent(car), deslotted}
 }
 
 func (g GenericDeslotted) Deslotted() bool {

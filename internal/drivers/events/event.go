@@ -9,7 +9,7 @@ type GenericEvent struct {
 }
 
 func NewGenericEvent(car drivers.Car) drivers.Event {
-	return &GenericEvent{car: car}
+	return GenericEvent{car: car}
 }
 
 func (g GenericEvent) Car() drivers.Car {

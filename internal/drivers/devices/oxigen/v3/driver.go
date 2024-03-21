@@ -6,7 +6,7 @@ import (
 	"github.com/qvistgaard/openrms/internal/drivers"
 	"github.com/qvistgaard/openrms/internal/drivers/events"
 	"github.com/qvistgaard/openrms/internal/types"
-	log "github.com/sirupsen/logrus"
+	"github.com/rs/zerolog/log"
 	"go.bug.st/serial"
 	"math/rand"
 	"syscall"
@@ -75,12 +75,17 @@ func (d *Driver3x) Race() drivers.Race {
 }
 
 func (d *Driver3x) linkUpdateLoop(e chan<- drivers.Event) {
+	idleDuration := 100 * time.Millisecond
+	idleDelay := time.NewTimer(idleDuration)
+
 	for {
+		idleDelay.Reset(idleDuration)
+
 		select {
 		case link := <-d.expire:
 			d.removeLink(link)
 			e <- events.NewEnabled(newCar(d, link), false)
-		case <-time.After(100 * time.Millisecond):
+		case <-idleDelay.C:
 			if len(d.tx) == 0 {
 				d.sendStoredCarState()
 			}
@@ -90,11 +95,15 @@ func (d *Driver3x) linkUpdateLoop(e chan<- drivers.Event) {
 }
 
 func (d *Driver3x) communicationLoop(events chan<- drivers.Event) {
+	idleDuration := 50 * time.Millisecond
+	idleDelay := time.NewTimer(idleDuration)
+
 	for {
+		idleDelay.Reset(idleDuration)
 		select {
 		case command := <-d.tx:
 			d.writeAndRead(command, events)
-		case <-time.After(50 * time.Millisecond):
+		case <-idleDelay.C:
 			if len(d.tx) == 0 {
 				d.tx <- newEmptyCommand()
 			}
@@ -110,7 +119,7 @@ func (d *Driver3x) writeAndRead(command Command, events chan<- drivers.Event) {
 	for {
 		_, err := d.write(command)
 		if err != nil {
-			log.Error("Failed to write command to dongle", err)
+			log.Err(err).Msg("Failed to write command to dongle")
 			continue
 		} else {
 			break
@@ -120,27 +129,22 @@ func (d *Driver3x) writeAndRead(command Command, events chan<- drivers.Event) {
 		if err := d.serial.Drain(); err != nil {
 			var errno syscall.Errno
 			if errors.As(err, &errno) && errors.Is(errno, syscall.EINTR) {
-				log.Warn("Failed to drain after writing command. retrying...: ", err)
+				log.Warn().Err(err).Msg("Failed to drain after writing command. retrying...")
 				continue
 			}
-			log.Warn("Failed to drain after writing command: ", err)
+			log.Warn().Err(err).Msg("Failed to drain after writing command")
 		} else {
 			break
 		}
 	}
 
 	for {
-		// time.Sleep(100 * time.Millisecond)
 		read, err := d.Read()
 		if errors.Is(err, errors.New("EOF")) {
-			log.Tracef("EOF encountered: %v", err)
 			continue
 		} else if errors.Is(noLinksError, err) {
 			return
 		} else if err != nil {
-			// time.Sleep(time.Duration(d.readInterval) / time.Duration(len(d.links)+1) * time.Millisecond)
-
-			log.Tracef("Failed to read from buffer: %v", err)
 			return
 		}
 
@@ -159,17 +163,6 @@ func (d *Driver3x) write(command Command) (int, error) {
 	pack := command.pack(timer, d.race, d.track)
 
 	n, err := d.serial.Write(pack)
-
-	field := log.WithField("message", fmt.Sprintf("%v", pack)).
-		WithField("bytes", n).
-		WithField("car", command.id)
-
-	if command.id != nil {
-		field.Debug("send message to dongle")
-	} else {
-		field.Trace("send message to dongle")
-	}
-
 	return n, err
 }
 
@@ -180,28 +173,26 @@ func (d *Driver3x) Read() ([]dongleRxMessage, error) {
 	for len(messages) == 0 || len(messages)%13 != 0 {
 		n, err := d.serial.Read(buffer)
 		if err != nil {
-			log.Error(err)
+			log.Err(err).Msg("Failed to read buffer")
 			return nil, err
 		}
-
-		/*		log.WithField("message", fmt.Sprintf("%v", buffer)).
-				WithField("bytes", n).
-				Debug("part received message from dongle")*/
-
 		if n == 0 {
 			if len(d.links) == 0 {
 				return []dongleRxMessage{}, noLinksError
 			}
-			// d.readInterval = d.readInterval + 10
-			/*			log.WithField("interval", d.readInterval).Error("Read timeout, increasing read interval")*/
 			return []dongleRxMessage{}, errors.New("empty message from dongle")
 		}
 
 		messages = append(messages, buffer[:n]...)
+		// buffer = nil
 	}
-	log.WithField("message", fmt.Sprintf("%v", messages)).
-		WithField("bytes", len(messages)).
-		Debug("received message from dongle")
+
+	if log.Trace().Enabled() {
+		log.Trace().
+			Str("messages", fmt.Sprintf("%v", messages)).
+			Int("bytes", len(messages)).
+			Msg("received message from dongle")
+	}
 	return d.splitMessages(messages), nil
 }
 
@@ -212,7 +203,7 @@ func (d *Driver3x) event(c chan<- drivers.Event, b dongleRxMessage) {
 	lt := unpackLapTime(b[2], b[3])
 	lapNumber := (uint32(b[6]) * 256) + uint32(b[5])
 
-	car := newCar(d, id)
+	car := d.Car(id)
 
 	c <- events.NewInPit(car, unpackPitStatus(b))
 	c <- events.NewControllerTriggerValueEvent(car, float64(0x7F&b[7]))
@@ -226,7 +217,7 @@ func (d *Driver3x) event(c chan<- drivers.Event, b dongleRxMessage) {
 func (d *Driver3x) splitMessages(messages []byte) []dongleRxMessage {
 	count := len(messages) / 13
 	messageSlice := messages[:]
-	var splitSlices [4]dongleRxMessage
+	splitSlices := make([]dongleRxMessage, count)
 
 	for i := 0; i < count; i++ {
 		copy(splitSlices[i][:], messageSlice[i*13:(i+1)*13])
@@ -236,19 +227,20 @@ func (d *Driver3x) splitMessages(messages []byte) []dongleRxMessage {
 
 func (d *Driver3x) updateLink(e chan<- drivers.Event, message [13]byte) {
 	linkId := types.IdFromUint(message[1])
-
-	if _, ok := d.links[linkId]; !ok {
-		d.links[linkId] = controllerLink{
-			id:     linkId,
-			expire: d.expire,
-			renew:  make(chan bool),
+	if linkId > 0 {
+		if _, ok := d.links[linkId]; !ok {
+			d.links[linkId] = controllerLink{
+				id:     linkId,
+				expire: d.expire,
+				renew:  make(chan bool),
+			}
+			d.readInterval = 320
+			l := d.links[linkId]
+			go l.timeout()
+			e <- events.NewEnabled(newCar(d, linkId), true)
 		}
-		d.readInterval = 320
-		l := d.links[linkId]
-		go l.timeout()
-		e <- events.NewEnabled(newCar(d, linkId), true)
+		d.links[linkId].renew <- true
 	}
-	d.links[linkId].renew <- true
 }
 
 func (d *Driver3x) sendCarCommand(car uint8, code byte, value uint8) {

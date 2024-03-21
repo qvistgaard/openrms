@@ -2,7 +2,7 @@ package v3
 
 import (
 	"github.com/qvistgaard/openrms/internal/types"
-	log "github.com/sirupsen/logrus"
+	"github.com/rs/zerolog/log"
 	"time"
 )
 
@@ -13,12 +13,16 @@ type controllerLink struct {
 }
 
 func (l *controllerLink) timeout() {
-	log.WithField("id", l.id).Info("new controller link detected")
+	idleDuration := 15 * time.Second
+	idleDelay := time.NewTimer(idleDuration)
+	log.Info().Int("id", int(l.id)).Msg("new controller link detected")
 	for {
+		idleDelay.Reset(idleDuration)
+
 		select {
-		case <-time.After(5 * time.Second):
+		case <-idleDelay.C:
 			l.expire <- l.id
-			log.WithField("id", l.id).Warn("Controller link timed out")
+			log.Warn().Int("id", int(l.id)).Msg("Controller link timed out")
 			return
 		case <-l.renew:
 

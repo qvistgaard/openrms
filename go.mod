@@ -9,9 +9,9 @@ require (
 	github.com/charmbracelet/bubbletea v0.24.2
 	github.com/charmbracelet/lipgloss v0.9.1
 	github.com/divideandconquer/go-merge v0.0.0-20160829212531-bc6b3a394b4e
+	github.com/go-echarts/statsview v0.3.4
 	github.com/gopxl/beep v1.3.0
 	github.com/hashicorp/go-version v1.6.0
-	github.com/jacobsa/go-serial v0.0.0-20180131005756-15cf729a72d4
 	github.com/levigross/grequests v0.0.0-20231203190023-9c307ef1f48d
 	github.com/madflojo/tasks v1.1.0
 	github.com/mattn/go-runewidth v0.0.15
@@ -20,9 +20,9 @@ require (
 	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8
 	github.com/pkg/errors v0.9.1
 	github.com/qmuntal/stateless v1.6.8
+	github.com/rs/zerolog v1.32.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.8.4
-	github.com/tarm/goserial v0.0.0-20151007205400-b3440c3c6355
 	go.bug.st/serial v1.6.1
 	gopkg.in/yaml.v3 v3.0.1
 )
@@ -36,10 +36,12 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/ebitengine/oto/v3 v3.1.0 // indirect
 	github.com/ebitengine/purego v0.5.0 // indirect
+	github.com/go-echarts/go-echarts/v2 v2.2.3 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/hajimehoshi/go-mp3 v0.3.4 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
+	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-localereader v0.0.1 // indirect
 	github.com/muesli/ansi v0.0.0-20230316100256-276c6243b2f6 // indirect
@@ -48,6 +50,7 @@ require (
 	github.com/muesli/termenv v0.15.2 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rivo/uniseg v0.4.3 // indirect
+	github.com/rs/cors v1.7.0 // indirect
 	github.com/rs/xid v1.5.0 // indirect
 	golang.org/x/net v0.19.0 // indirect
 	golang.org/x/sync v0.5.0 // indirect

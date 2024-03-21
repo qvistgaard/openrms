@@ -7,7 +7,7 @@ type GenericControllerTrackCallButton struct {
 }
 
 func NewControllerTrackCallButton(car drivers.Car, pressed bool) Button {
-	return &GenericControllerTrackCallButton{NewGenericButton(car, pressed)}
+	return GenericControllerTrackCallButton{NewGenericButton(car, pressed)}
 }
 
 // ControllerTrackCallButton interface represents a specific type of button used

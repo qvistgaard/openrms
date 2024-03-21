@@ -13,7 +13,7 @@ type GenericOnTrack struct {
 }
 
 func NewOnTrack(car drivers.Car, ontrack bool) OnTrack {
-	return &GenericOnTrack{NewGenericEvent(car), ontrack}
+	return GenericOnTrack{NewGenericEvent(car), ontrack}
 }
 
 func (g GenericOnTrack) OnTrack() bool {

@@ -12,7 +12,7 @@ type GenericControllerTriggerValueEvent struct {
 }
 
 func NewControllerTriggerValueEvent(car drivers.Car, triggerValue float64) drivers.Event {
-	return &GenericControllerTriggerValueEvent{Event: NewGenericEvent(car), triggerValue: triggerValue}
+	return GenericControllerTriggerValueEvent{Event: NewGenericEvent(car), triggerValue: triggerValue}
 }
 
 func (g GenericControllerTriggerValueEvent) TriggerValue() float64 {
