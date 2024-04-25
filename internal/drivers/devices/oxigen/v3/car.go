@@ -3,7 +3,7 @@ package v3
 import (
 	"fmt"
 	"github.com/qvistgaard/openrms/internal/types"
-	log "github.com/sirupsen/logrus"
+	"github.com/rs/zerolog"
 )
 
 // Leaving for later when implementing lane change limitations.
@@ -22,7 +22,7 @@ const (
 )
 
 func newCar(driver *Driver3x, id types.CarId) *Car {
-	return &Car{id: id, driver3x: driver, maxBreaking: 255, minSpeed: 0, maxSpeed: 255, pitLaneSpeed: 255}
+	return &Car{logger: driver.logger, id: id, driver3x: driver, maxBreaking: 255, minSpeed: 0, maxSpeed: 255, pitLaneSpeed: 255}
 }
 
 type Car struct {
@@ -32,6 +32,7 @@ type Car struct {
 	minSpeed     uint8
 	maxSpeed     uint8
 	pitLaneSpeed uint8
+	logger       zerolog.Logger
 }
 
 func (c *Car) Id() types.CarId {
@@ -40,12 +41,13 @@ func (c *Car) Id() types.CarId {
 
 func (c *Car) SetMaxBreaking(percent uint8) {
 	c.maxBreaking = percentageToByte(percent)
-	log.WithField("drivers", "driver3x").
-		WithField("car", c.Id()).
-		WithField("max-breaking", percent).
-		WithField("cmd", carMaxBreakingCode).
-		WithField("hex", fmt.Sprintf("%x", c.maxBreaking)).
-		Info("set car max breaking")
+	c.logger.Info().
+		Str("drivers", "driver3x").
+		Stringer("car", c.Id()).
+		Uint8("max-breaking", percent).
+		Int("cmd", carMaxBreakingCode).
+		Str("hex", fmt.Sprintf("%x", c.maxBreaking)).
+		Msg("set car max breaking")
 	c.sendMaxBreaking()
 }
 
@@ -55,12 +57,13 @@ func (c *Car) sendMaxBreaking() {
 
 func (c *Car) SetMinSpeed(percent uint8) {
 	c.minSpeed = percentageToByte(percent) >> 1
-	log.WithField("drivers", "driver3x").
-		WithField("car", c.Id()).
-		WithField("min-speed", percent).
-		WithField("cmd", carMinSpeedCode).
-		WithField("hex", fmt.Sprintf("%x", c.minSpeed)).
-		Info("set car min speed")
+	c.logger.Info().
+		Str("drivers", "driver3x").
+		Stringer("car", c.Id()).
+		Uint8("min-speed", percent).
+		Int("cmd", carMinSpeedCode).
+		Str("hex", fmt.Sprintf("%x", c.minSpeed)).
+		Msg("set car min speed")
 	c.sendMinSpeed()
 }
 
@@ -70,12 +73,13 @@ func (c *Car) sendMinSpeed() {
 
 func (c *Car) SetMaxSpeed(percent uint8) {
 	c.maxSpeed = percentageToByte(percent)
-	log.WithField("drivers", "driver3x").
-		WithField("car", c.Id()).
-		WithField("max-speed", percent).
-		WithField("cmd", carMaxSpeedCode).
-		WithField("hex", fmt.Sprintf("%x", c.maxSpeed)).
-		Info("set car max speed")
+	c.logger.Info().
+		Str("drivers", "driver3x").
+		Stringer("car", c.Id()).
+		Uint8("max-speed", percent).
+		Int("cmd", carMaxSpeedCode).
+		Str("hex", fmt.Sprintf("%x", c.maxSpeed)).
+		Msg("set car max speed")
 	c.sendMaxSpeed()
 }
 
@@ -85,12 +89,13 @@ func (c *Car) sendMaxSpeed() {
 
 func (c *Car) SetPitLaneMaxSpeed(percent uint8) {
 	c.pitLaneSpeed = percentageToByte(percent)
-	log.WithField("drivers", "driver3x").
-		WithField("car", c.Id()).
-		WithField("max-speed", percent).
-		WithField("cmd", carPitLaneSpeedCode).
-		WithField("hex", fmt.Sprintf("%x", c.pitLaneSpeed)).
-		Info("set car pit lane max speed")
+	c.logger.Info().
+		Str("drivers", "driver3x").
+		Stringer("car", c.Id()).
+		Uint8("max-speed", percent).
+		Int("cmd", carPitLaneSpeedCode).
+		Str("hex", fmt.Sprintf("%x", c.pitLaneSpeed)).
+		Msg("set car pit lane max speed")
 	c.sendPitLaneMaxSpeed()
 }
 

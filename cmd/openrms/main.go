@@ -11,6 +11,7 @@ import (
 	"github.com/qvistgaard/openrms/internal/plugins/telemetry"
 	"github.com/qvistgaard/openrms/internal/rms"
 	"github.com/qvistgaard/openrms/internal/tui"
+	"github.com/rs/zerolog"
 	log "github.com/sirupsen/logrus"
 	"io"
 	"os"
@@ -44,8 +45,10 @@ func main() {
 	log.SetReportCaller(false)
 
 	logFile, err := os.OpenFile(*flagLogfile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+	writer := io.MultiWriter(os.Stdout, logFile)
 
-	log.SetOutput(io.MultiWriter(os.Stdout, logFile))
+	logger := zerolog.New(zerolog.ConsoleWriter{Out: writer}).With().Timestamp().Logger()
+	log.SetOutput(writer)
 
 	scheduler := tasks.New()
 	defer scheduler.Stop()
@@ -54,7 +57,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	driver, err := configuration.Driver(cfg, flagDriver)
+	driver, err := configuration.Driver(logger, cfg, flagDriver)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -106,7 +109,7 @@ func main() {
 	pitPlugin, _ := configuration.PitPlugin(cfg, soundSystem, fuelPlugin, limpModePlugin)
 	leaderboardPlugin := telemetry.New(fuelPlugin, limpModePlugin, pitPlugin, ontrackPlugin)
 
-	sound, err := configuration.SoundPlugin(cfg, soundSystem, leaderboardPlugin, race, confirmationPlugin, limpModePlugin, fuelPlugin, pitPlugin, ontrackPlugin, racePlugin)
+	sound, err := configuration.SoundPlugin(logger, cfg, soundSystem, leaderboardPlugin, race, confirmationPlugin, limpModePlugin, fuelPlugin, pitPlugin, ontrackPlugin, racePlugin)
 	if err != nil {
 		log.Fatal(err)
 	}

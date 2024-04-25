@@ -1,6 +1,8 @@
 package v3
 
-import log "github.com/sirupsen/logrus"
+import (
+	"github.com/rs/zerolog"
+)
 
 const (
 	RaceUnknownByte           = 0x00
@@ -13,18 +15,21 @@ const (
 
 type Race struct {
 	status byte
+	logger zerolog.Logger
 }
 
-func NewRace() *Race {
+func NewRace(logger zerolog.Logger) *Race {
 	return &Race{
+		logger: logger,
 		status: RaceUnknownByte,
 	}
 }
 
 func (r *Race) Start() {
-	log.WithField("drivers", "oxigen").
-		WithField("race-status", "start").
-		Info("Race status changed")
+	r.logger.Info().
+		Str("drivers", "driver3x").
+		Str("race-status", "start").
+		Msg("Race status changed")
 	r.status = RaceRunningByte
 }
 
@@ -33,15 +38,17 @@ func (r *Race) Flag() {
 }
 
 func (r *Race) Pause() {
-	log.WithField("drivers", "oxigen").
-		WithField("race-status", "pause").
-		Info("Race status changed")
+	r.logger.Info().
+		Str("drivers", "driver3x").
+		Str("race-status", "pause").
+		Msg("Race status changed")
 	r.status = RacePausedByte
 }
 
 func (r *Race) Stop() {
-	log.WithField("drivers", "oxigen").
-		WithField("race-status", "stopped").
-		Info("Race status changed")
+	r.logger.Info().
+		Str("drivers", "driver3x").
+		Str("race-status", "stopped").
+		Msg("Race status changed")
 	r.status = RaceStoppedByte
 }

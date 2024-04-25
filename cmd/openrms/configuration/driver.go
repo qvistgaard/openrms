@@ -6,6 +6,7 @@ import (
 	"github.com/qvistgaard/openrms/internal/drivers"
 	"github.com/qvistgaard/openrms/internal/drivers/devices/generator"
 	"github.com/qvistgaard/openrms/internal/drivers/devices/oxigen"
+	"github.com/rs/zerolog"
 )
 
 type DriverConfiguration struct {
@@ -41,7 +42,7 @@ type DriverConfiguration struct {
 // Returns:
 //   - An implementation of the 'drivers.Driver' interface corresponding to the specified drivers.
 //   - An error if there was an issue initializing the drivers or if the specified drivers is unknown.
-func Driver(conf Config, driver *string) (drivers.Driver, error) {
+func Driver(logger zerolog.Logger, conf Config, driver *string) (drivers.Driver, error) {
 	c := &DriverConfiguration{}
 	err := mapstructure.Decode(conf, c)
 	if err != nil {
@@ -62,7 +63,7 @@ func Driver(conf Config, driver *string) (drivers.Driver, error) {
 		if err != nil {
 			return nil, errors.WithMessage(err, "failed to read oxigen drivers configuration")
 		}
-		return oxigen.New(*c)
+		return oxigen.New(logger, *c)
 	case "generator":
 		c := &generator.Config{}
 		err := mapstructure.Decode(conf, c)

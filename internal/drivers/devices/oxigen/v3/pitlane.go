@@ -2,15 +2,18 @@ package v3
 
 import (
 	"github.com/qvistgaard/openrms/internal/drivers"
+	"github.com/rs/zerolog"
 )
 
 type PitLane struct {
 	lapCounting       byte
 	lapCountingOption byte
+	logger            zerolog.Logger
 }
 
-func NewPitLane() *PitLane {
+func NewPitLane(logger zerolog.Logger) *PitLane {
 	return &PitLane{
+		logger:      logger,
 		lapCounting: pitLaneLapCountingEnabledByte,
 	}
 }

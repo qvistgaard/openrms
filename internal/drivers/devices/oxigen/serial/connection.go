@@ -2,13 +2,14 @@ package serial
 
 import (
 	"errors"
+	"github.com/rs/zerolog"
 	log "github.com/sirupsen/logrus"
 	"go.bug.st/serial"
 	"go.bug.st/serial/enumerator"
 	"strings"
 )
 
-func CreateUSBConnection(device *string) (serial.Port, error) {
+func CreateUSBConnection(logger zerolog.Logger, device *string) (serial.Port, error) {
 	var oxigenPort string
 	if device == nil || *device == "" {
 		ports, err := enumerator.GetDetailedPortsList()
@@ -19,18 +20,20 @@ func CreateUSBConnection(device *string) (serial.Port, error) {
 			return nil, errors.New("no serial ports found")
 		}
 		for _, port := range ports {
-			log.WithField("port", port.Name).
-				WithField("usb", port.IsUSB).
-				WithField("vendor", port.VID).
-				WithField("product", port.PID).
-				WithField("name", port.Product).
-				Debug("found COM port")
+			logger.Debug().
+				Str("port", port.Name).
+				Bool("usb", port.IsUSB).
+				Str("vendor", port.VID).
+				Str("product", port.PID).
+				Str("name", port.Product).
+				Msg("found COM port")
 			if port.IsUSB && strings.ToUpper(port.VID) == "1FEE" && port.PID == "0002" {
 				oxigenPort = port.Name
-				log.WithField("port", oxigenPort).
-					WithField("vendor", port.VID).
-					WithField("product", port.PID).
-					Info("oxigen COM port identified")
+				logger.Info().
+					Str("port", oxigenPort).
+					Str("vendor", port.VID).
+					Str("product", port.PID).
+					Msg("oxigen COM port identified")
 			}
 		}
 		if oxigenPort == "" {

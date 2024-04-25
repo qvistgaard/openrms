@@ -20,6 +20,7 @@ import (
 	"github.com/qvistgaard/openrms/internal/plugins/telemetry"
 	race2 "github.com/qvistgaard/openrms/internal/state/race"
 	"github.com/qvistgaard/openrms/internal/state/track"
+	"github.com/rs/zerolog"
 )
 
 // Plugins initializes and returns a new Plugins instance based on the provided configuration.
@@ -201,12 +202,16 @@ func OnTrackPlugin(conf Config, f *flags.Plugin, sound *system.Sound) (*ontrack.
 //
 // This function sets default values for the SoundFX configuration, adjusts specific announcement settings,
 // and returns a SoundFX plugin instance tailored to the provided configuration, enhancing the audio experience.
-func SoundPlugin(conf Config, soundSystem *system.Sound, telemetry *telemetry.Plugin, race *race2.Race, confirmation *confirmation.Plugin, limbMode *limbmode.Plugin, fuel *fuel.Plugin, pit *pit.Plugin, ontrack *ontrack.Plugin, plugin *race.Plugin) (*sound.Plugin, error) {
+func SoundPlugin(logger zerolog.Logger, conf Config, soundSystem *system.Sound, telemetry *telemetry.Plugin, race *race2.Race, confirmation *confirmation.Plugin, limbMode *limbmode.Plugin, fuel *fuel.Plugin, pit *pit.Plugin, ontrack *ontrack.Plugin, plugin *race.Plugin) (*sound.Plugin, error) {
 	c := &system.Config{}
 	defaults.SetDefaults(c)
 
 	c.Plugin.Sound.Announcements.PlayHT = &pht.PlayHTConfig{}
 	c.Plugin.Sound.Announcements.ElevenLabs = &ell.ElevenLabsConfig{}
+	c.Plugin.Sound.Effects.Announcements = &system.Announcements{}
+	c.Plugin.Sound.Effects.Music = &system.Music{}
+	defaults.SetDefaults(c.Plugin.Sound.Effects.Music)
+	defaults.SetDefaults(c.Plugin.Sound.Effects.Announcements)
 	defaults.SetDefaults(c.Plugin.Sound.Announcements.PlayHT)
 	defaults.SetDefaults(c.Plugin.Sound.Announcements.ElevenLabs)
 
@@ -215,7 +220,7 @@ func SoundPlugin(conf Config, soundSystem *system.Sound, telemetry *telemetry.Pl
 		return nil, errors.WithMessage(err, "failed to read sound plugin configuration")
 	}
 
-	return sound.New(c, soundSystem, telemetry, race, confirmation, limbMode, fuel, pit, ontrack, plugin)
+	return sound.New(logger, c, soundSystem, telemetry, race, confirmation, limbMode, fuel, pit, ontrack, plugin)
 }
 
 // LimbModePlugin initializes and returns a new LimpMode plugin instance based on the provided configuration.

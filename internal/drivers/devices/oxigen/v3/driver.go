@@ -6,7 +6,7 @@ import (
 	"github.com/qvistgaard/openrms/internal/drivers"
 	"github.com/qvistgaard/openrms/internal/drivers/events"
 	"github.com/qvistgaard/openrms/internal/types"
-	"github.com/rs/zerolog/log"
+	"github.com/rs/zerolog"
 	"go.bug.st/serial"
 	"math/rand"
 	"syscall"
@@ -24,18 +24,20 @@ type Driver3x struct {
 	tx           chan Command
 	race         *Race
 	track        *Track
+	logger       zerolog.Logger
 }
 
 var noLinksError = errors.New("empty message from dongle and no links available")
 
 type dongleRxMessage [13]byte
 
-func CreateDriver(connection serial.Port) (drivers.Driver, error) {
+func CreateDriver(logger zerolog.Logger, connection serial.Port) (drivers.Driver, error) {
 	connection.SetReadTimeout(50 * time.Millisecond)
 	o := &Driver3x{
+		logger: logger,
 		serial: connection,
-		track:  NewTrack(),
-		race:   NewRace(),
+		track:  NewTrack(logger),
+		race:   NewRace(logger),
 		start:  time.Now(),
 		links:  make(map[types.CarId]controllerLink),
 		cars:   make(map[types.CarId]*Car),
@@ -119,7 +121,7 @@ func (d *Driver3x) writeAndRead(command Command, events chan<- drivers.Event) {
 	for {
 		_, err := d.write(command)
 		if err != nil {
-			log.Err(err).Msg("Failed to write command to dongle")
+			d.logger.Err(err).Msg("Failed to write command to dongle")
 			continue
 		} else {
 			break
@@ -129,10 +131,10 @@ func (d *Driver3x) writeAndRead(command Command, events chan<- drivers.Event) {
 		if err := d.serial.Drain(); err != nil {
 			var errno syscall.Errno
 			if errors.As(err, &errno) && errors.Is(errno, syscall.EINTR) {
-				log.Warn().Err(err).Msg("Failed to drain after writing command. retrying...")
+				d.logger.Warn().Err(err).Msg("Failed to drain after writing command. retrying...")
 				continue
 			}
-			log.Warn().Err(err).Msg("Failed to drain after writing command")
+			d.logger.Warn().Err(err).Msg("Failed to drain after writing command")
 		} else {
 			break
 		}
@@ -173,7 +175,7 @@ func (d *Driver3x) Read() ([]dongleRxMessage, error) {
 	for len(messages) == 0 || len(messages)%13 != 0 {
 		n, err := d.serial.Read(buffer)
 		if err != nil {
-			log.Err(err).Msg("Failed to read buffer")
+			d.logger.Err(err).Msg("Failed to read buffer")
 			return nil, err
 		}
 		if n == 0 {
@@ -187,8 +189,8 @@ func (d *Driver3x) Read() ([]dongleRxMessage, error) {
 		// buffer = nil
 	}
 
-	if log.Trace().Enabled() {
-		log.Trace().
+	if d.logger.Trace().Enabled() {
+		d.logger.Trace().
 			Str("messages", fmt.Sprintf("%v", messages)).
 			Int("bytes", len(messages)).
 			Msg("received message from dongle")
@@ -230,6 +232,7 @@ func (d *Driver3x) updateLink(e chan<- drivers.Event, message [13]byte) {
 	if linkId > 0 {
 		if _, ok := d.links[linkId]; !ok {
 			d.links[linkId] = controllerLink{
+				logger: d.logger,
 				id:     linkId,
 				expire: d.expire,
 				renew:  make(chan bool),

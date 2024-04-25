@@ -6,13 +6,13 @@ import (
 	"github.com/pkg/errors"
 	"github.com/qvistgaard/openrms/internal/drivers"
 	v3 "github.com/qvistgaard/openrms/internal/drivers/devices/oxigen/v3"
-	log "github.com/sirupsen/logrus"
+	"github.com/rs/zerolog"
 	"go.bug.st/serial"
 	"io"
 	"time"
 )
 
-func CreateImplement(connection serial.Port) (drivers.Driver, error) {
+func CreateImplement(logger zerolog.Logger, connection serial.Port) (drivers.Driver, error) {
 	var err error
 	versionRequest := []byte{0x06, 0x06, 0x06, 0x06, 0x00, 0x00, 0x00} // Get dongle version bytecode
 	_, err = connection.Write(versionRequest)
@@ -29,17 +29,21 @@ func CreateImplement(connection serial.Port) (drivers.Driver, error) {
 	v, _ := version.NewVersion(fmt.Sprintf("%d.%d", versionResponse[0], versionResponse[1]))
 	constraint, _ := version.NewConstraint(">= 3.10")
 
-	log.WithField("message", fmt.Sprintf("%x", versionResponse)).
-		WithField("bytes", len(versionResponse)).
-		Trace("received message from oxygen dongle")
+	logger.Trace().
+		Str("message", fmt.Sprintf("%x", versionResponse)).
+		Int("bytes", len(versionResponse)).
+		Msg("received message from oxygen dongle")
 
 	if !constraint.Check(v) {
 		return nil, errors.New(fmt.Sprintf("Unsupported dongle version: %s", v))
 	}
-	log.WithField("version", v).Infof("Connected to oxigen dongle. Dongle version: %s", v)
+
+	logger.Info().
+		Stringer("version", v).
+		Msgf("Connected to oxigen dongle. Dongle version: %s", v)
 	time.Sleep(1000 * time.Millisecond)
 
-	return v3.CreateDriver(connection)
+	return v3.CreateDriver(logger, connection)
 }
 
 /*
